@@ -1,0 +1,29 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEZEdit", "FEZEdit/FEZEdit.csproj", "{02BF9445-6FE8-4316-8185-6A554736CE93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEZRepacker.Core", "FEZRepacker\Core\FEZRepacker.Core.csproj", "{325E449D-74FA-4AFA-8963-9D1097469F7B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{02BF9445-6FE8-4316-8185-6A554736CE93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02BF9445-6FE8-4316-8185-6A554736CE93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02BF9445-6FE8-4316-8185-6A554736CE93}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{02BF9445-6FE8-4316-8185-6A554736CE93}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{02BF9445-6FE8-4316-8185-6A554736CE93}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{02BF9445-6FE8-4316-8185-6A554736CE93}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{325E449D-74FA-4AFA-8963-9D1097469F7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{325E449D-74FA-4AFA-8963-9D1097469F7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{325E449D-74FA-4AFA-8963-9D1097469F7B}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{325E449D-74FA-4AFA-8963-9D1097469F7B}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{325E449D-74FA-4AFA-8963-9D1097469F7B}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{325E449D-74FA-4AFA-8963-9D1097469F7B}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

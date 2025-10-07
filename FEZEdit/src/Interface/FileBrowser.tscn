@@ -1,0 +1,53 @@
+[gd_scene load_steps=4 format=3 uid="uid://dvnr57r0raexl"]
+
+[ext_resource type="Script" uid="uid://242hdkugq3ys" path="res://src/Interface/FileBrowser.cs" id="1_x4xo7"]
+[ext_resource type="PackedScene" uid="uid://xbwwsxlgeaho" path="res://src/Interface/AddressBar.tscn" id="2_2nus5"]
+[ext_resource type="PackedScene" uid="uid://drfdrgrkbo5l0" path="res://src/Interface/TreeFilter.tscn" id="3_2nus5"]
+
+[node name="FileBrowser" type="MarginContainer"]
+offset_right = 360.0
+offset_bottom = 289.0
+script = ExtResource("1_x4xo7")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PanelContainer1" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="AddressBar" parent="VBoxContainer/PanelContainer1" instance=ExtResource("2_2nus5")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="TreeFilter" parent="VBoxContainer/PanelContainer2" instance=ExtResource("3_2nus5")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PanelContainer3" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FilesTree" type="Tree" parent="VBoxContainer/PanelContainer3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/draw_relationship_lines = 1
+allow_rmb_select = true
+allow_search = false
+auto_tooltip = false
+
+[node name="ContextMenu" type="PopupMenu" parent="."]
+unique_name_in_owner = true
+
+[node name="Dialogs" type="Node" parent="."]
+
+[node name="SaveToFolderDialog" type="FileDialog" parent="Dialogs"]
+unique_name_in_owner = true
+file_mode = 2
+display_mode = 1
+access = 2
+use_native_dialog = true

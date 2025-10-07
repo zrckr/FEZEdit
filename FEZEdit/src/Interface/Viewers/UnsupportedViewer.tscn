@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://7scfiyisk2at"]
+
+[ext_resource type="Script" uid="uid://bxy320482sfdr" path="res://src/Interface/Viewers/EmptyViewer.cs" id="1_bvhwj"]
+
+[node name="EmptyViewer" type="MarginContainer"]
+offset_right = 128.0
+offset_bottom = 23.0
+size_flags_horizontal = 3
+script = ExtResource("1_bvhwj")
+
+[node name="EmptyViewer" type="CenterContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="EmptyViewer"]
+layout_mode = 2
+text = "Unsupported"

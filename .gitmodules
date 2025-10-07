@@ -1,0 +1,3 @@
+[submodule "FEZRepacker"]
+	path = FEZRepacker
+	url = https://github.com/FEZModding/FEZRepacker

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=6 format=3 uid="uid://1cxq26p660bx"]
+
+[ext_resource type="PackedScene" uid="uid://bu08brq4d0ca6" path="res://src/Interface/Viewers/EmptyViewer.tscn" id="1_cyyr3"]
+[ext_resource type="Script" uid="uid://bde84dr6nnp1w" path="res://src/Interface/Viewers/ViewersResource.cs" id="1_ku8mm"]
+[ext_resource type="PackedScene" uid="uid://05sl60puik6g" path="res://src/Interface/Viewers/GeometryViewer.tscn" id="2_gl1yw"]
+[ext_resource type="PackedScene" uid="uid://cj6qm8s8ey7ap" path="res://src/Interface/Viewers/TextureViewer.tscn" id="3_mkfbq"]
+[ext_resource type="PackedScene" uid="uid://7scfiyisk2at" path="res://src/Interface/Viewers/UnsupportedViewer.tscn" id="4_urpa1"]
+
+[resource]
+script = ExtResource("1_ku8mm")
+_emptyScene = ExtResource("1_cyyr3")
+_unsupportedScene = ExtResource("4_urpa1")
+_scenes = Array[PackedScene]([ExtResource("2_gl1yw"), ExtResource("3_mkfbq")])

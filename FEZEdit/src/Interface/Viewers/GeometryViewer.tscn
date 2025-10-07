@@ -1,0 +1,54 @@
+[gd_scene load_steps=8 format=3 uid="uid://05sl60puik6g"]
+
+[ext_resource type="Script" uid="uid://b3uawasj3xaor" path="res://src/Interface/Viewers/GeometryViewer.cs" id="1_5tywl"]
+[ext_resource type="Script" uid="uid://clcttu8vg6s3r" path="res://src/Scene/FreelookCamera3D.cs" id="1_80a3p"]
+[ext_resource type="Script" uid="uid://d3u72od2enhbq" path="res://src/Scene/Grid3D.cs" id="1_tuv3d"]
+[ext_resource type="Texture2D" uid="uid://0wduqfn2vbp4" path="res://assets/Faces.png" id="4_emgkx"]
+
+[sub_resource type="Environment" id="Environment_80a3p"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b2e3u"]
+albedo_texture = ExtResource("4_emgkx")
+
+[sub_resource type="BoxMesh" id="BoxMesh_4o4rq"]
+material = SubResource("StandardMaterial3D_b2e3u")
+
+[node name="GeometryViewer" type="MarginContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+script = ExtResource("1_5tywl")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+transparent_bg = true
+canvas_item_default_texture_filter = 0
+size = Vector2i(40, 40)
+render_target_update_mode = 4
+
+[node name="ViewerNode" type="Node3D" parent="SubViewportContainer/SubViewport"]
+unique_name_in_owner = true
+
+[node name="FreelookCamera" type="Camera3D" parent="SubViewportContainer/SubViewport/ViewerNode"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+environment = SubResource("Environment_80a3p")
+current = true
+script = ExtResource("1_80a3p")
+
+[node name="Grid3D" type="Node3D" parent="SubViewportContainer/SubViewport/ViewerNode"]
+script = ExtResource("1_tuv3d")
+
+[node name="DirectionalLight1" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport/ViewerNode"]
+transform = Transform3D(0.83451194, -0.2249407, 0.5029827, 0.27549496, 0.9609134, -0.027347412, -0.4771712, 0.16139092, 0.86386377, 0, 0, 0)
+
+[node name="DirectionalLight2" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport/ViewerNode"]
+transform = Transform3D(0.5509899, 0.34068808, -0.7618017, -0.41725597, 0.90303975, 0.1020621, 0.7227085, 0.2616311, 0.6397199, 0, 0, 0)
+light_color = Color(0.74509805, 0.74509805, 0.74509805, 1)
+
+[node name="Instance" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/ViewerNode"]
+unique_name_in_owner = true
+mesh = SubResource("BoxMesh_4o4rq")
