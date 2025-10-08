@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://c67kuxugbjfbl"]
+
+[ext_resource type="Script" uid="uid://beo7kdrxj427b" path="res://src/Interface/EditorProperties/EditorPropertyColor.cs" id="1_vb523"]
+
+[node name="EditorPropertyColor" type="HBoxContainer"]
+offset_right = 1.0
+offset_bottom = 23.0
+size_flags_horizontal = 3
+script = ExtResource("1_vb523")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "<Color>"
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+color = Color(1, 1, 1, 1)
+edit_alpha = false
+edit_intensity = false

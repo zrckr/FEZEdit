@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://e4ieg55ki7mf"]
+
+[ext_resource type="Script" uid="uid://dett8cbcboh8i" path="res://src/Interface/EditorProperties/EditorPropertyEnum.cs" id="1_sexn5"]
+
+[node name="EditorPropertyEnum" type="HBoxContainer"]
+offset_right = 1.0
+offset_bottom = 23.0
+size_flags_horizontal = 3
+script = ExtResource("1_sexn5")
+TypeFullName = "System.Object"
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "<Enum>"
+
+[node name="OptionButton" type="OptionButton" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3

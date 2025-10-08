@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json.Serialization;
-using FEZEdit.Interface.PropertyEditors;
-using Godot;
+﻿using Godot;
 
 namespace FEZEdit.Interface;
 
@@ -43,28 +40,6 @@ public partial class Inspector : Control
         }
         
         _headerLabel.Text = _currentTarget.GetType().Name;
-
-        var properties = _currentTarget.GetType()
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (var property in properties)
-        {
-            var row = new HBoxContainer() { Name = property.Name };
-            _properties.AddChild(row);
-            
-            var label = new Label() { Text = property.Name, SizeFlagsHorizontal = SizeFlags.ExpandFill };
-            row.AddChild(label);
-            
-            var editor = PropertyEditorFactory.CreateEditor(property, out bool notFound);
-            var editorControl = editor.CreateControl();
-            editorControl.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-            row.AddChild(editorControl);
-            
-            var value = property.GetValue(_currentTarget);
-            value = notFound ? value?.ToString() : value;
-            editor.SetValue(value);
-        }
-
         Visible = true;
     }
 }

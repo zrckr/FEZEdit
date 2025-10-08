@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://txwiwt6grvvx"]
+
+[ext_resource type="Script" uid="uid://dwhnexas1scia" path="res://src/Interface/EditorProperties/EditorPropertyInteger.cs" id="1_vh2va"]
+
+[node name="EditorPropertyInteger" type="HBoxContainer"]
+offset_right = 1.0
+offset_bottom = 23.0
+size_flags_horizontal = 3
+script = ExtResource("1_vh2va")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "<Integer>"
+
+[node name="SpinBox" type="SpinBox" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1

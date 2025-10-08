@@ -1,0 +1,108 @@
+[gd_scene load_steps=2 format=3 uid="uid://dcin6fx5ljo6u"]
+
+[ext_resource type="Script" uid="uid://f0h4dx3auw1r" path="res://src/Interface/EditorProperties/EditorPropertyTimeSpan.cs" id="1_6tbyg"]
+
+[node name="EditorPropertyTimeSpan" type="VBoxContainer"]
+offset_right = 158.0
+offset_bottom = 163.0
+size_flags_horizontal = 3
+script = ExtResource("1_6tbyg")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "<TimeSpan>"
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="HoursContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/HoursContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/HoursContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9607843, 0.2, 0.32156864, 1)
+text = "H"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxH" type="SpinBox" parent="Layout/HoursContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 23.0
+alignment = 1
+suffix = "hour(s)"
+
+[node name="MinutesContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/MinutesContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/MinutesContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5294118, 0.8392157, 0.007843138, 1)
+text = "M"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxM" type="SpinBox" parent="Layout/MinutesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 60.0
+alignment = 1
+suffix = "minute(s)"
+
+[node name="SecondsContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/SecondsContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/SecondsContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.16078432, 0.54901963, 0.9607843, 1)
+text = "S"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxS" type="SpinBox" parent="Layout/SecondsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 60.0
+alignment = 1
+suffix = "second(s)"
+
+[node name="MillisecondsContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/MillisecondsContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/MillisecondsContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8627451, 0.019607844, 1)
+text = "MS"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxMS" type="SpinBox" parent="Layout/MillisecondsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1000.0
+alignment = 1
+suffix = "ms"
