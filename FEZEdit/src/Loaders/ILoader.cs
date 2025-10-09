@@ -3,9 +3,11 @@ using System.IO;
 using FEZEdit.Core;
 using FEZEdit.Interface;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
-using FEZRepacker.Core.Definitions.Game.Graphics;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using FEZRepacker.Core.Definitions.Game.XNA;
+using Godot;
+using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
+using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
 namespace FEZEdit.Loaders;
 
@@ -30,6 +32,8 @@ public interface ILoader
     AnimatedTexture LoadAnimatedBackgroundPlane(string assetName);
 
     IDictionary<string, AnimatedTexture> LoadCharacterAnimations(string assetName);
+    
+    AudioStreamWav LoadSound(string assetName);
     
     void RepackAsset(string path, string targetDirectory, RepackingMode mode);
 }

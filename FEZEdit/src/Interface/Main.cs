@@ -86,6 +86,13 @@ public partial class Main : Control
                     _fileBrowser.CanConvert = _loader is FolderLoader;
                     EventBus.Success("Opened: {0}", workingTarget.FullName);
                 }).CallDeferred();
+                
+                Settings.CurrentFolder = workingTarget switch
+                {
+                    FileInfo info => info.DirectoryName,
+                    DirectoryInfo info => info.FullName,
+                    _ => throw new ArgumentOutOfRangeException(nameof(workingTarget))
+                };
             }
             catch (Exception exception)
             {
@@ -133,6 +140,7 @@ public partial class Main : Control
                             return;
                         }
 
+                        editor.Loader = _loader;
                         editor.Value = @object;
                         AttachEditor(editor);
                         EventBus.Progress(ProgressValue.Complete);

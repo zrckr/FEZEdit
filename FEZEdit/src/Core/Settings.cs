@@ -28,6 +28,12 @@ public static class Settings
         set => SetSetting("files/last_save_folder", Variant.CreateFrom(value));
     }
 
+    public static string CurrentFolder
+    {
+        get => GetSetting("files/current_folder", Variant.CreateFrom(string.Empty)).AsString();
+        set => SetSetting("files/current_folder", Variant.CreateFrom(value));
+    }
+
     static Settings()
     {
         var config = new ConfigFile();

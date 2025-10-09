@@ -6,7 +6,7 @@ namespace FEZEdit.Interface.Editors;
 
 using TextStorage = Dictionary<string, Dictionary<string, string>>;
 
-public partial class PoEditor : Editor<TextStorage>
+public partial class PoEditor : TypedEditor<TextStorage>
 {
     public override TextStorage TypedValue { get; set; }
 

@@ -11,6 +11,7 @@ script = ExtResource("1_x4xo7")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
+theme_override_constants/separation = 0
 
 [node name="PanelContainer1" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -47,6 +48,7 @@ unique_name_in_owner = true
 
 [node name="SaveToFolderDialog" type="FileDialog" parent="Dialogs"]
 unique_name_in_owner = true
+title = "Open a Directory"
 file_mode = 2
 display_mode = 1
 access = 2

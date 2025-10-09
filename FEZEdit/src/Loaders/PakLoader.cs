@@ -6,12 +6,13 @@ using FEZEdit.Core;
 using FEZEdit.Interface;
 using FEZRepacker.Core.Conversion;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
-using FEZRepacker.Core.Definitions.Game.Graphics;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
-using FEZRepacker.Core.Definitions.Game.XNA;
 using FEZRepacker.Core.FileSystem;
 using FEZRepacker.Core.XNB;
+using Godot;
 using Serilog;
+using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
+using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
 namespace FEZEdit.Loaders;
 
@@ -96,6 +97,11 @@ public class PakLoader : ILoader
     public AnimatedTexture LoadAnimatedBackgroundPlane(string assetName)
     {
         return LoadFromRecord<AnimatedTexture>(Path.Combine("background planes", assetName));
+    }
+
+    public AudioStreamWav LoadSound(string assetName)
+    {
+        throw new NotImplementedException();
     }
 
     public IDictionary<string, AnimatedTexture> LoadCharacterAnimations(string assetName)

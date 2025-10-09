@@ -7,10 +7,11 @@ using FEZEdit.Interface;
 using FEZRepacker.Core.Conversion;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
+using FEZRepacker.Core.Definitions.Game.XNA;
 using FEZRepacker.Core.FileSystem;
 using FEZRepacker.Core.XNB;
+using Godot;
 using Serilog;
-using SharpGLTF.Schema2;
 using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
@@ -108,6 +109,18 @@ public class FolderLoader : ILoader
     {
         var path = Path.Combine(AssetDirectory.FullName, "background planes", assetName);
         return LoadFromFile<AnimatedTexture>(new FileInfo(path));
+    }
+
+    public AudioStreamWav LoadSound(string assetName)
+    {
+        var path = Path.Combine(AssetDirectory.FullName, "sounds", assetName + ".wav");
+        var info = new FileInfo(path);
+        if (!info.Exists)
+        {
+            throw new FileNotFoundException(path);
+        }
+        
+        return AudioStreamWav.LoadFromFile(info.FullName);
     }
 
     public IDictionary<string, AnimatedTexture> LoadCharacterAnimations(string assetName)

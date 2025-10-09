@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=37 format=3 uid="uid://bvigxeq8g32pu"]
+[gd_resource type="Theme" load_steps=38 format=3 uid="uid://bvigxeq8g32pu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7ek4o"]
 
@@ -52,6 +52,9 @@ content_margin_right = 4.0
 content_margin_left = 4.0
 content_margin_right = 4.0
 bg_color = Color(0.29411766, 0.43137255, 0.6862745, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqmar"]
+bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2tncf"]
 bg_color = Color(0.11764706, 0.11764706, 0.11764706, 1)
@@ -184,6 +187,7 @@ MenuBar/styles/hover = SubResource("StyleBoxFlat_exgjk")
 MenuBar/styles/normal = SubResource("StyleBoxEmpty_7libu")
 MenuBar/styles/pressed = SubResource("StyleBoxFlat_dnqeh")
 MenuButton/constants/icon_max_width = 16
+OptionButton/styles/normal = SubResource("StyleBoxFlat_mqmar")
 Panel/styles/panel = SubResource("StyleBoxFlat_2tncf")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_7ek4o")
 PopupMenu/constants/icon_max_width = 24
@@ -212,7 +216,7 @@ Tree/styles/hovered_selected_focus = SubResource("StyleBoxFlat_xsnnk")
 Tree/styles/panel = SubResource("StyleBoxLine_qg1he")
 Tree/styles/selected = SubResource("StyleBoxFlat_1w7px")
 Tree/styles/selected_focus = SubResource("StyleBoxFlat_ewun1")
-VBoxContainer/constants/separation = 0
+VBoxContainer/constants/separation = 8
 VScrollBar/styles/grabber = SubResource("StyleBoxFlat_5kpe3")
 VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_o61jr")
 VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_ijvli")
