@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using FEZEdit.Core;
-using FEZEdit.Interface.Viewers;
+using FEZEdit.Interface.Editors;
 using FEZEdit.Loaders;
 using Godot;
 using Serilog;
@@ -16,15 +16,13 @@ public partial class Main : Control
 
     [Export] private IconsResource _icons;
 
-    [Export] private ViewersResource _viewers;
+    [Export] private EditorFactory _editors;
 
     private MainMenu _mainMenu;
 
     private FileBrowser _fileBrowser;
 
-    private Viewer _viewer;
-
-    private Inspector _inspector;
+    private Editor _editor;
 
     private ILoader _loader;
 
@@ -36,24 +34,22 @@ public partial class Main : Control
         _mainMenu.ThemeSelected += ChangeTheme;
 
         _fileBrowser = GetNode<FileBrowser>("%FileBrowser");
-        _fileBrowser.FileMaterialized += MaterializeFile;
+        _fileBrowser.FileMaterialized += EditFile;
         _fileBrowser.FileOrDirectoryRepacked += RepackFileOrDirectories;
 
-        _viewer = GetNode<Viewer>("%Viewer");
-        _inspector = GetNode<Inspector>("%Inspector");
-        EventBus.Info("Ready");
+        _editor = GetNode<Editor>("%Editor");
     }
 
-    private void AttachViewer(Viewer viewerInstance)
+    private void AttachEditor(Editor editorInstance)
     {
-        var parent = _viewer.GetParent<Control>();
-        var index = _viewer.GetIndex();
+        var parent = _editor.GetParent<Control>();
+        var index = _editor.GetIndex();
 
-        _viewer.QueueFree();
-        parent.AddChild(viewerInstance);
-        parent.MoveChild(viewerInstance, index);
+        _editor.QueueFree();
+        parent.AddChild(editorInstance);
+        parent.MoveChild(editorInstance, index);
 
-        _viewer = viewerInstance;
+        _editor = editorInstance;
     }
 
     private void LoadFilesFromLoader(FileSystemInfo workingTarget)
@@ -105,7 +101,7 @@ public partial class Main : Control
         {
             _loader = null;
             _fileBrowser.ClearFiles();
-            AttachViewer(_viewers.EmptyViewer);
+            AttachEditor(_editors.EmptyEditor);
         }).CallDeferred();
     }
 
@@ -118,7 +114,7 @@ public partial class Main : Control
         }).Start();
     }
 
-    private void MaterializeFile(string file)
+    private void EditFile(string file)
     {
         new Thread(() =>
         {
@@ -131,26 +127,23 @@ public partial class Main : Control
                 {
                     try
                     {
-                        _inspector.Inspect(@object);
-                        if (!_viewers.TryGetViewer(@object, out var viewer))
+                        if (!_editors.TryGetEditor(@object.GetType(), out var editor))
                         {
-                            AttachViewer(_viewers.UnsupportedViewer);
+                            AttachEditor(_editors.UnsupportedEditor);
                             return;
                         }
 
-                        viewer.Prepare(@object, _loader);
-                        AttachViewer(viewer);
-                        EventBus.Success("Materialized: {0}", file);
+                        editor.Value = @object;
+                        AttachEditor(editor);
+                        EventBus.Progress(ProgressValue.Complete);
+                        EventBus.Success("Opened: {0}", file);
                     }
                     catch (Exception exception)
                     {
-                        AttachViewer(_viewers.EmptyViewer);
-                        EventBus.Error("Failed to materialize: {0}", file);
-                        Logger.Error(exception, "Failed to materialize '{0}'", file);
-                    }
-                    finally
-                    {
+                        AttachEditor(_editors.EmptyEditor);
                         EventBus.Progress(ProgressValue.Complete);
+                        EventBus.Error("Failed to open: {0}", file);
+                        Logger.Error(exception, "Failed to open '{0}'", file);
                     }
                 }).CallDeferred();
             }

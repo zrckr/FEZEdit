@@ -1,0 +1,82 @@
+[gd_scene load_steps=5 format=3 uid="uid://dcjyca25agbd7"]
+
+[ext_resource type="Script" uid="uid://bg7ctkem1fdsm" path="res://src/Interface/Editors/PoEditor.cs" id="1_65jrg"]
+[ext_resource type="Theme" uid="uid://bvigxeq8g32pu" path="res://assets/themes/DarkTheme.tres" id="1_na58j"]
+[ext_resource type="Texture2D" uid="uid://cg332lrrmho5f" path="res://assets/icons/Add.png" id="2_na58j"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="3_1fdif"]
+
+[node name="PoEditor" type="MarginContainer"]
+offset_right = 365.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("1_na58j")
+script = ExtResource("1_65jrg")
+_languages = Dictionary[String, String]({
+"": "English (Default)",
+"de": "German",
+"es": "Spanish",
+"fr": "French",
+"it": "Italian",
+"ja": "Japanese",
+"ko": "Korean",
+"pt": "Portuguese",
+"zh": "Chinese"
+})
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="LanguageLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "Language:"
+
+[node name="LanguagesButton" type="OptionButton" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddButton" type="Button" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add entry"
+icon = ExtResource("2_na58j")
+
+[node name="RemoveButton" type="Button" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Remove entry"
+icon = ExtResource("3_1fdif")
+
+[node name="TableTree" type="Tree" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/draw_guides = 1
+theme_override_constants/draw_relationship_lines = 0
+column_titles_visible = true
+allow_reselect = true
+hide_root = true
+
+[node name="Node" type="Node" parent="."]
+
+[node name="RemoveEntryDialog" type="ConfirmationDialog" parent="Node"]
+unique_name_in_owner = true
+oversampling_override = 1.0
+title = "Delete entry?"
+unresizable = true
+force_native = true
+ok_button_text = "Remove"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://hy3fg4dltudr"]
+
+[ext_resource type="Script" uid="uid://cqmpsayg17dx8" path="res://src/Interface/Editors/EditorFactory.cs" id="1_6u1xg"]
+[ext_resource type="PackedScene" uid="uid://dcjyca25agbd7" path="res://src/Interface/Editors/PoEditor.tscn" id="1_34d3t"]
+[ext_resource type="PackedScene" uid="uid://boxkm45xewsqk" path="res://src/Interface/Editors/EmptyEditor.tscn" id="2_eefh4"]
+[ext_resource type="PackedScene" uid="uid://bo60r51psf8eo" path="res://src/Interface/Editors/UnsupportedEditor.tscn" id="3_nuwvy"]
+
+[resource]
+script = ExtResource("1_6u1xg")
+_editors = Dictionary[String, PackedScene]({
+"System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.String]]": ExtResource("1_34d3t")
+})
+_emptyEditor = ExtResource("2_eefh4")
+_unsupportedEditor = ExtResource("3_nuwvy")
