@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
+using FEZEdit.Interface.Editors;
 using Godot;
 
 namespace FEZEdit.Interface;
@@ -16,6 +17,9 @@ public partial class MainMenu : Control
         FileOpenRecent,
         FileClose,
         FileQuit,
+        
+        EditUndo,
+        EditRedo,
 
         ViewChangeLanguage,
         ViewChangeTheme,
@@ -28,6 +32,8 @@ public partial class MainMenu : Control
     public event Action WorkingTargetClosed;
 
     public event Action<Theme> ThemeSelected;
+    
+    public EditorHistory History { get; set; }
 
     private const int ClearRecentFilesId = -2;
 
@@ -77,6 +83,7 @@ public partial class MainMenu : Control
     {
         _fileMenu ??= GetNode<PopupMenu>("%FileMenu");
         _fileMenu.IdPressed += OnMenuItemPressed;
+        _fileMenu.AboutToPopup += OnMenuAboutToPopup;
 
         _fileRecentMenu = _fileMenu.GetNode<PopupMenu>("Recent");
         _fileRecentMenu.IndexPressed += OnRecentFileSelected;
@@ -88,13 +95,17 @@ public partial class MainMenu : Control
         _fileMenu.AddSubmenuNodeItem(Tr("Open Recent"), _fileRecentMenu, (int)Options.FileOpenRecent);
         _fileMenu.AddItem(Tr("Close"), (int)Options.FileClose);
         _fileMenu.AddSeparator();
+        _fileMenu.AddItem(Tr("Undo"), (int)Options.EditUndo);
+        _fileMenu.AddItem(Tr("Redo"), (int)Options.EditRedo);
+        _fileMenu.AddSeparator();
         _fileMenu.AddItem(Tr("Quit"), (int)Options.FileQuit);
 
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileOpenPak), Key.O.WithCtrl());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileOpenFolder), Key.O.WithCtrlShift());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileClose), Key.W.WithCtrlShift());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileQuit), Key.W.WithCtrl());
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), true);
+        _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.EditUndo), Key.Z.WithCtrl());
+        _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.EditRedo), Key.Y.WithCtrl());
     }
 
     private void InitializeViewMenu()
@@ -189,6 +200,13 @@ public partial class MainMenu : Control
         InitializeRecentFiles();
     }
 
+    private void OnMenuAboutToPopup()
+    {
+        _fileMenu.SetItemDisabled((int)Options.FileClose, _workingTarget == null);
+        _fileMenu.SetItemDisabled((int)Options.EditUndo, !History?.HasUndo ?? true);
+        _fileMenu.SetItemDisabled((int)Options.EditRedo, !History?.HasRedo ?? true);
+    }
+
     private void OnMenuItemPressed(long id)
     {
         switch ((Options)id)
@@ -208,6 +226,14 @@ public partial class MainMenu : Control
 
             case Options.FileQuit:
                 GetTree().Quit();
+                break;
+            
+            case Options.EditRedo:
+                if (History.HasRedo) History.Redo();
+                break;
+            
+            case Options.EditUndo:
+                if (History.HasUndo) History.Undo();
                 break;
 
             case Options.HelpAbout:
@@ -235,7 +261,6 @@ public partial class MainMenu : Control
         _workingTarget = new FileInfo(file);
         WorkingTargetOpened?.Invoke(_workingTarget);
         AddPathToRecent(file);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), false);
     }
 
     private void OnAssetFolderSelected(string folder)
@@ -243,7 +268,6 @@ public partial class MainMenu : Control
         _workingTarget = new DirectoryInfo(folder);
         WorkingTargetOpened?.Invoke(_workingTarget);
         AddPathToRecent(folder);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), false);
     }
 
     private void OnRecentFileSelected(long index)
@@ -273,8 +297,8 @@ public partial class MainMenu : Control
             return;
         }
 
+        _workingTarget = info;
         WorkingTargetOpened?.Invoke(info);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), false);
     }
 
     private void OnThemeChanged(long index)
