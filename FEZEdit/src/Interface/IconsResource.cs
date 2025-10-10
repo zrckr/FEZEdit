@@ -50,5 +50,9 @@ public partial class IconsResource : Resource
 
     [Export] public Texture2D SkyFile { get; set; }
 
+    [ExportGroup("Actions")] [Export] public Texture2D ActionAdd { get; set; }
+    
+    [Export] public Texture2D ActionRemove { get; set; }
+    
     [ExportGroup("Colors")] [Export] public Color FolderColor { get; set; }
 }

@@ -18,7 +18,7 @@ public partial class MaterializerProxy : StaticBody3D
 
     public static MaterializerProxy CreateFromShape(object @object, Shape3D shape)
     {
-        var proxy = new MaterializerProxy { Object = @object };
+        var proxy = new MaterializerProxy { Object = @object, Name= nameof(MaterializerProxy) };
         var collisionShape = new CollisionShape3D { Shape = shape };
         proxy.AddChild(collisionShape);
         return proxy;
@@ -26,6 +26,6 @@ public partial class MaterializerProxy : StaticBody3D
 
     public static MaterializerProxy CreateEmpty(object @object)
     {
-        return new MaterializerProxy { Object = @object };
+        return new MaterializerProxy { Object = @object, Name = nameof(MaterializerProxy) };
     }
 }

@@ -11,4 +11,9 @@ public abstract partial class Materializer<T> : Node3D
     public List<MaterializerProxy> Proxies { get; } = [];
     
     public abstract void CreateNodesFrom(T t);
+
+    public Materializer()
+    {
+        Name = typeof(T).Name + "Materializer";
+    }
 }

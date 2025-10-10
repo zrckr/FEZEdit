@@ -55,10 +55,7 @@ unique_name_in_owner = true
 layout_mode = 2
 _icons = ExtResource("5_5fxee")
 
-[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/MainContainer/HSplitContainer"]
-layout_mode = 2
-
-[node name="Editor" parent="VBoxContainer/MainContainer/HSplitContainer/HSplitContainer" instance=ExtResource("7_5fxee")]
+[node name="Editor" parent="VBoxContainer/MainContainer/HSplitContainer" instance=ExtResource("7_5fxee")]
 unique_name_in_owner = true
 layout_mode = 2
 

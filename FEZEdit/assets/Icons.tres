@@ -1,12 +1,14 @@
-[gd_resource type="Resource" load_steps=24 format=3 uid="uid://7jom0xw582pl"]
+[gd_resource type="Resource" load_steps=26 format=3 uid="uid://7jom0xw582pl"]
 
 [ext_resource type="Texture2D" uid="uid://bipirl5kd6hdo" path="res://assets/Icon.png" id="1_2teyg"]
 [ext_resource type="Texture2D" uid="uid://cuu5h2fpsxcbf" path="res://assets/icons/AnimatedTexture.png" id="1_cwo3y"]
 [ext_resource type="Texture2D" uid="uid://dgec2p7mc4xig" path="res://assets/icons/File.png" id="1_fqqhs"]
 [ext_resource type="Texture2D" uid="uid://cif0adryuxjnp" path="res://assets/icons/Folder.png" id="1_ixcsm"]
+[ext_resource type="Texture2D" uid="uid://cg332lrrmho5f" path="res://assets/icons/Add.png" id="2_lb8rq"]
 [ext_resource type="Texture2D" uid="uid://ddwso2r77p178" path="res://assets/icons/AudioStreamPlayer.png" id="2_mydxl"]
 [ext_resource type="Texture2D" uid="uid://dqlh1evqqamy0" path="res://assets/icons/TextFile.png" id="3_auphr"]
 [ext_resource type="Texture2D" uid="uid://cxeltwql5ekj" path="res://assets/icons/StatusError.png" id="3_j4ijc"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="3_tpjc1"]
 [ext_resource type="Texture2D" uid="uid://b1mkpf08q5g0k" path="res://assets/icons/HelpSearch.png" id="4_y4k4n"]
 [ext_resource type="Texture2D" uid="uid://bv1xweg1yy0x" path="res://assets/icons/FontItem.png" id="5_6cxah"]
 [ext_resource type="Texture2D" uid="uid://ip4ggvkonyll" path="res://assets/icons/Shader.png" id="6_rc52b"]
@@ -49,4 +51,6 @@ AnimatedTextureFile = ExtResource("1_cwo3y")
 LevelFile = ExtResource("8_j4ijc")
 MapFile = ExtResource("9_h68jq")
 SkyFile = ExtResource("11_qd8q0")
+ActionAdd = ExtResource("2_lb8rq")
+ActionRemove = ExtResource("3_tpjc1")
 FolderColor = Color(1, 0.7921569, 0.37254903, 1)
