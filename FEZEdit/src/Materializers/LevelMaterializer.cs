@@ -9,7 +9,7 @@ using Mesh = Godot.Mesh;
 
 namespace FEZEdit.Materializers;
 
-public class LevelMaterializer : Materializer<Level, Node3D>
+public partial class LevelMaterializer : Materializer<Level>
 {
     private const float PixelSize = 1f / 16f;
 
@@ -23,22 +23,18 @@ public class LevelMaterializer : Materializer<Level, Node3D>
         Orthogonal.RightUp
     ];
 
-    protected override Node3D Materialize(Level level)
+    public override void CreateNodesFrom(Level level)
     {
-        GameTypeRelations.Clear();
-        var node = new Node3D { Name = level.Name };
-
-        node.AddChild(MaterializeTriles(level));
-        node.AddChild(MaterializeArtObjects(level));
-        node.AddChild(MaterializeBackgroundPlanes(level));
-        node.AddChild(MaterializeCharacters(level));
-
-        return node;
+        Name = level.Name;
+        MaterializeTriles(level);
+        MaterializeArtObjects(level);
+        MaterializeBackgroundPlanes(level);
+        MaterializeCharacters(level);
     }
 
-    private TrileMap MaterializeTriles(Level level)
+    private void MaterializeTriles(Level level)
     {
-        var trileSet = AssetLoader.LoadTrileSet(level.TrileSetName);
+        var trileSet = Loader.LoadTrileSet(level.TrileSetName);
         var meshLibrary = new MeshLibrary { ResourceName = level.TrileSetName };
         var material = trileSet.TextureAtlas.ToGodotMaterial();
 
@@ -61,11 +57,11 @@ public class LevelMaterializer : Materializer<Level, Node3D>
             triles.Add(position, instance);
         }
 
-        GameTypeRelations.TryAdd(gridMap, triles);
-        return gridMap;
+        gridMap.AddChild(MaterializerProxy.CreateEmpty(triles));
+        AddChild(gridMap);
     }
 
-    private Node3D MaterializeArtObjects(Level level)
+    private void MaterializeArtObjects(Level level)
     {
         var levelArtObjects = level.ArtObjects
             .Select(kv => kv.Value.Name)
@@ -74,32 +70,27 @@ public class LevelMaterializer : Materializer<Level, Node3D>
         var meshes = new Dictionary<string, Mesh>();
         foreach (var name in levelArtObjects)
         {
-            var artObject = AssetLoader.LoadArtObject(name);
+            var artObject = Loader.LoadArtObject(name);
             var material = artObject.Cubemap.ToGodotMaterial();
             var mesh = artObject.Geometry.ToGodotMesh(material);
             meshes.Add(name, mesh);
         }
 
-        var node3D = new Node3D { Name = "ArtObjects" };
+        var artObjects = new Node3D { Name = "ArtObjects" };
         foreach ((int key, var instance) in level.ArtObjects)
         {
             var meshInstance = new MeshInstance3D { Name = $"{key}_{instance.Name}", Mesh = meshes[instance.Name] };
-            node3D.AddChild(meshInstance);
             meshInstance.Position = instance.Position.ToGodot();
             meshInstance.Quaternion = instance.Rotation.ToGodot();
             meshInstance.Scale = instance.Scale.ToGodot();
-
-            var staticBody = new StaticBody3D();
-            meshInstance.AddChild(staticBody);
-            var collisionShape = new CollisionShape3D { Shape = meshes[instance.Name].CreateConvexShape() };
-            staticBody.AddChild(collisionShape);
-            GameTypeRelations.TryAdd(staticBody, instance);
+            meshInstance.AddChild(MaterializerProxy.CreateFromMesh(instance, meshes[instance.Name]));
+            artObjects.AddChild(meshInstance);
         }
 
-        return node3D;
+        AddChild(artObjects);
     }
 
-    private Node3D MaterializeBackgroundPlanes(Level level)
+    private void MaterializeBackgroundPlanes(Level level)
     {
         var levelBackgroundPlanes = level.BackgroundPlanes
             .Select(kv => kv.Value.TextureName)
@@ -112,17 +103,17 @@ public class LevelMaterializer : Materializer<Level, Node3D>
         {
             try
             {
-                var animatedTexture = AssetLoader.LoadAnimatedBackgroundPlane(name);
+                var animatedTexture = Loader.LoadAnimatedBackgroundPlane(name);
                 spriteFrames.Add(name, animatedTexture.ToSpriteFrames());
             }
             catch (Exception)
             {
-                var texture2D = AssetLoader.LoadBackgroundPlane(name);
+                var texture2D = Loader.LoadBackgroundPlane(name);
                 imageTextures.Add(name, texture2D.ToImageTexture());
             }
         }
 
-        var node3D = new Node3D { Name = "BackgroundPlanes" };
+        var backgroundPlanes = new Node3D { Name = "BackgroundPlanes" };
         foreach ((int key, var plane) in level.BackgroundPlanes)
         {
             SpriteBase3D child = null;
@@ -154,7 +145,7 @@ public class LevelMaterializer : Materializer<Level, Node3D>
                 continue;
             }
 
-            node3D.AddChild(child);
+            backgroundPlanes.AddChild(child);
             child.PixelSize = PixelSize;
             child.Billboard = plane.Billboard
                 ? BaseMaterial3D.BillboardModeEnum.FixedY
@@ -167,18 +158,13 @@ public class LevelMaterializer : Materializer<Level, Node3D>
             child.Position = plane.Position.ToGodot();
             child.Quaternion = plane.Rotation.ToGodot();
             child.Scale = plane.Scale.ToGodot();
-            
-            var staticBody = new StaticBody3D();
-            child.AddChild(staticBody);
-            var collisionShape = new CollisionShape3D { Shape = new BoxShape3D { Size = child.GetAabb().Size } };
-            staticBody.AddChild(collisionShape);
-            GameTypeRelations.TryAdd(staticBody, plane);
+            child.AddChild(MaterializerProxy.CreateFromBox(plane, child.GetAabb().Size));
         }
 
-        return node3D;
+        AddChild(backgroundPlanes);
     }
 
-    private Node3D MaterializeCharacters(Level level)
+    private void MaterializeCharacters(Level level)
     {
         var levelCharacters = level.NonPlayerCharacters
             .Select(kv => kv.Value.Name)
@@ -187,11 +173,11 @@ public class LevelMaterializer : Materializer<Level, Node3D>
         var spriteFrames = new Dictionary<string, SpriteFrames>();
         foreach (var name in levelCharacters)
         {
-            var animations = AssetLoader.LoadCharacterAnimations(name);
+            var animations = Loader.LoadCharacterAnimations(name);
             spriteFrames.Add(name, animations.ToSpriteFrames());
         }
 
-        var node3D = new Node3D { Name = "Characters" };
+        var characters = new Node3D { Name = "Characters" };
         foreach ((int key, var instance) in level.NonPlayerCharacters)
         {
             var animatedSprite = new AnimatedSprite3D
@@ -206,15 +192,11 @@ public class LevelMaterializer : Materializer<Level, Node3D>
                 TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest,
                 Position = instance.Position.ToGodot()
             };
-            node3D.AddChild(animatedSprite);
 
-            var staticBody = new StaticBody3D();
-            animatedSprite.AddChild(staticBody);
-            var collisionShape = new CollisionShape3D { Shape = new BoxShape3D { Size = animatedSprite.GetAabb().Size } };
-            staticBody.AddChild(collisionShape);
-            GameTypeRelations.TryAdd(staticBody, instance);
+            animatedSprite.AddChild(MaterializerProxy.CreateFromBox(instance, animatedSprite.GetAabb().Size));
+            characters.AddChild(animatedSprite);
         }
 
-        return node3D;
+        AddChild(characters);
     }
 }

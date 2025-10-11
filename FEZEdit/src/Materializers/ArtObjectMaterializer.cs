@@ -1,24 +1,17 @@
-﻿using System.Collections.Generic;
-using FEZEdit.Extensions;
+﻿using FEZEdit.Extensions;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
 using Godot;
 
 namespace FEZEdit.Materializers;
 
-public class ArtObjectMaterializer : Materializer<ArtObject, MeshInstance3D>
+public partial class ArtObjectMaterializer : Materializer<ArtObject>
 {
-    protected override MeshInstance3D Materialize(ArtObject input)
+    public override void CreateNodesFrom(ArtObject artObject)
     {
-        var material = input.Cubemap.ToGodotMaterial();
-        var mesh = input.Geometry.ToGodotMesh(material);
-        var meshInstance = new MeshInstance3D { Name = input.Name, Mesh = mesh };
-
-        var staticBody = new StaticBody3D();
-        meshInstance.AddChild(staticBody);
-        var collisionShape = new CollisionShape3D { Shape = mesh.CreateConvexShape() };
-        staticBody.AddChild(collisionShape);
-        GameTypeRelations.TryAdd(staticBody, input);
-
-        return meshInstance;
+        var material = artObject.Cubemap.ToGodotMaterial();
+        var mesh = artObject.Geometry.ToGodotMesh(material);
+        var meshInstance = new MeshInstance3D { Name = artObject.Name, Mesh = mesh };
+        meshInstance.AddChild(MaterializerProxy.CreateFromBox(artObject, artObject.Size.ToGodot()));
+        AddChild(meshInstance);
     }
 }

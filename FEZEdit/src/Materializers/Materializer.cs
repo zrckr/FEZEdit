@@ -4,18 +4,11 @@ using Godot;
 
 namespace FEZEdit.Materializers;
 
-public abstract class Materializer
+public abstract partial class Materializer<T> : Node3D
 {
-    public IDictionary<Node, object> GameTypeRelations { get; } = new Dictionary<Node, object>();
+    public ILoader Loader { get; set; }
 
-    public ILoader AssetLoader { get; set; }
+    public List<MaterializerProxy> Proxies { get; } = [];
     
-    public abstract Node Materialize(object input);
-}
-
-public abstract class Materializer<TInput, TOutput> : Materializer
-{
-    protected abstract TOutput Materialize(TInput input);
-
-    public override Node Materialize(object input) => Materialize((TInput)input) as Node;
+    public abstract void CreateNodesFrom(T t);
 }
