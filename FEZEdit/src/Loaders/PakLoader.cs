@@ -22,7 +22,7 @@ public class PakLoader : ILoader
     
     public string Root { get; private init; }
 
-    private Dictionary<string, PakFileRecord> Files { get; } = new();
+    private readonly Dictionary<string, PakFileRecord> _files = new();
 
     public static PakLoader Open(FileSystemInfo info)
     {
@@ -37,7 +37,7 @@ public class PakLoader : ILoader
         var loader = new PakLoader { Root = pakFile.Name };
         foreach (var record in reader.ReadFiles())
         {
-            loader.Files[record.Path] = record;
+            loader._files[record.Path] = record;
         }
 
         return loader;
@@ -45,17 +45,17 @@ public class PakLoader : ILoader
 
     ~PakLoader()
     {
-        Files.Clear();
+        _files.Clear();
     }
 
     public IEnumerable<string> GetFiles()
     {
-        return Files.Keys;
+        return _files.Keys;
     }
 
     public Godot.Texture2D GetIcon(string file, IconsResource icons)
     {
-        if (!Files.TryGetValue(file.ToLower(), out var record))
+        if (!_files.TryGetValue(file.ToLower(), out var record))
         {
             throw new FileLoadException(file);
         }
@@ -71,7 +71,7 @@ public class PakLoader : ILoader
 
     public bool HasFile(string file)
     {
-        return Files.ContainsKey(file.ToLower());
+        return _files.ContainsKey(file.ToLower());
     }
 
     public object LoadAsset(string path)
@@ -109,7 +109,7 @@ public class PakLoader : ILoader
         var assetDirectory = Path.Combine("character animations", assetName).ToLower();
 
         var animations = new Dictionary<string, AnimatedTexture>();
-        foreach ((string path, var record) in Files)
+        foreach ((string path, var record) in _files)
         {
             var found = path.StartsWith(assetDirectory, StringComparison.InvariantCultureIgnoreCase);
             var metadata = path.Contains("metadata");
@@ -132,7 +132,7 @@ public class PakLoader : ILoader
             return;
         }
 
-        var recordsToRepack = Files
+        var recordsToRepack = _files
             .Where(kv => kv.Key.Length >= path.Length)
             .Where(kv => kv.Key[..path.Length] == path)
             .Select(kv => kv.Value)
@@ -206,7 +206,7 @@ public class PakLoader : ILoader
 
     private T LoadFromRecord<T>(string path)
     {
-        return !Files.TryGetValue(path.ToLower(), out var record)
+        return !_files.TryGetValue(path.ToLower(), out var record)
             ? throw new FileNotFoundException(path)
             : DeserializeObject<T>(record);
     }

@@ -21,33 +21,48 @@ public class FolderLoader : ILoader
 {
     private static readonly ILogger Logger = LoggerFactory.Create<FolderLoader>();
 
-    public string Root => AssetDirectory.Name;
+    public string Root { get; private set; }
 
-    private DirectoryInfo AssetDirectory { get; init; }
+    private readonly Dictionary<string, FileInfo> _files = new();
 
     public static FolderLoader Open(FileSystemInfo info)
     {
-        return info is not DirectoryInfo directoryInfo
-            ? throw new DirectoryNotFoundException(info.ToString())
-            : new FolderLoader { AssetDirectory = directoryInfo };
+        if (info is not DirectoryInfo directoryInfo)
+        {
+            throw new DirectoryNotFoundException(info.FullName);
+        }
+
+        var loader = new FolderLoader { Root = directoryInfo.Name };
+        foreach (var file in directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories))
+        {
+            var path = file.FullName[(directoryInfo.FullName.Length + 1)..];
+            var index = path.IndexOf('.');
+            var filePath = path[..index];
+            loader._files[filePath] = file;
+        }
+
+        return loader;
+    }
+
+    ~FolderLoader()
+    {
+        _files.Clear();
     }
 
     public IEnumerable<string> GetFiles()
     {
-        return AssetDirectory
-            .EnumerateFiles("*", SearchOption.AllDirectories)
-            .Select(file => file.FullName[(AssetDirectory.FullName.Length + 1)..]);
+        return _files.Keys;
     }
 
-    public Godot.Texture2D GetIcon(string file, IconsResource icons)
+    public Godot.Texture2D GetIcon(string path, IconsResource icons)
     {
-        var path = Path.Combine(AssetDirectory.FullName, file);
-        if (!Path.Exists(path))
+        if (!_files.TryGetValue(path, out var file))
         {
-            throw new FileNotFoundException(file);
+            throw new FileNotFoundException(path);
         }
 
-        var extension = path[path.IndexOf('.')..];
+        var index = file.FullName.IndexOf('.');
+        var extension = file.FullName[index..];
 
         return extension switch
         {
@@ -74,69 +89,63 @@ public class FolderLoader : ILoader
 
     public bool HasFile(string file)
     {
-        var path = Path.Combine(AssetDirectory.FullName, file);
-        FileSystemInfo info = File.GetAttributes(path).HasFlag(FileAttributes.Directory)
-            ? new DirectoryInfo(path)
-            : new FileInfo(path);
-        return info.Exists;
+        return _files.ContainsKey(file.ToLower());
     }
 
     public object LoadAsset(string path)
     {
-        path = Path.Combine(AssetDirectory.FullName, path);
-        return LoadFromFile<object>(new FileInfo(path));
+        return LoadFromFile<object>(path);
     }
 
     public ArtObject LoadArtObject(string assetName)
     {
-        var path = Path.Combine(AssetDirectory.FullName, "art objects", assetName);
-        return LoadFromFile<ArtObject>(new FileInfo(path));
+        return LoadFromFile<ArtObject>(Path.Combine("art objects", assetName));
     }
 
     public TrileSet LoadTrileSet(string assetName)
     {
-        var path = Path.Combine(AssetDirectory.FullName, "trile sets", assetName);
-        return LoadFromFile<TrileSet>(new FileInfo(path));
+        return LoadFromFile<TrileSet>(Path.Combine("trile sets", assetName));
     }
 
     public Texture2D LoadBackgroundPlane(string assetName)
     {
-        var path = Path.Combine(AssetDirectory.FullName, "background planes", assetName);
-        return LoadFromFile<Texture2D>(new FileInfo(path));
+        return LoadFromFile<Texture2D>(Path.Combine("background planes", assetName));
     }
 
     public AnimatedTexture LoadAnimatedBackgroundPlane(string assetName)
     {
-        var path = Path.Combine(AssetDirectory.FullName, "background planes", assetName);
-        return LoadFromFile<AnimatedTexture>(new FileInfo(path));
+        return LoadFromFile<AnimatedTexture>(Path.Combine("background planes", assetName));
     }
 
     public AudioStreamWav LoadSound(string assetName)
     {
-        var path = Path.Combine(AssetDirectory.FullName, "sounds", assetName + ".wav");
-        var info = new FileInfo(path);
-        if (!info.Exists)
+        var assetPath = Path.Combine("sounds", assetName);
+        foreach ((string path, var file) in _files)
         {
-            throw new FileNotFoundException(path);
+            if (path.StartsWith(assetPath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return AudioStreamWav.LoadFromFile(file.FullName);
+            }
         }
-        
-        return AudioStreamWav.LoadFromFile(info.FullName);
+
+        throw new FileNotFoundException(assetPath);
     }
 
     public IDictionary<string, AnimatedTexture> LoadCharacterAnimations(string assetName)
     {
-        var path = Path.Combine(AssetDirectory.FullName, "character animations", assetName);
-        var info = new DirectoryInfo(path);
-        if (!info.Exists)
-        {
-            throw new DirectoryNotFoundException(info.FullName);
-        }
+        var assetDirectory = Path.Combine("character animations", assetName).ToLower();
 
         var animations = new Dictionary<string, AnimatedTexture>();
-        foreach (var file in info.EnumerateFiles("*.gif", SearchOption.TopDirectoryOnly))
+        foreach (string path in _files.Keys)
         {
-            var @object = LoadFromFile<AnimatedTexture>(file);
-            animations.Add(file.Name, @object);
+            var found = path.StartsWith(assetDirectory, StringComparison.InvariantCultureIgnoreCase);
+            var metadata = path.Contains("metadata");
+            if (found && !metadata)
+            {
+                var @object = LoadFromFile<AnimatedTexture>(path);
+                var fileName = Path.GetFileNameWithoutExtension(path);
+                animations.Add(fileName, @object);
+            }
         }
 
         return animations;
@@ -150,7 +159,7 @@ public class FolderLoader : ILoader
             return;
         }
 
-        var originalPath = Path.Combine(AssetDirectory.FullName, path).Replace("/", "\\");
+        var originalPath = path.Replace("/", "\\");
         switch (mode)
         {
             case RepackingMode.ConvertFromXnb:
@@ -197,7 +206,7 @@ public class FolderLoader : ILoader
 
         var progress = new ProgressValue(0, 0, xnbs.Count, 1);
         EventBus.Progress(progress, "Converting: {0}", path);
-        
+
         foreach (var xnb in xnbs)
         {
             using var xnbStream = xnb.OpenRead();
@@ -224,12 +233,12 @@ public class FolderLoader : ILoader
                 using var fileOutputStream = new FileInfo(bundle.BundlePath + outputFile.Extension).Create();
                 outputFile.Data.CopyTo(fileOutputStream);
             }
-            
+
             progress.Next();
             EventBus.Progress(progress, "Converting: {0}", xnb.FullName);
             bundle.Dispose();
         }
-        
+
         EventBus.Progress(ProgressValue.Complete);
         EventBus.Success("Assets converted at {0}", targetDirectory);
     }
@@ -324,8 +333,13 @@ public class FolderLoader : ILoader
         }
     }
 
-    private static T LoadFromFile<T>(FileInfo info)
+    private T LoadFromFile<T>(string path)
     {
+        if (!_files.TryGetValue(path.ToLower(), out var info))
+        {
+            throw new FileNotFoundException(path);
+        }
+
         if (!info.Exists)
         {
             throw new FileNotFoundException(info.FullName);
