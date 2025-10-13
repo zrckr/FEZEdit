@@ -8,10 +8,6 @@ namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyList : EditorProperty<IList>
 {
-    [Export] public string TypeFullName { get; set; }
-
-    [Export] private EditorPropertyFactory _factory;
-    
     public override bool Disabled
     {
         get => _editorProperties.All(i => i.Disabled);
@@ -38,6 +34,8 @@ public partial class EditorPropertyList : EditorProperty<IList>
         {
             _editorProperties.Clear();
             _foldableContainer.Title = $"List (size: {value.Count})";
+            
+            var type = Type.GetGenericArguments()[0];
             for (int i = 0; i < value.Count; i++)
             {
                 var itemContainer = new HBoxContainer();
@@ -46,10 +44,10 @@ public partial class EditorPropertyList : EditorProperty<IList>
                 var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
                 itemContainer.AddChild(itemLabel);
                 
-                var itemEditor = _factory.GetEditorProperty(_type);
+                var itemEditor = Factory.GetEditorProperty(type);
+                itemContainer.AddChild((Node)itemEditor);
                 itemEditor.Value = value[i];
                 itemEditor.Label = string.Empty;
-                itemContainer.AddChild((Node)itemEditor);
                 _editorProperties.Add(itemEditor);
             }
         }
@@ -61,8 +59,6 @@ public partial class EditorPropertyList : EditorProperty<IList>
 
     private VBoxContainer _itemsContainer;
 
-    private Type _type;
-
     private readonly List<IEditorProperty> _editorProperties = [];
 
     public override void _Ready()
@@ -70,8 +66,5 @@ public partial class EditorPropertyList : EditorProperty<IList>
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
-        _type = Type.GetType(TypeFullName);
     }
-    
-    public override void SetGenericArguments(params Type[] types) => TypeFullName = types[0].FullName;
 }

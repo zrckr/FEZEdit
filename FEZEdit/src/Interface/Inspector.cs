@@ -1,9 +1,16 @@
-﻿using Godot;
+﻿using System.Text.RegularExpressions;
+using FEZEdit.Interface.EditorProperties;
+using FEZEdit.Interface.Editors;
+using Godot;
 
 namespace FEZEdit.Interface;
 
 public partial class Inspector : Control
 {
+    [Export] public bool ShowDisabled { get; set; }
+    
+    [Export] private EditorPropertyFactory _factory;
+    
     private object _currentTarget;
 
     private TextureRect _headerIcon;
@@ -23,7 +30,7 @@ public partial class Inspector : Control
     public void Inspect(object target)
     {
         _currentTarget = target;
-        RefreshProperties();
+        Callable.From(RefreshProperties).CallDeferred();
     }
 
     private void RefreshProperties()
@@ -39,7 +46,17 @@ public partial class Inspector : Control
             return;
         }
         
-        _headerLabel.Text = _currentTarget.GetType().Name;
+        var currentType = _currentTarget.GetType();
+        _headerLabel.Text = Regex.Replace(currentType.Name, "(\\B[A-Z])", " $1");
         Visible = true;
+
+        foreach (var property in currentType.GetProperties())
+        {
+            var editorProperty = _factory.GetEditorProperty(property.PropertyType);
+            _properties.AddChild((Node) editorProperty, true);
+            editorProperty.Label = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
+            editorProperty.Value = property.GetValue(_currentTarget);
+            editorProperty.Disabled = ShowDisabled;
+        }
     }
 }

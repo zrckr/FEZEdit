@@ -30,10 +30,10 @@ _editorProperties = Dictionary[String, PackedScene]({
 "System.Boolean": ExtResource("7_ft6b0"),
 "System.Collections.Generic.Dictionary": ExtResource("8_2qlwc"),
 "System.Collections.Generic.List": ExtResource("9_kneek"),
-"System.Enum": ExtResource("10_prfnp"),
 "System.Int32": ExtResource("11_f1pt5"),
 "System.Single": ExtResource("12_2llrk"),
 "System.String": ExtResource("13_hapks"),
 "System.TimeSpan": ExtResource("14_1rvkk")
 })
 _defaultEditorProperty = ExtResource("13_hapks")
+_enumEditorProperty = ExtResource("10_prfnp")

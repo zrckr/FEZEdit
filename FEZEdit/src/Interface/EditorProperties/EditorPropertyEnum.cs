@@ -6,8 +6,6 @@ namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyEnum : EditorProperty<Enum>
 {
-    [Export] public string TypeFullName { get; set; }
-    
     protected override Enum TypedValue
     {
         get
@@ -41,14 +39,10 @@ public partial class EditorPropertyEnum : EditorProperty<Enum>
 
     private Array _enumValues;
 
-    private Type _type;
-
     public override void _Ready()
     {
         base._Ready();
-        _type = Type.GetType(TypeFullName)!;
-        _enumValues = Enum.GetValues(_type);
-        
+        _enumValues = Enum.GetValues(Type);
         _optionButton = GetNode<OptionButton>("OptionButton");
         _optionButton.ItemSelected += index => TypedValueChanged?.Invoke((Enum)_enumValues.GetValue(index));
         foreach (var enumValue in _enumValues)
@@ -56,6 +50,4 @@ public partial class EditorPropertyEnum : EditorProperty<Enum>
             _optionButton.AddItem(enumValue.ToString(), (int)enumValue);
         }
     }
-    
-    public override void SetGenericArguments(params Type[] types) => TypeFullName = types[0].FullName;
 }

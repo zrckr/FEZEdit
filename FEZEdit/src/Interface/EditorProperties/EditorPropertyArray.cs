@@ -7,10 +7,6 @@ namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyArray : EditorProperty<Array>
 {
-    [Export] public string TypeFullName { get; set; }
-
-    [Export] private EditorPropertyFactory _factory;
-    
     public override bool Disabled
     {
         get => _editorProperties.All(i => i.Disabled);
@@ -42,6 +38,8 @@ public partial class EditorPropertyArray : EditorProperty<Array>
         {
             _editorProperties.Clear();
             _foldableContainer.Title = $"Array (size: {value.Length})";
+
+            var type = Type.GetGenericArguments()[0];
             for (int i = 0; i < value.Length; i++)
             {
                 var itemContainer = new HBoxContainer();
@@ -50,10 +48,10 @@ public partial class EditorPropertyArray : EditorProperty<Array>
                 var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
                 itemContainer.AddChild(itemLabel);
                 
-                var itemEditor = _factory.GetEditorProperty(_type);
+                var itemEditor = Factory.GetEditorProperty(type);
+                itemContainer.AddChild((Node)itemEditor);
                 itemEditor.Value = value.GetValue(i);
                 itemEditor.Label = string.Empty;
-                itemContainer.AddChild((Node)itemEditor);
                 _editorProperties.Add(itemEditor);
             }
         }
@@ -65,8 +63,6 @@ public partial class EditorPropertyArray : EditorProperty<Array>
 
     private VBoxContainer _itemsContainer;
 
-    private Type _type;
-
     private readonly List<IEditorProperty> _editorProperties = [];
 
     public override void _Ready()
@@ -74,8 +70,5 @@ public partial class EditorPropertyArray : EditorProperty<Array>
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
-        _type = Type.GetType(TypeFullName);
     }
-
-    public override void SetGenericArguments(params Type[] types) => TypeFullName = types[0].FullName;
 }

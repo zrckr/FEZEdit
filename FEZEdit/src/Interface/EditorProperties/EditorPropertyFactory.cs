@@ -10,21 +10,25 @@ public partial class EditorPropertyFactory: Resource
     [Export] private Dictionary<string, PackedScene> _editorProperties = new();
     
     [Export] private PackedScene _defaultEditorProperty;
+    
+    [Export] private PackedScene _enumEditorProperty;
 
     public IEditorProperty GetEditorProperty(Type type)
     {
         var scene = _defaultEditorProperty;
-        if (_editorProperties.TryGetValue(type.FullName!, out var typeScene))
+        var typeName = type.ToString().Split('`')[0];
+        if (type.IsEnum)
+        {
+            scene = _enumEditorProperty;
+        }
+        else if (_editorProperties.TryGetValue(typeName, out var typeScene))
         {
             scene = typeScene;
         }
         
         var instance = scene.Instantiate<IEditorProperty>();
-        if (type.IsGenericType)
-        {
-            instance.SetGenericArguments(type.GetGenericArguments());
-        }
-        
+        instance.Type = type;
+        instance.Factory = this;
         return instance;
     }
 }

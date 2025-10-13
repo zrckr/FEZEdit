@@ -13,7 +13,9 @@ public interface IEditorProperty
     
     event Action<object> ValueChanged;
     
-    void SetGenericArguments(params Type[] types) {}
+    EditorPropertyFactory Factory { set; }
+    
+    Type Type { set; }
 }
 
 public abstract partial class EditorProperty<T> : Control, IEditorProperty
@@ -34,7 +36,9 @@ public abstract partial class EditorProperty<T> : Control, IEditorProperty
     
     public event Action<object> ValueChanged;
     
-    public virtual void SetGenericArguments(params Type[] types) {}
+    public EditorPropertyFactory Factory { protected get; set; }
+    
+    public Type Type { protected get; set; }
     
     protected abstract T TypedValue { get; set; }
     

@@ -8,12 +8,6 @@ namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
 {
-    [Export] private string KeyTypeFullName { get; set; }
-    
-    [Export] private string ValueTypeFullName { get; set; }
-
-    [Export] private EditorPropertyFactory _factory;
-    
     public override bool Disabled
     {
         get => _valueProperties.All(i => i.Disabled);
@@ -43,30 +37,26 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
         set
         {
             _keyProperties.Clear();
-            foreach (var key in value.Keys)
-            {
-                var keyProperty = _factory.GetEditorProperty(_keyType);
-                keyProperty.Label = string.Empty;
-                keyProperty.Value = value;
-                _keyProperties.Add(keyProperty);
-            }
-            
             _valueProperties.Clear();
-            foreach (var item in value.Values)
-            {
-                var valueProperty = _factory.GetEditorProperty(_valueType);
-                valueProperty.Label = string.Empty;
-                valueProperty.Value = item;
-                _valueProperties.Add(valueProperty);
-            }
-            
             _foldableContainer.Title = $"Dictionary (size: {value.Count})";
-            for (int i = 0; i < value.Count; i++)
+            
+            var types = Type.GetGenericArguments();
+            foreach (DictionaryEntry entry in value)
             {
                 var itemContainer = new HBoxContainer();
-                itemContainer.AddChild((Node) _keyProperties[i]);
-                itemContainer.AddChild((Node) _valueProperties[i]);
                 _itemsContainer.AddChild(itemContainer);
+                
+                var keyProperty = Factory.GetEditorProperty(types[0]);
+                itemContainer.AddChild((Node) keyProperty);
+                keyProperty.Label = string.Empty;
+                keyProperty.Value = entry.Key;
+                _keyProperties.Add(keyProperty);
+                
+                var valueProperty = Factory.GetEditorProperty(types[1]);
+                itemContainer.AddChild((Node) valueProperty);
+                valueProperty.Label = string.Empty;
+                valueProperty.Value = entry.Value;
+                _valueProperties.Add(valueProperty);
             }
         }
     }
@@ -76,10 +66,6 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
     private FoldableContainer _foldableContainer;
 
     private VBoxContainer _itemsContainer;
-    
-    private Type _keyType;
-    
-    private Type _valueType;
 
     private readonly List<IEditorProperty> _keyProperties = [];
     
@@ -90,13 +76,5 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
-        _keyType = Type.GetType(KeyTypeFullName);
-        _valueType = Type.GetType(ValueTypeFullName);
-    }
-
-    public override void SetGenericArguments(params Type[] types)
-    {
-        KeyTypeFullName = types[0].FullName;
-        ValueTypeFullName = types[1].FullName;
     }
 }

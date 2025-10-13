@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=38 format=3 uid="uid://bvigxeq8g32pu"]
+[gd_resource type="Theme" load_steps=43 format=3 uid="uid://bvigxeq8g32pu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7ek4o"]
 
@@ -8,6 +8,20 @@ bg_color = Color(0.29411766, 0.43137255, 0.6862745, 1)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1usol"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lssdj"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_i4n7a"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eu1cv"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glk1n"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_duw6i"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xioav"]
 bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="ImageTexture" id="ImageTexture_7ek4o"]
@@ -175,6 +189,11 @@ Button/styles/pressed = SubResource("StyleBoxFlat_i4n7a")
 CheckBox/styles/hover_pressed = SubResource("StyleBoxFlat_i4n7a")
 CheckBox/styles/normal = SubResource("StyleBoxFlat_lssdj")
 CheckButton/styles/hover_pressed = SubResource("StyleBoxFlat_i4n7a")
+FoldableContainer/styles/focus = SubResource("StyleBoxEmpty_i4n7a")
+FoldableContainer/styles/title_collapsed_hover_panel = SubResource("StyleBoxFlat_eu1cv")
+FoldableContainer/styles/title_collapsed_panel = SubResource("StyleBoxFlat_glk1n")
+FoldableContainer/styles/title_hover_panel = SubResource("StyleBoxFlat_duw6i")
+FoldableContainer/styles/title_panel = SubResource("StyleBoxFlat_xioav")
 HBoxContainer/constants/separation = 0
 HSplitContainer/constants/separation = 1
 HSplitContainer/icons/grabber = SubResource("ImageTexture_7ek4o")
