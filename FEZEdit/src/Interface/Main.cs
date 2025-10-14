@@ -45,7 +45,6 @@ public partial class Main : Control
         _fileBrowser.FileOrDirectoryRepacked += RepackFileOrDirectories;
 
         _editor = GetNode<Editor>("%Editor");
-        _mainMenu.History = _editor.History;
     }
 
     private void AttachEditor(Editor editorInstance)
@@ -58,6 +57,7 @@ public partial class Main : Control
         parent.MoveChild(editorInstance, index);
 
         _editor = editorInstance;
+        _editor.History = new EditorHistory();
         _mainMenu.History = _editor.History;
     }
 
@@ -184,7 +184,7 @@ public partial class Main : Control
                             AttachEditor(_editors.UnsupportedEditor);
                             return;
                         }
-
+                        
                         editor.Loader = _loader;
                         editor.Value = @object;
                         AttachEditor(editor);
