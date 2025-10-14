@@ -39,6 +39,7 @@ public partial class Main : Control
         _mainMenu.WorkingTargetOpened += LoadFilesFromLoader;
         _mainMenu.WorkingTargetClosed += CloseLoader;
         _mainMenu.ThemeSelected += ChangeTheme;
+        _mainMenu.HistoryRequested += () => _editor?.History;
 
         _fileBrowser = GetNode<FileBrowser>("%FileBrowser");
         _fileBrowser.FileMaterialized += EditFile;
@@ -58,7 +59,6 @@ public partial class Main : Control
 
         _editor = editorInstance;
         _editor.History = new EditorHistory();
-        _mainMenu.History = _editor.History;
     }
 
     private void LoadFilesFromLoader(FileSystemInfo workingTarget)

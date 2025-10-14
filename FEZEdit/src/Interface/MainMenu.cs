@@ -32,8 +32,8 @@ public partial class MainMenu : Control
     public event Action WorkingTargetClosed;
 
     public event Action<Theme> ThemeSelected;
-    
-    public EditorHistory History { get; set; }
+
+    public event Func<EditorHistory> HistoryRequested;
 
     private const int ClearRecentFilesId = -2;
 
@@ -202,9 +202,10 @@ public partial class MainMenu : Control
 
     private void OnMenuAboutToPopup()
     {
+        var history = HistoryRequested?.Invoke();
         _fileMenu.SetItemDisabled((int)Options.FileClose, _workingTarget == null);
-        _fileMenu.SetItemDisabled((int)Options.EditUndo, !History?.HasUndo ?? true);
-        _fileMenu.SetItemDisabled((int)Options.EditRedo, !History?.HasRedo ?? true);
+        _fileMenu.SetItemDisabled((int)Options.EditUndo, !history?.HasUndo ?? true);
+        _fileMenu.SetItemDisabled((int)Options.EditRedo, !history?.HasRedo ?? true);
     }
 
     private void OnMenuItemPressed(long id)
@@ -229,11 +230,17 @@ public partial class MainMenu : Control
                 break;
             
             case Options.EditRedo:
-                if (History.HasRedo) History.Redo();
+                if (HistoryRequested?.Invoke() is { HasRedo: true } history1)
+                {
+                    history1.Redo();
+                }
                 break;
             
             case Options.EditUndo:
-                if (History.HasUndo) History.Undo();
+                if (HistoryRequested?.Invoke() is { HasUndo: true } history2)
+                {
+                    history2.Undo();
+                }
                 break;
 
             case Options.HelpAbout:
