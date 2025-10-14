@@ -19,7 +19,9 @@ public interface ILoader
 
     Godot.Texture2D GetIcon(string file, IconsResource icons);
 
-    bool HasFile(string file); 
+    bool HasFile(string file);
+
+    void RefreshFiles();
     
     object LoadAsset(string path);
     

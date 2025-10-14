@@ -21,7 +21,9 @@ public class FolderLoader : ILoader
 {
     private static readonly ILogger Logger = LoggerFactory.Create<FolderLoader>();
 
-    public string Root { get; private set; }
+    public string Root => AssetDirectory.Name;
+    
+    private DirectoryInfo AssetDirectory { get; init; }
 
     private readonly Dictionary<string, FileInfo> _files = new();
 
@@ -32,15 +34,8 @@ public class FolderLoader : ILoader
             throw new DirectoryNotFoundException(info.FullName);
         }
 
-        var loader = new FolderLoader { Root = directoryInfo.Name };
-        foreach (var file in directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories))
-        {
-            var path = file.FullName[(directoryInfo.FullName.Length + 1)..];
-            var index = path.IndexOf('.');
-            var filePath = path[..index];
-            loader._files[filePath] = file;
-        }
-
+        var loader = new FolderLoader { AssetDirectory = directoryInfo };
+        loader.RefreshFiles();
         return loader;
     }
 
@@ -90,6 +85,17 @@ public class FolderLoader : ILoader
     public bool HasFile(string file)
     {
         return _files.ContainsKey(file.ToLower());
+    }
+
+    public void RefreshFiles()
+    {
+        _files.Clear();
+        foreach (var file in AssetDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
+        {
+            var path = file.FullName[(AssetDirectory.FullName.Length + 1)..];
+            var filePath = path[..path.IndexOf('.')];
+            _files[filePath] = file;
+        }
     }
 
     public object LoadAsset(string path)

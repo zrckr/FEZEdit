@@ -28,6 +28,11 @@ public partial class Main : Control
 
     private bool _disabled;
 
+    public override void _EnterTree()
+    {
+        GetWindow().FocusEntered += RefreshFileBrowser;
+    }
+
     public override void _Ready()
     {
         _mainMenu = GetNode<MainMenu>("%MainMenu");
@@ -80,27 +85,13 @@ public partial class Main : Control
                      default:
                         throw new ArgumentOutOfRangeException(nameof(workingTarget));
                 }
-
-                var files = loader.GetFiles().ToArray();
-                var progress = new ProgressValue(0, 0, files.Length, 1);
-                EventBus.Progress(progress);
-
+                
                 CloseLoader();
                 Callable.From(() =>
                 {
                     _loader = loader;
-                    _fileBrowser.AddRoot(_loader.Root);
-                    foreach (var path in _loader.GetFiles())
-                    {
-                        var icon = _loader.GetIcon(path, _icons);
-                        _fileBrowser.AddFile(path, icon);
-                        progress.Next();
-                        EventBus.Progress(progress);
-                    }
-
-                    _fileBrowser.RefreshFiles();
-                    _fileBrowser.CanConvert = _loader is FolderLoader;
-                    EventBus.Success("Opened: {0}", workingTarget.FullName);
+                    PopulateFileBrowser(loader);
+                    EventBus.Success("Loaded: {0}", loader.Root);
                 }).CallDeferred();
             }
             catch (Exception exception)
@@ -109,6 +100,51 @@ public partial class Main : Control
                 Logger.Error(exception, "Failed to open '{0}'", workingTarget.FullName);
             }
         }).Start();
+    }
+
+    private void RefreshFileBrowser()
+    {
+        if (_loader == null)
+        {
+            return;
+        }
+        
+        new Thread(() =>
+        {
+            try
+            {
+                Callable.From(() =>
+                {
+                    _loader.RefreshFiles();
+                    PopulateFileBrowser(_loader);
+                }).CallDeferred();
+            }
+            catch (Exception exception)
+            {
+                EventBus.Error("Failed to refresh: {0}", _loader.Root);
+                Logger.Error(exception, "Failed to refresh '{0}'", _loader.Root);
+            }
+        }).Start();
+    }
+    
+    private void PopulateFileBrowser(ILoader loader)
+    {
+        var count = loader.GetFiles().Count();
+        var progress = new ProgressValue(0, 0, count, 1);
+        EventBus.Progress(progress);
+
+        _fileBrowser.ClearFiles();
+        _fileBrowser.AddRoot(loader.Root);
+        foreach (var path in loader.GetFiles())
+        {
+            var icon = loader.GetIcon(path, _icons);
+            _fileBrowser.AddFile(path, icon);
+            progress.Next();
+            EventBus.Progress(progress);
+        }
+
+        _fileBrowser.RefreshFiles();
+        _fileBrowser.CanConvert = loader is FolderLoader;
     }
 
     private void CloseLoader()

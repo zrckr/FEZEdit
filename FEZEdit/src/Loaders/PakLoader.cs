@@ -19,8 +19,10 @@ namespace FEZEdit.Loaders;
 public class PakLoader : ILoader
 {
     private static readonly ILogger Logger = LoggerFactory.Create<PakLoader>();
-    
-    public string Root { get; private init; }
+
+    public string Root => PakFile.Name;
+
+    private FileInfo PakFile { get; init; }
 
     private readonly Dictionary<string, PakFileRecord> _files = new();
 
@@ -31,15 +33,8 @@ public class PakLoader : ILoader
             throw new FileLoadException(info.ToString());
         }
 
-        var stream = pakFile.OpenRead();
-        var reader = new PakReader(stream);
-
-        var loader = new PakLoader { Root = pakFile.Name };
-        foreach (var record in reader.ReadFiles())
-        {
-            loader._files[record.Path] = record;
-        }
-
+        var loader = new PakLoader { PakFile = pakFile };
+        loader.RefreshFiles();
         return loader;
     }
 
@@ -72,6 +67,18 @@ public class PakLoader : ILoader
     public bool HasFile(string file)
     {
         return _files.ContainsKey(file.ToLower());
+    }
+
+    public void RefreshFiles()
+    {
+        using var stream = PakFile.OpenRead();
+        using var reader = new PakReader(stream);
+
+        _files.Clear();
+        foreach (var record in reader.ReadFiles())
+        {
+            _files[record.Path] = record;
+        }
     }
 
     public object LoadAsset(string path)
