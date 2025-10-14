@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
-using FEZEdit.Interface.Editors;
 using Godot;
 
 namespace FEZEdit.Interface;
@@ -40,7 +39,7 @@ public partial class MainMenu : Control
 
     public event Action<Theme> ThemeSelected;
 
-    public event Func<EditorHistory> HistoryRequested;
+    public event Func<UndoRedo> UndoRedoRequested;
 
     private const int ClearRecentFilesId = -2;
 
@@ -219,7 +218,7 @@ public partial class MainMenu : Control
 
     private void OnMenuAboutToPopup()
     {
-        var history = HistoryRequested?.Invoke();
+        var history = UndoRedoRequested?.Invoke();
         _fileMenu.SetItemDisabled((int)Options.FileClose, _workingTarget is not DirectoryInfo);
         _fileMenu.SetItemDisabled((int)Options.SaveFile, _workingTarget is not DirectoryInfo);
         _fileMenu.SetItemDisabled((int)Options.SaveFileAs, _workingTarget is not DirectoryInfo);
@@ -258,16 +257,16 @@ public partial class MainMenu : Control
                 break;
             
             case Options.EditRedo:
-                if (HistoryRequested?.Invoke() is { HasRedo: true } history1)
+                if (UndoRedoRequested?.Invoke() is { HasRedo: true } redo)
                 {
-                    history1.Redo();
+                    redo.Redo();
                 }
                 break;
             
             case Options.EditUndo:
-                if (HistoryRequested?.Invoke() is { HasUndo: true } history2)
+                if (UndoRedoRequested?.Invoke() is { HasUndo: true } undo)
                 {
-                    history2.Undo();
+                    undo.Undo();
                 }
                 break;
 

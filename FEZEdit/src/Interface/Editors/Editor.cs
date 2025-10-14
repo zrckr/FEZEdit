@@ -11,5 +11,5 @@ public abstract partial class Editor : Control
 
     public ILoader Loader { get; set; }
 
-    public EditorHistory History { get; set; }
+    public UndoRedo UndoRedo { get; } = new();
 }

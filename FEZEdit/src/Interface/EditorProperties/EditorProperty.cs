@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using FEZEdit.Interface.Editors;
 using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
@@ -18,7 +17,7 @@ public interface IEditorProperty
     
     EditorPropertyFactory PropertyFactory { set; }
     
-    EditorHistory EditorHistory { set; }
+    UndoRedo UndoRedo { set; }
     
     Type Type { set; }
     
@@ -54,7 +53,7 @@ public abstract partial class EditorProperty<T> : Control, IEditorProperty
     
     public event Action<object> ValueChanged;
     
-    public EditorHistory EditorHistory { protected get; set; }
+    public UndoRedo UndoRedo { protected get; set; }
     
     public EditorPropertyFactory PropertyFactory { protected get; set; }
     
@@ -78,20 +77,20 @@ public abstract partial class EditorProperty<T> : Control, IEditorProperty
     
     protected virtual void RecordValueChange(T oldValue, T newValue)
     {
-        if (!EditorHistory.IsCommitting)
+        if (!UndoRedo.IsCommitting)
         {
-            EditorHistory.CreateAction($"Change {Label}");
-            EditorHistory.AddUndoProperty(
+            UndoRedo.CreateAction($"Change {Label}");
+            UndoRedo.AddUndoProperty(
                 () => (T)PropertyInfo.GetValue(Target),
                 value => PropertyInfo.SetValue(Target, value),
                 oldValue
             );
-            EditorHistory.AddDoProperty(
+            UndoRedo.AddDoProperty(
                 () => (T)PropertyInfo.GetValue(Target),
                 value => PropertyInfo.SetValue(Target, value),
                 newValue
             );
-            EditorHistory.CommitAction();
+            UndoRedo.CommitAction();
         }
     }
 }

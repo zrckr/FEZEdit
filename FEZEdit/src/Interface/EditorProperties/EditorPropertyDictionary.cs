@@ -52,7 +52,7 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
                 _itemsContainer.AddChild(itemContainer);
 
                 var keyProperty = PropertyFactory.GetEditorProperty(types[0]);
-                keyProperty.EditorHistory = EditorHistory;
+                keyProperty.UndoRedo = UndoRedo;
                 keyProperty.ValueChanged += OnDictionaryItemChanged;
                 itemContainer.AddChild((Node)keyProperty);
                 keyProperty.Label = string.Empty;
@@ -60,7 +60,7 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
                 _keyProperties.Add(keyProperty);
 
                 var valueProperty = PropertyFactory.GetEditorProperty(types[1]);
-                valueProperty.EditorHistory = EditorHistory;
+                valueProperty.UndoRedo = UndoRedo;
                 valueProperty.ValueChanged += OnDictionaryItemChanged;
                 itemContainer.AddChild((Node)valueProperty);
                 valueProperty.Label = string.Empty;
@@ -91,7 +91,7 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
     {
         var oldDict = PropertyInfo?.GetValue(Target);
         var newDict = TypedValue;
-        if (EditorHistory != null && Target != null && PropertyInfo != null && !EditorHistory.IsCommitting)
+        if (UndoRedo != null && Target != null && PropertyInfo != null && !UndoRedo.IsCommitting)
         {
             RecordValueChange((IDictionary)oldDict, newDict);
         }

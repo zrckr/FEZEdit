@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FEZEdit.Interface.Editors;
+namespace FEZEdit.Core;
 
-public class EditorHistory
+/// <summary>
+/// Provides a high-level interface for implementing undo and redo operations.
+/// </summary>
+/// <remarks>
+/// It's similar to <see cref="Godot.UndoRedo"/>, but is intended for use with pure C# code. 
+/// </remarks>
+public sealed class UndoRedo
 {
     public const int NoLimit = 0;
     

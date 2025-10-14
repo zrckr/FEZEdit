@@ -43,7 +43,7 @@ public partial class Main : Control
         _mainMenu.WorkingFilePathRequested += RequestFilePath;
         _mainMenu.WorkingFileSaved += SaveFile;
         _mainMenu.ThemeSelected += ChangeTheme;
-        _mainMenu.HistoryRequested += () => _editor?.History;
+        _mainMenu.UndoRedoRequested += () => _editor?.UndoRedo;
 
         _fileBrowser = GetNode<FileBrowser>("%FileBrowser");
         _fileBrowser.FileMaterialized += EditFile;
@@ -60,9 +60,7 @@ public partial class Main : Control
         _editor.QueueFree();
         parent.AddChild(editorInstance);
         parent.MoveChild(editorInstance, index);
-
         _editor = editorInstance;
-        _editor.History = new EditorHistory();
     }
 
     private void LoadFilesFromLoader(FileSystemInfo workingTarget)

@@ -53,7 +53,7 @@ public partial class EditorPropertyList : EditorProperty<IList>
                 itemContainer.AddChild(itemLabel);
 
                 var itemEditor = PropertyFactory.GetEditorProperty(elementType);
-                itemEditor.EditorHistory = EditorHistory;
+                itemEditor.UndoRedo = UndoRedo;
                 itemEditor.ValueChanged += OnItemValueChanged;
                 itemContainer.AddChild((Node)itemEditor);
                 itemEditor.Value = value[i];
@@ -82,7 +82,7 @@ public partial class EditorPropertyList : EditorProperty<IList>
     {
         var oldList = PropertyInfo?.GetValue(Target);
         var newList = TypedValue;
-        if (EditorHistory != null && Target != null && PropertyInfo != null && !EditorHistory.IsCommitting)
+        if (UndoRedo != null && Target != null && PropertyInfo != null && !UndoRedo.IsCommitting)
         {
             RecordValueChange((IList)oldList, newList);
         }

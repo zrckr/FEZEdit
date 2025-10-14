@@ -54,7 +54,7 @@ public partial class EditorPropertyArray : EditorProperty<Array>
                 itemContainer.AddChild(itemLabel);
 
                 var itemEditor = PropertyFactory.GetEditorProperty(elementType);
-                itemEditor.EditorHistory = EditorHistory;
+                itemEditor.UndoRedo = UndoRedo;
                 itemEditor.Target = this;
                 itemEditor.ValueChanged += OnItemValueChanged;
 
@@ -85,7 +85,7 @@ public partial class EditorPropertyArray : EditorProperty<Array>
     {
         var oldArray = PropertyInfo?.GetValue(Target);
         var newArray = TypedValue;
-        if (EditorHistory != null && Target != null && PropertyInfo != null && !EditorHistory.IsCommitting)
+        if (UndoRedo != null && Target != null && PropertyInfo != null && !UndoRedo.IsCommitting)
         {
             RecordValueChange((Array)oldArray, newArray);
         }

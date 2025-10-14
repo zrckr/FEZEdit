@@ -1,6 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using FEZEdit.Interface.EditorProperties;
-using FEZEdit.Interface.Editors;
 using Godot;
 
 namespace FEZEdit.Interface;
@@ -11,7 +10,7 @@ public partial class Inspector : Control
     
     [Export] private EditorPropertyFactory _factory;
 
-    public EditorHistory EditorHistory { get; set; } = new();
+    private UndoRedo UndoRedo { get; set; } = new();
     
     private object _currentTarget;
 
@@ -55,7 +54,7 @@ public partial class Inspector : Control
         foreach (var property in currentType.GetProperties())
         {
             var editorProperty = _factory.GetEditorProperty(property.PropertyType);
-            editorProperty.EditorHistory = EditorHistory;
+            editorProperty.UndoRedo = UndoRedo;
             editorProperty.Target = _currentTarget;
             editorProperty.PropertyInfo = property;
             
