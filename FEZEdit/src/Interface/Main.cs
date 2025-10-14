@@ -26,6 +26,8 @@ public partial class Main : Control
 
     private ILoader _loader;
 
+    private bool _disabled;
+
     public override void _Ready()
     {
         _mainMenu = GetNode<MainMenu>("%MainMenu");
@@ -60,12 +62,24 @@ public partial class Main : Control
         {
             try
             {
-                ILoader loader = workingTarget switch
+                ILoader loader;
+                switch (workingTarget)
                 {
-                    FileInfo => PakLoader.Open(workingTarget),
-                    DirectoryInfo => FolderLoader.Open(workingTarget),
-                    _ => throw new ArgumentOutOfRangeException(nameof(workingTarget))
-                };
+                    case FileInfo fileInfo:
+                        Settings.CurrentFolder = fileInfo.DirectoryName;
+                        loader = PakLoader.Open(workingTarget);
+                        _disabled = true;
+                        break;
+                    
+                    case DirectoryInfo:
+                        Settings.CurrentFolder = workingTarget.FullName;
+                        loader = FolderLoader.Open(workingTarget);
+                        _disabled = false;
+                        break;
+                    
+                     default:
+                        throw new ArgumentOutOfRangeException(nameof(workingTarget));
+                }
 
                 var files = loader.GetFiles().ToArray();
                 var progress = new ProgressValue(0, 0, files.Length, 1);
@@ -88,13 +102,6 @@ public partial class Main : Control
                     _fileBrowser.CanConvert = _loader is FolderLoader;
                     EventBus.Success("Opened: {0}", workingTarget.FullName);
                 }).CallDeferred();
-                
-                Settings.CurrentFolder = workingTarget switch
-                {
-                    FileInfo info => info.DirectoryName,
-                    DirectoryInfo info => info.FullName,
-                    _ => throw new ArgumentOutOfRangeException(nameof(workingTarget))
-                };
             }
             catch (Exception exception)
             {
@@ -145,6 +152,7 @@ public partial class Main : Control
                         editor.Loader = _loader;
                         editor.Value = @object;
                         AttachEditor(editor);
+                        editor.Disabled = _disabled;
                         EventBus.Progress(ProgressValue.Complete);
                         EventBus.Success("Opened: {0}", file);
                     }
