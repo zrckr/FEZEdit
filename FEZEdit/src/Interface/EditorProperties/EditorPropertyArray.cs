@@ -23,32 +23,41 @@ public partial class EditorPropertyArray : EditorProperty<Array>
     {
         get
         {
-            var array = new object[_editorProperties.Count];
+            var array = Array.CreateInstance(Type.GetElementType()!, _editorProperties.Count);
             var index = 0;
             foreach (var itemContainer in _itemsContainer.GetChildren())
             {
                 var itemEditor = itemContainer.GetChild<IEditorProperty>(1);
-                array[index] = itemEditor.Value;
+                array.SetValue(itemEditor.Value, index);
                 index += 1;
             }
+
             return array;
         }
 
         set
         {
             _editorProperties.Clear();
-            _foldableContainer.Title = $"Array (size: {value.Length})";
+            foreach (var child in _itemsContainer.GetChildren())
+            {
+                child.QueueFree();
+            }
 
-            var type = Type.GetGenericArguments()[0];
+            _foldableContainer.Title = $"Array (size: {value.Length})";
+            var elementType = Type.GetElementType();
             for (int i = 0; i < value.Length; i++)
             {
                 var itemContainer = new HBoxContainer();
                 _itemsContainer.AddChild(itemContainer);
-                
+
                 var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
                 itemContainer.AddChild(itemLabel);
-                
-                var itemEditor = Factory.GetEditorProperty(type);
+
+                var itemEditor = PropertyFactory.GetEditorProperty(elementType);
+                itemEditor.EditorHistory = EditorHistory;
+                itemEditor.Target = this;
+                itemEditor.ValueChanged += OnItemValueChanged;
+
                 itemContainer.AddChild((Node)itemEditor);
                 itemEditor.Value = value.GetValue(i);
                 itemEditor.Label = string.Empty;
@@ -70,5 +79,17 @@ public partial class EditorPropertyArray : EditorProperty<Array>
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
+    }
+
+    private void OnItemValueChanged(object newValue)
+    {
+        var oldArray = PropertyInfo?.GetValue(Target);
+        var newArray = TypedValue;
+        if (EditorHistory != null && Target != null && PropertyInfo != null && !EditorHistory.IsCommitting)
+        {
+            RecordValueChange((Array)oldArray, newArray);
+        }
+
+        TypedValueChanged?.Invoke(newArray);
     }
 }

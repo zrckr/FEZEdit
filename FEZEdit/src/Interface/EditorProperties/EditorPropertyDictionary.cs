@@ -24,13 +24,14 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
     {
         get
         {
-            var dict = new Dictionary<object, object>();
+            var dict = (IDictionary)Activator.CreateInstance(Type)!;
             foreach (var itemContainer in _itemsContainer.GetChildren())
             {
                 var keyProperty = itemContainer.GetChild<IEditorProperty>(0);
                 var valueProperty = itemContainer.GetChild<IEditorProperty>(1);
                 dict[keyProperty.Value] = valueProperty.Value;
             }
+
             return dict;
         }
 
@@ -38,22 +39,30 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
         {
             _keyProperties.Clear();
             _valueProperties.Clear();
+            foreach (var child in _itemsContainer.GetChildren())
+            {
+                child.QueueFree();
+            }
+
             _foldableContainer.Title = $"Dictionary (size: {value.Count})";
-            
             var types = Type.GetGenericArguments();
             foreach (DictionaryEntry entry in value)
             {
                 var itemContainer = new HBoxContainer();
                 _itemsContainer.AddChild(itemContainer);
-                
-                var keyProperty = Factory.GetEditorProperty(types[0]);
-                itemContainer.AddChild((Node) keyProperty);
+
+                var keyProperty = PropertyFactory.GetEditorProperty(types[0]);
+                keyProperty.EditorHistory = EditorHistory;
+                keyProperty.ValueChanged += OnDictionaryItemChanged;
+                itemContainer.AddChild((Node)keyProperty);
                 keyProperty.Label = string.Empty;
                 keyProperty.Value = entry.Key;
                 _keyProperties.Add(keyProperty);
-                
-                var valueProperty = Factory.GetEditorProperty(types[1]);
-                itemContainer.AddChild((Node) valueProperty);
+
+                var valueProperty = PropertyFactory.GetEditorProperty(types[1]);
+                valueProperty.EditorHistory = EditorHistory;
+                valueProperty.ValueChanged += OnDictionaryItemChanged;
+                itemContainer.AddChild((Node)valueProperty);
                 valueProperty.Label = string.Empty;
                 valueProperty.Value = entry.Value;
                 _valueProperties.Add(valueProperty);
@@ -68,7 +77,7 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
     private VBoxContainer _itemsContainer;
 
     private readonly List<IEditorProperty> _keyProperties = [];
-    
+
     private readonly List<IEditorProperty> _valueProperties = [];
 
     public override void _Ready()
@@ -76,5 +85,17 @@ public partial class EditorPropertyDictionary : EditorProperty<IDictionary>
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
+    }
+
+    private void OnDictionaryItemChanged(object newValue)
+    {
+        var oldDict = PropertyInfo?.GetValue(Target);
+        var newDict = TypedValue;
+        if (EditorHistory != null && Target != null && PropertyInfo != null && !EditorHistory.IsCommitting)
+        {
+            RecordValueChange((IDictionary)oldDict, newDict);
+        }
+
+        TypedValueChanged?.Invoke(newDict);
     }
 }

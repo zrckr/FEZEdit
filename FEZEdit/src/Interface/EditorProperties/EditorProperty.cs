@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using FEZEdit.Interface.Editors;
 using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
@@ -13,9 +16,15 @@ public interface IEditorProperty
     
     event Action<object> ValueChanged;
     
-    EditorPropertyFactory Factory { set; }
+    EditorPropertyFactory PropertyFactory { set; }
+    
+    EditorHistory EditorHistory { set; }
     
     Type Type { set; }
+    
+    object Target { get; set; }
+    
+    PropertyInfo PropertyInfo { get; set; }
 }
 
 public abstract partial class EditorProperty<T> : Control, IEditorProperty
@@ -31,12 +40,27 @@ public abstract partial class EditorProperty<T> : Control, IEditorProperty
     public object Value
     {
         get => TypedValue;
-        set => TypedValue = (T) value;
+        set
+        {
+            var oldValue= TypedValue;
+            var newValue = (T)value;
+            if (!EqualityComparer<T>.Default.Equals(oldValue, newValue))
+            {
+                TypedValue = newValue;
+                RecordValueChange(oldValue, newValue);
+            }
+        }
     }
     
     public event Action<object> ValueChanged;
     
-    public EditorPropertyFactory Factory { protected get; set; }
+    public EditorHistory EditorHistory { protected get; set; }
+    
+    public EditorPropertyFactory PropertyFactory { protected get; set; }
+    
+    public object Target { get; set; }
+    
+    public PropertyInfo PropertyInfo { get; set; }
     
     public Type Type { protected get; set; }
     
@@ -50,5 +74,24 @@ public abstract partial class EditorProperty<T> : Control, IEditorProperty
     {
         _label = GetNode<Label>("Label");
         TypedValueChanged += value => ValueChanged?.Invoke(value);
+    }
+    
+    protected virtual void RecordValueChange(T oldValue, T newValue)
+    {
+        if (!EditorHistory.IsCommitting)
+        {
+            EditorHistory.CreateAction($"Change {Label}");
+            EditorHistory.AddUndoProperty(
+                () => (T)PropertyInfo.GetValue(Target),
+                value => PropertyInfo.SetValue(Target, value),
+                oldValue
+            );
+            EditorHistory.AddDoProperty(
+                () => (T)PropertyInfo.GetValue(Target),
+                value => PropertyInfo.SetValue(Target, value),
+                newValue
+            );
+            EditorHistory.CommitAction();
+        }
     }
 }

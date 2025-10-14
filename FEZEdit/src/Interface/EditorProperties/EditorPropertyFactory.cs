@@ -28,7 +28,7 @@ public partial class EditorPropertyFactory: Resource
         
         var instance = scene.Instantiate<IEditorProperty>();
         instance.Type = type;
-        instance.Factory = this;
+        instance.PropertyFactory = this;
         return instance;
     }
 }

@@ -10,6 +10,8 @@ public partial class Inspector : Control
     [Export] public bool ShowDisabled { get; set; }
     
     [Export] private EditorPropertyFactory _factory;
+
+    public EditorHistory EditorHistory { get; set; } = new();
     
     private object _currentTarget;
 
@@ -53,6 +55,10 @@ public partial class Inspector : Control
         foreach (var property in currentType.GetProperties())
         {
             var editorProperty = _factory.GetEditorProperty(property.PropertyType);
+            editorProperty.EditorHistory = EditorHistory;
+            editorProperty.Target = _currentTarget;
+            editorProperty.PropertyInfo = property;
+            
             _properties.AddChild((Node) editorProperty, true);
             editorProperty.Label = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
             editorProperty.Value = property.GetValue(_currentTarget);
