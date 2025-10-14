@@ -290,15 +290,16 @@ public partial class MainMenu : Control
             ? new DirectoryInfo(path)
             : new FileInfo(path);
 
-        if (!info.Exists)
+        recentFiles.RemoveAt((int)index);
+        
+        if (info.Exists)
         {
-            recentFiles.RemoveAt((int)index);
-            SaveRecent(recentFiles);
-            return;
+            recentFiles.Insert(0, path);
+            _workingTarget = info;
+            WorkingTargetOpened?.Invoke(info);
         }
-
-        _workingTarget = info;
-        WorkingTargetOpened?.Invoke(info);
+        
+        SaveRecent(recentFiles);
     }
 
     private void OnThemeChanged(long index)
