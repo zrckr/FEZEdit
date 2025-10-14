@@ -5,7 +5,7 @@ using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public partial class EditorPropertyArray : EditorProperty<Array>
+public partial class EditorPropertyArray : EditorProperty
 {
     public override bool Disabled
     {
@@ -18,61 +18,58 @@ public partial class EditorPropertyArray : EditorProperty<Array>
             }
         }
     }
-
-    protected override Array TypedValue
-    {
-        get
-        {
-            var array = Array.CreateInstance(Type.GetElementType()!, _editorProperties.Count);
-            var index = 0;
-            foreach (var itemContainer in _itemsContainer.GetChildren())
-            {
-                var itemEditor = itemContainer.GetChild<IEditorProperty>(1);
-                array.SetValue(itemEditor.Value, index);
-                index += 1;
-            }
-
-            return array;
-        }
-
-        set
-        {
-            _editorProperties.Clear();
-            foreach (var child in _itemsContainer.GetChildren())
-            {
-                child.QueueFree();
-            }
-
-            _foldableContainer.Title = $"Array (size: {value.Length})";
-            var elementType = Type.GetElementType();
-            for (int i = 0; i < value.Length; i++)
-            {
-                var itemContainer = new HBoxContainer();
-                _itemsContainer.AddChild(itemContainer);
-
-                var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
-                itemContainer.AddChild(itemLabel);
-
-                var itemEditor = PropertyFactory.GetEditorProperty(elementType);
-                itemEditor.UndoRedo = UndoRedo;
-                itemEditor.Target = this;
-                itemEditor.ValueChanged += OnItemValueChanged;
-
-                itemContainer.AddChild((Node)itemEditor);
-                itemEditor.Value = value.GetValue(i);
-                itemEditor.Label = string.Empty;
-                _editorProperties.Add(itemEditor);
-            }
-        }
-    }
-
-    protected override event Action<Array> TypedValueChanged;
-
+    
     private FoldableContainer _foldableContainer;
 
     private VBoxContainer _itemsContainer;
 
-    private readonly List<IEditorProperty> _editorProperties = [];
+    private readonly List<EditorProperty> _editorProperties = [];
+    
+    protected override object GetValue()
+    {
+        var array = Array.CreateInstance(Type.GetElementType() ?? typeof(object), _editorProperties.Count);
+        var index = 0;
+        foreach (var itemContainer in _itemsContainer.GetChildren())
+        {
+            var itemEditor = itemContainer.GetChild<EditorProperty>(1);
+            array.SetValue(itemEditor.Value, index);
+            index += 1;
+        }
+
+        return array;
+    }
+
+    protected override void SetValue(object value)
+    {
+        _editorProperties.Clear();
+        foreach (var child in _itemsContainer.GetChildren())
+        {
+            child.QueueFree();
+        }
+
+        var array = (Array)value;
+        var elementType = Type.GetElementType();
+        _foldableContainer.Title = $"Array (size: {array.Length})";
+        
+        for (int i = 0; i < array.Length; i++)
+        {
+            var itemContainer = new HBoxContainer();
+            _itemsContainer.AddChild(itemContainer);
+
+            var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
+            itemContainer.AddChild(itemLabel);
+
+            var itemEditor = PropertyFactory.GetEditorProperty(elementType);
+            itemEditor.UndoRedo = UndoRedo;
+            itemEditor.Target = this;
+            itemEditor.ValueChanged += OnItemValueChanged;
+
+            itemContainer.AddChild(itemEditor);
+            itemEditor.Value = array.GetValue(i);
+            itemEditor.Label = string.Empty;
+            _editorProperties.Add(itemEditor);
+        }
+    }
 
     public override void _Ready()
     {
@@ -83,13 +80,25 @@ public partial class EditorPropertyArray : EditorProperty<Array>
 
     private void OnItemValueChanged(object newValue)
     {
-        var oldArray = PropertyInfo?.GetValue(Target);
-        var newArray = TypedValue;
-        if (UndoRedo != null && Target != null && PropertyInfo != null && !UndoRedo.IsCommitting)
+        var oldArray = (Array)PropertyInfo?.GetValue(Target);
+        var newArray = (Array)GetValue();
+        if (!ArraysAreEqual(oldArray, newArray))
         {
-            RecordValueChange((Array)oldArray, newArray);
+            RecordValueChange(oldArray, newArray);
+            NotifyValueChanged(newArray);
         }
-
-        TypedValueChanged?.Invoke(newArray);
+    }
+    
+    private static bool ArraysAreEqual(Array a, Array b)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (a == null || b == null) return false;
+        if (a.Length != b.Length) return false;
+        
+        for (int i = 0; i < a.Length; i++)
+            if (!Equals(a.GetValue(i), b.GetValue(i)))
+                return false;
+        
+        return true;
     }
 }

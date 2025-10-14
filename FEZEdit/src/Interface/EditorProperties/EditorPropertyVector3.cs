@@ -8,19 +8,19 @@ public partial class EditorPropertyVector3 : EditorPropertyVector<Vector3>
 
     protected override string[] Components => NodePaths;
     
-    protected override Vector3 TypedValue
+    protected override Vector3 GetValueInternal()
     {
-        get => new(
+        return new Vector3(
             x: (float)_spinBoxes[0].Value,
             y: (float)_spinBoxes[1].Value,
             z: (float)_spinBoxes[2].Value
         );
+    }
 
-        set
-        {
-            _spinBoxes[0].Value = value.X;
-            _spinBoxes[1].Value = value.Y;
-            _spinBoxes[2].Value = value.Z;
-        }
+    protected override void SetValueInternal(Vector3 value)
+    {
+        _spinBoxes[0].Value = value.X;
+        _spinBoxes[1].Value = value.Y;
+        _spinBoxes[2].Value = value.Z;
     }
 }

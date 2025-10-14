@@ -6,7 +6,7 @@ using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public partial class EditorPropertyList : EditorProperty<IList>
+public partial class EditorPropertyList : EditorProperty
 {
     public override bool Disabled
     {
@@ -20,56 +20,53 @@ public partial class EditorPropertyList : EditorProperty<IList>
         }
     }
 
-    protected override IList TypedValue
-    {
-        get
-        {
-            var list = (IList)Activator.CreateInstance(Type)!;
-            foreach (var itemContainer in _itemsContainer.GetChildren())
-            {
-                var itemEditor = itemContainer.GetChild<IEditorProperty>(1);
-                list.Add(itemEditor.Value);
-            }
-
-            return list;
-        }
-
-        set
-        {
-            _editorProperties.Clear();
-            foreach (var child in _itemsContainer.GetChildren())
-            {
-                child.QueueFree();
-            }
-
-            _foldableContainer.Title = $"List (size: {value.Count})";
-            var elementType = Type.GetGenericArguments()[0];
-            for (int i = 0; i < value.Count; i++)
-            {
-                var itemContainer = new HBoxContainer();
-                _itemsContainer.AddChild(itemContainer);
-
-                var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
-                itemContainer.AddChild(itemLabel);
-
-                var itemEditor = PropertyFactory.GetEditorProperty(elementType);
-                itemEditor.UndoRedo = UndoRedo;
-                itemEditor.ValueChanged += OnItemValueChanged;
-                itemContainer.AddChild((Node)itemEditor);
-                itemEditor.Value = value[i];
-                itemEditor.Label = string.Empty;
-                _editorProperties.Add(itemEditor);
-            }
-        }
-    }
-
-    protected override event Action<IList> TypedValueChanged;
-
     private FoldableContainer _foldableContainer;
 
     private VBoxContainer _itemsContainer;
 
-    private readonly List<IEditorProperty> _editorProperties = [];
+    private readonly List<EditorProperty> _editorProperties = [];
+
+    protected override object GetValue()
+    {
+        var list = (IList)Activator.CreateInstance(Type)!;
+        foreach (var itemContainer in _itemsContainer.GetChildren())
+        {
+            var itemEditor = itemContainer.GetChild<EditorProperty>(1);
+            list.Add(itemEditor.Value);
+        }
+
+        return list;
+    }
+
+    protected override void SetValue(object value)
+    {
+        _editorProperties.Clear();
+        foreach (var child in _itemsContainer.GetChildren())
+        {
+            child.QueueFree();
+        }
+
+        var list = (IList)value;
+        var elementType = Type.GetGenericArguments()[0];
+        _foldableContainer.Title = $"List (size: {list.Count})";
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            var itemContainer = new HBoxContainer();
+            _itemsContainer.AddChild(itemContainer);
+
+            var itemLabel = new Label { Text = $"{i}", SizeFlagsHorizontal = SizeFlags.ExpandFill };
+            itemContainer.AddChild(itemLabel);
+
+            var itemEditor = PropertyFactory.GetEditorProperty(elementType);
+            itemEditor.UndoRedo = UndoRedo;
+            itemEditor.ValueChanged += OnItemValueChanged;
+            itemContainer.AddChild(itemEditor);
+            itemEditor.Value = list[i];
+            itemEditor.Label = string.Empty;
+            _editorProperties.Add(itemEditor);
+        }
+    }
 
     public override void _Ready()
     {
@@ -80,13 +77,25 @@ public partial class EditorPropertyList : EditorProperty<IList>
 
     private void OnItemValueChanged(object newValue)
     {
-        var oldList = PropertyInfo?.GetValue(Target);
-        var newList = TypedValue;
-        if (UndoRedo != null && Target != null && PropertyInfo != null && !UndoRedo.IsCommitting)
+        var oldList = (IList)PropertyInfo?.GetValue(Target);
+        var newList = (IList)GetValue();
+        if (!ListsAreEqual(oldList, newList))
         {
-            RecordValueChange((IList)oldList, newList);
+            RecordValueChange(oldList, newList);
+            NotifyValueChanged(newList);
         }
+    }
 
-        TypedValueChanged?.Invoke(newList);
+    private static bool ListsAreEqual(IList a, IList b)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (a == null || b == null) return false;
+        if (a.Count != b.Count) return false;
+
+        for (int i = 0; i < a.Count; i++)
+            if (!Equals(a[i], b[i]))
+                return false;
+
+        return true;
     }
 }

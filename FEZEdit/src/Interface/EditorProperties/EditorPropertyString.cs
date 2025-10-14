@@ -1,31 +1,35 @@
-﻿using System;
-using Godot;
+﻿using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public partial class EditorPropertyString : EditorProperty<string>
+public partial class EditorPropertyString : EditorProperty
 {
-    protected override string TypedValue
-    {
-        get => _lineEdit.Text;
-        set => _lineEdit.Text = value;
-    }
-
     public override bool Disabled
     {
         get => !_lineEdit.Editable;
         set => _lineEdit.Editable = !value;
     }
-
-    protected override event Action<string> TypedValueChanged;
     
     private LineEdit _lineEdit;
+
+    protected override object GetValue()
+    {
+        return _lineEdit.Text;
+    }
+
+    protected override void SetValue(object value)
+    {
+        _lineEdit.Text = (string)value;
+    }
 
     public override void _Ready()
     {
         base._Ready();
         _lineEdit = GetNode<LineEdit>("LineEdit");
-        _lineEdit.TextChanged += text => TypedValueChanged?.Invoke(text);
-        _lineEdit.TextChangeRejected += text => TypedValueChanged?.Invoke(text);
+        _lineEdit.TextChanged += newText =>
+        {
+            RecordValueChange(PropertyInfo?.GetValue(Target), newText);
+            NotifyValueChanged(newText);
+        };
     }
 }

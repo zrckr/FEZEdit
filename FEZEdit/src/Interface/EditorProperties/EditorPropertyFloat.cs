@@ -3,7 +3,7 @@ using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public partial class EditorPropertyFloat : EditorProperty<float>
+public partial class EditorPropertyFloat : EditorProperty
 {
     public bool Unit
     {
@@ -22,27 +22,33 @@ public partial class EditorPropertyFloat : EditorProperty<float>
         }
     }
 
-    protected override float TypedValue
-    {
-        get => (float)_spinBox.Value;
-        set => _spinBox.Value = value;
-    }
-
     public override bool Disabled
     {
         get => !_spinBox.Editable;
         set => _spinBox.Editable = !value;
     }
 
-    protected override event Action<float> TypedValueChanged;
-
     private SpinBox _spinBox;
+    
+    protected override object GetValue()
+    {
+        return (float)_spinBox.Value;
+    }
+
+    protected override void SetValue(object value)
+    {
+        _spinBox.Value = (float)value;
+    }
 
     public override void _Ready()
     {
         base._Ready();
         _spinBox = GetNode<SpinBox>("SpinBox");
-        _spinBox.ValueChanged += value => TypedValueChanged?.Invoke((float)value);
+        _spinBox.ValueChanged += newValue =>
+        {
+            RecordValueChange(PropertyInfo?.GetValue(Target), (float)newValue);
+            NotifyValueChanged(newValue);
+        };
         _spinBox.MinValue = float.MinValue;
         _spinBox.MaxValue = float.MaxValue;
     }

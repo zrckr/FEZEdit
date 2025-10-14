@@ -53,14 +53,11 @@ public partial class Inspector : Control
 
         foreach (var property in currentType.GetProperties())
         {
-            var editorProperty = _factory.GetEditorProperty(property.PropertyType);
-            editorProperty.UndoRedo = UndoRedo;
-            editorProperty.Target = _currentTarget;
-            editorProperty.PropertyInfo = property;
-            
-            _properties.AddChild((Node) editorProperty, true);
+            var editorProperty = _factory.GetEditorProperty(_currentTarget, property);
+            _properties.AddChild(editorProperty, true);
             editorProperty.Label = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
             editorProperty.Value = property.GetValue(_currentTarget);
+            editorProperty.UndoRedo = UndoRedo;     // Enable undo/redo after initial value was set
             editorProperty.Disabled = ShowDisabled;
         }
     }

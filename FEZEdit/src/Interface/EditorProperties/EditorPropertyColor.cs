@@ -1,32 +1,38 @@
-﻿using System;
-using FEZEdit.Extensions;
+﻿using FEZEdit.Extensions;
 using Godot;
 using Color = FEZRepacker.Core.Definitions.Game.XNA.Color;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public partial class EditorPropertyColor : EditorProperty<Color>
+public partial class EditorPropertyColor : EditorProperty
 {
-    protected override Color TypedValue
-    {
-        get => _colorPickerButton.Color.ToXna();
-        set => _colorPickerButton.Color = value.ToGodot();
-    }
-
     public override bool Disabled
     {
         get => _colorPickerButton.Disabled;
         set => _colorPickerButton.Disabled = value;
     }
 
-    protected override event Action<Color> TypedValueChanged;
-
     private ColorPickerButton _colorPickerButton;
+    
+    protected override object GetValue()
+    {
+        return _colorPickerButton.Color.ToXna();
+    }
+
+    protected override void SetValue(object value)
+    {
+        _colorPickerButton.Color = ((Color)value).ToGodot();
+    }
 
     public override void _Ready()
     {
         base._Ready();
         _colorPickerButton = GetNode<ColorPickerButton>("ColorPickerButton");
-        _colorPickerButton.ColorChanged += color => TypedValueChanged?.Invoke(color.ToXna());
+        _colorPickerButton.ColorChanged += color =>
+        {
+            var newColor = color.ToXna();
+            RecordValueChange(PropertyInfo?.GetValue(Target), newColor);
+            NotifyValueChanged(newColor);
+        };
     }
 }

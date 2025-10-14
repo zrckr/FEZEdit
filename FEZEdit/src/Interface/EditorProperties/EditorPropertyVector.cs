@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public abstract partial class EditorPropertyVector<T> : EditorProperty<T>
+public abstract partial class EditorPropertyVector<T> : EditorProperty
 {
     public bool Unit
     {
@@ -39,20 +38,44 @@ public abstract partial class EditorPropertyVector<T> : EditorProperty<T>
         }
     }
 
-    protected override event Action<T> TypedValueChanged;
-
     protected abstract string[] Components { get; }
 
     protected readonly List<SpinBox> _spinBoxes = [];
-
+    
+    protected abstract T GetValueInternal();
+    
+    protected abstract void SetValueInternal(T value);
+    
     public override void _Ready()
     {
         base._Ready();
         foreach (var component in Components)
         {
             var spinBox = GetNode<SpinBox>(component);
-            spinBox.ValueChanged += _ => TypedValueChanged?.Invoke(TypedValue);
+            spinBox.ValueChanged += OnSpinBoxValueChanged;
             _spinBoxes.Add(spinBox);
+        }
+    }
+
+    protected override object GetValue()
+    {
+        return GetValueInternal();
+    }
+
+    protected override void SetValue(object value)
+    {
+        SetValueInternal((T)value);
+    }
+
+    private void OnSpinBoxValueChanged(double value)
+    {
+        var oldValue = PropertyInfo?.GetValue(Target);
+        var newValue = GetValueInternal();
+        
+        if (!Equals(oldValue, newValue))
+        {
+            RecordValueChange(oldValue, newValue);
+            NotifyValueChanged(newValue);
         }
     }
 }

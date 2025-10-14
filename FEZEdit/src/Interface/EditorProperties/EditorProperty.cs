@@ -5,28 +5,7 @@ using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
-public interface IEditorProperty
-{
-    string Label { get; set; }
-    
-    bool Disabled { get; set; }
-    
-    object Value { get; set; }
-    
-    event Action<object> ValueChanged;
-    
-    EditorPropertyFactory PropertyFactory { set; }
-    
-    UndoRedo UndoRedo { set; }
-    
-    Type Type { set; }
-    
-    object Target { get; set; }
-    
-    PropertyInfo PropertyInfo { get; set; }
-}
-
-public abstract partial class EditorProperty<T> : Control, IEditorProperty
+public abstract partial class EditorProperty : Control
 {
     public string Label
     {
@@ -38,55 +17,58 @@ public abstract partial class EditorProperty<T> : Control, IEditorProperty
 
     public object Value
     {
-        get => TypedValue;
+        get => GetValue();
         set
         {
-            var oldValue= TypedValue;
-            var newValue = (T)value;
-            if (!EqualityComparer<T>.Default.Equals(oldValue, newValue))
+            var oldValue = GetValue();
+            if (!Equals(oldValue, value))
             {
-                TypedValue = newValue;
-                RecordValueChange(oldValue, newValue);
+                SetValue(value);
+                RecordValueChange(oldValue, value);
             }
         }
     }
     
     public event Action<object> ValueChanged;
     
-    public UndoRedo UndoRedo { protected get; set; }
+    public UndoRedo UndoRedo { get; set; }
     
-    public EditorPropertyFactory PropertyFactory { protected get; set; }
+    public EditorPropertyFactory PropertyFactory { get; set; }
     
     public object Target { get; set; }
     
     public PropertyInfo PropertyInfo { get; set; }
     
-    public Type Type { protected get; set; }
-    
-    protected abstract T TypedValue { get; set; }
-    
-    protected abstract event Action<T> TypedValueChanged;
+    public Type Type { get; set; }
 
     private Label _label;
 
     public override void _Ready()
     {
         _label = GetNode<Label>("Label");
-        TypedValueChanged += value => ValueChanged?.Invoke(value);
     }
     
-    protected virtual void RecordValueChange(T oldValue, T newValue)
+    protected abstract object GetValue();
+    
+    protected abstract void SetValue(object value);
+    
+    protected void NotifyValueChanged(object newValue)
     {
-        if (!UndoRedo.IsCommitting)
+        ValueChanged?.Invoke(newValue);
+    }
+    
+    protected void RecordValueChange(object oldValue, object newValue)
+    {
+        if (UndoRedo?.IsCommitting == true)
         {
             UndoRedo.CreateAction($"Change {Label}");
             UndoRedo.AddUndoProperty(
-                () => (T)PropertyInfo.GetValue(Target),
+                () => PropertyInfo.GetValue(Target),
                 value => PropertyInfo.SetValue(Target, value),
                 oldValue
             );
             UndoRedo.AddDoProperty(
-                () => (T)PropertyInfo.GetValue(Target),
+                () => PropertyInfo.GetValue(Target),
                 value => PropertyInfo.SetValue(Target, value),
                 newValue
             );
