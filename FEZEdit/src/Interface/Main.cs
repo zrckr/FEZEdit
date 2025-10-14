@@ -28,6 +28,8 @@ public partial class Main : Control
 
     private bool _disabled;
 
+    private string _filePath;
+
     public override void _EnterTree()
     {
         GetWindow().FocusEntered += RefreshFileBrowser;
@@ -38,6 +40,8 @@ public partial class Main : Control
         _mainMenu = GetNode<MainMenu>("%MainMenu");
         _mainMenu.WorkingTargetOpened += LoadFilesFromLoader;
         _mainMenu.WorkingTargetClosed += CloseLoader;
+        _mainMenu.WorkingFilePathRequested += RequestFilePath;
+        _mainMenu.WorkingFileSaved += SaveFile;
         _mainMenu.ThemeSelected += ChangeTheme;
         _mainMenu.HistoryRequested += () => _editor?.History;
 
@@ -152,6 +156,7 @@ public partial class Main : Control
         Callable.From(() =>
         {
             _loader = null;
+            _filePath = null;
             _fileBrowser.ClearFiles();
             AttachEditor(_editors.EmptyEditor);
         }).CallDeferred();
@@ -189,6 +194,8 @@ public partial class Main : Control
                         editor.Value = @object;
                         AttachEditor(editor);
                         editor.Disabled = _disabled;
+                        _filePath = file;
+
                         EventBus.Progress(ProgressValue.Complete);
                         EventBus.Success("Opened: {0}", file);
                     }
@@ -206,6 +213,27 @@ public partial class Main : Control
                 EventBus.Error("Failed to load asset: {0}", file);
                 Logger.Error(exception, "Failed to load asset '{0}'", file);
             }
+        }).Start();
+    }
+
+    private string RequestFilePath()
+    {
+        return _loader != null 
+            ? _loader.GetFilePath(_filePath)
+            : System.Environment.CurrentDirectory;
+    }
+    
+    private void SaveFile(string path)
+    {
+        if (_editor?.Value == null)
+        {
+            return;
+        }
+        
+        new Thread(() =>
+        {
+            _loader.SaveAsset(_editor.Value, path);
+            RefreshFileBrowser();
         }).Start();
     }
 

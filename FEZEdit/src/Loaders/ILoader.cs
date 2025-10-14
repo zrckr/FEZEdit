@@ -19,6 +19,8 @@ public interface ILoader
 
     Godot.Texture2D GetIcon(string file, IconsResource icons);
 
+    string GetFilePath(string file);
+
     bool HasFile(string file);
 
     void RefreshFiles();
@@ -38,4 +40,6 @@ public interface ILoader
     AudioStreamWav LoadSound(string assetName);
     
     void RepackAsset(string path, string targetDirectory, RepackingMode mode);
+
+    void SaveAsset(object @object, string path);
 }

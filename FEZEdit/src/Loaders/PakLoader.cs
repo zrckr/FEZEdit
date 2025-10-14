@@ -64,6 +64,13 @@ public class PakLoader : ILoader
         };
     }
 
+    public string GetFilePath(string file)
+    {
+        return _files.TryGetValue(file, out var record) 
+            ? Path.Combine(PakFile.DirectoryName!, Path.GetFileName(record.Path))
+            : string.Empty;
+    }
+
     public bool HasFile(string file)
     {
         return _files.ContainsKey(file.ToLower());
@@ -175,6 +182,37 @@ public class PakLoader : ILoader
         }
 
         EventBus.Success($"Assets unpacked: {progress.Value}");
+    }
+    
+    public void SaveAsset(object @object, string path)
+    {
+        try
+        {
+            using var bundle = FormatConversion.Convert(@object);
+            bundle.BundlePath = path;
+        
+            var progress = new ProgressValue(0, 0, bundle.Files.Count, 1);
+            EventBus.Progress(progress);
+            
+            foreach (var outputFile in bundle.Files)
+            {
+                var fileOutputPath = bundle.BundlePath + bundle.MainExtension + outputFile.Extension;
+                using var fileOutputStream = new FileInfo(fileOutputPath).Create();
+                outputFile.Data.CopyTo(fileOutputStream);
+                
+                progress.Next();
+                EventBus.Progress(progress);
+            }
+            
+            EventBus.Progress(ProgressValue.Complete);
+            EventBus.Success("Assets converted at {0}", path);
+        }
+        catch (Exception exception)
+        {
+            EventBus.Progress(ProgressValue.Complete);
+            EventBus.Error("Failed to save asset at: {0}", path);
+            Logger.Error(exception, "Failed to save asset at '{0}'", path);
+        }
     }
 
     public static FileBundle UnpackFile(string extension, Stream stream, RepackingMode mode)

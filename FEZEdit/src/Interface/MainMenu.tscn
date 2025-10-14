@@ -52,7 +52,7 @@ unique_name_in_owner = true
 
 [node name="PakFileDialog" type="FileDialog" parent="Dialogs"]
 unique_name_in_owner = true
-title = "Open a File"
+title = "Open a PAK File"
 file_mode = 0
 display_mode = 1
 access = 2
@@ -63,6 +63,13 @@ use_native_dialog = true
 unique_name_in_owner = true
 title = "Open a Directory"
 file_mode = 2
+display_mode = 1
+access = 2
+use_native_dialog = true
+
+[node name="SaveFileDialog" type="FileDialog" parent="Dialogs"]
+unique_name_in_owner = true
+title = "Save an Asset"
 display_mode = 1
 access = 2
 use_native_dialog = true

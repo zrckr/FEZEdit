@@ -18,6 +18,9 @@ public partial class MainMenu : Control
         FileClose,
         FileQuit,
         
+        SaveFile,
+        SaveFileAs,
+        
         EditUndo,
         EditRedo,
 
@@ -30,6 +33,10 @@ public partial class MainMenu : Control
     public event Action<FileSystemInfo> WorkingTargetOpened;
 
     public event Action WorkingTargetClosed;
+
+    public event Func<string> WorkingFilePathRequested;
+    
+    public event Action<string> WorkingFileSaved;
 
     public event Action<Theme> ThemeSelected;
 
@@ -65,6 +72,8 @@ public partial class MainMenu : Control
 
     private FileDialog _assetFolderDialog;
 
+    private FileDialog _saveFileDialog;
+
     private FileSystemInfo _workingTarget;
 
     private int _unpackMenuIndex;
@@ -95,6 +104,9 @@ public partial class MainMenu : Control
         _fileMenu.AddSubmenuNodeItem(Tr("Open Recent"), _fileRecentMenu, (int)Options.FileOpenRecent);
         _fileMenu.AddItem(Tr("Close"), (int)Options.FileClose);
         _fileMenu.AddSeparator();
+        _fileMenu.AddItem(Tr("Save File"), (int)Options.SaveFile);
+        _fileMenu.AddItem(Tr("Save File As..."), (int)Options.SaveFileAs);
+        _fileMenu.AddSeparator();
         _fileMenu.AddItem(Tr("Undo"), (int)Options.EditUndo);
         _fileMenu.AddItem(Tr("Redo"), (int)Options.EditRedo);
         _fileMenu.AddSeparator();
@@ -104,6 +116,8 @@ public partial class MainMenu : Control
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileOpenFolder), Key.O.WithCtrlShift());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileClose), Key.W.WithCtrlShift());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.FileQuit), Key.W.WithCtrl());
+        _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.SaveFile), Key.S.WithCtrl());
+        _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.SaveFileAs), Key.S.WithCtrlShift());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.EditUndo), Key.Z.WithCtrl());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.EditRedo), Key.Y.WithCtrl());
     }
@@ -157,6 +171,9 @@ public partial class MainMenu : Control
 
         _assetFolderDialog ??= GetNode<FileDialog>("%AssetFolderDialog");
         _assetFolderDialog.DirSelected += OnAssetFolderSelected;
+        
+        _saveFileDialog ??= GetNode<FileDialog>("%SaveFileDialog");
+        _saveFileDialog.FileSelected += OnFileGlobalSave;
     }
 
     private void InitializeRecentFiles()
@@ -203,7 +220,9 @@ public partial class MainMenu : Control
     private void OnMenuAboutToPopup()
     {
         var history = HistoryRequested?.Invoke();
-        _fileMenu.SetItemDisabled((int)Options.FileClose, _workingTarget == null);
+        _fileMenu.SetItemDisabled((int)Options.FileClose, _workingTarget is not DirectoryInfo);
+        _fileMenu.SetItemDisabled((int)Options.SaveFile, _workingTarget is not DirectoryInfo);
+        _fileMenu.SetItemDisabled((int)Options.SaveFileAs, _workingTarget is not DirectoryInfo);
         _fileMenu.SetItemDisabled((int)Options.EditUndo, !history?.HasUndo ?? true);
         _fileMenu.SetItemDisabled((int)Options.EditRedo, !history?.HasRedo ?? true);
     }
@@ -227,6 +246,15 @@ public partial class MainMenu : Control
 
             case Options.FileQuit:
                 GetTree().Quit();
+                break;
+            
+            case Options.SaveFile:
+                WorkingFileSaved?.Invoke(WorkingFilePathRequested?.Invoke());
+                break;
+            
+            case Options.SaveFileAs:
+                _saveFileDialog.CurrentPath = WorkingFilePathRequested?.Invoke();
+                _saveFileDialog.PopupCentered();
                 break;
             
             case Options.EditRedo:
@@ -275,6 +303,12 @@ public partial class MainMenu : Control
         _workingTarget = new DirectoryInfo(folder);
         WorkingTargetOpened?.Invoke(_workingTarget);
         AddPathToRecent(folder);
+    }
+
+    private void OnFileGlobalSave(string file)
+    {
+        _saveFileDialog.CurrentPath = file;
+        WorkingFileSaved?.Invoke(file);
     }
 
     private void OnRecentFileSelected(long index)

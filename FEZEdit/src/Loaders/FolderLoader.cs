@@ -82,6 +82,13 @@ public class FolderLoader : ILoader
         };
     }
 
+    public string GetFilePath(string file)
+    {
+        return _files.TryGetValue(file, out var fileInfo) 
+            ? fileInfo.FullName
+            : string.Empty;
+    }
+
     public bool HasFile(string file)
     {
         return _files.ContainsKey(file.ToLower());
@@ -178,6 +185,37 @@ public class FolderLoader : ILoader
             case RepackingMode.PackAssets:
                 PackAssets(originalPath, targetDirectory);
                 break;
+        }
+    }
+
+    public void SaveAsset(object @object, string path)
+    {
+        try
+        {
+            using var bundle = FormatConversion.Convert(@object);
+            bundle.BundlePath = path[..path.IndexOf('.')];
+        
+            var progress = new ProgressValue(0, 0, bundle.Files.Count, 1);
+            EventBus.Progress(progress);
+            
+            foreach (var outputFile in bundle.Files)
+            {
+                var fileOutputPath = bundle.BundlePath + bundle.MainExtension + outputFile.Extension;
+                using var fileOutputStream = new FileInfo(fileOutputPath).Create();
+                outputFile.Data.CopyTo(fileOutputStream);
+                
+                progress.Next();
+                EventBus.Progress(progress);
+            }
+            
+            EventBus.Progress(ProgressValue.Complete);
+            EventBus.Success("Assets converted at {0}", path);
+        }
+        catch (Exception exception)
+        {
+            EventBus.Progress(ProgressValue.Complete);
+            EventBus.Error("Failed to save asset at: {0}", path);
+            Logger.Error(exception, "Failed to save asset at '{0}'", path);
         }
     }
 
