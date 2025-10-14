@@ -93,8 +93,7 @@ public class FolderLoader : ILoader
         foreach (var file in AssetDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
         {
             var path = file.FullName[(AssetDirectory.FullName.Length + 1)..];
-            var filePath = path[..path.IndexOf('.')];
-            _files[filePath] = file;
+            _files[path] = file;
         }
     }
 
@@ -341,14 +340,18 @@ public class FolderLoader : ILoader
 
     private T LoadFromFile<T>(string path)
     {
-        if (!_files.TryGetValue(path.ToLower(), out var info))
+        FileInfo info = null;
+        foreach ((string filePath, FileInfo fileInfo) in _files)
         {
-            throw new FileNotFoundException(path);
+            if (filePath.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+            {
+                info = fileInfo;
+            }
         }
 
-        if (!info.Exists)
+        if (info is not { Exists: true })
         {
-            throw new FileNotFoundException(info.FullName);
+            throw new FileNotFoundException(path);
         }
 
         if (info.Extension == ".xnb")
