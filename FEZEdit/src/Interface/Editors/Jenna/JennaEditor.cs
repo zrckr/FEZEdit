@@ -21,16 +21,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
     {
         set
         {
-            if (value)
-            {
-                _camera.ResultClickedLeft += ShowInspector;
-                _camera.ResultClickedRight += ShowContextMenu;
-            }
-            else
-            {
-                _camera.ResultClickedLeft -= ShowInspector;
-                _camera.ResultClickedRight -= ShowContextMenu;
-            }
+            _inspector.ShowDisabled = value;
         }
     }
 
@@ -45,6 +36,8 @@ public partial class JennaEditor : TypedEditor<MapTree>
     private MapTreeMaterializer _materializer;
 
     private Inspector _inspector;
+
+    private object _inspectedObject;
     
     private object _selectedObject;
 
@@ -59,7 +52,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
     private void InitializeSubViewport()
     {
         _camera = GetNode<JennaCamera>("%Camera");
-        _camera.ResultClickedLeft += ShowInspector;
+        _camera.ResultClickedLeft += ShowPropertiesInInspector;
         _camera.ResultClickedRight += ShowContextMenu;
     }
 
@@ -100,17 +93,39 @@ public partial class JennaEditor : TypedEditor<MapTree>
     private void InitializeInspector()
     {
         _inspector = GetNode<Inspector>("%Inspector");
+        _inspector.UndoRedo = UndoRedo;
+        _inspector.TargetChanged += UpdateObjectFromProperties;
     }
 
-    private void ShowInspector(object @object)
+    private void ShowPropertiesInInspector(object source)
     {
-        object properties = @object switch
+        if (_inspectedObject != source)
         {
-            MapNode mapNode => MapNodeProperties.CopyFrom(mapNode),
-            MapNodeConnection mapNodeConnection => ConnectionProperties.CopyFrom(mapNodeConnection),
-            _ => null
-        };
-        _inspector.Inspect(properties);
+            object properties = source switch
+            {
+                MapNode mapNode => MapNodeProperties.CopyFrom(mapNode),
+                MapNodeConnection mapNodeConnection => ConnectionProperties.CopyFrom(mapNodeConnection),
+                _ => null
+            };
+            _inspector.Inspect(properties);
+            _inspectedObject = source;
+        }
+    }
+
+    private void UpdateObjectFromProperties(object target)
+    {
+        if (target != null && _inspectedObject != null)
+        {
+            switch (target)
+            {
+                case MapNodeProperties properties:
+                    properties.CopyTo(_inspectedObject as MapNode);
+                    break;
+                case ConnectionProperties properties:
+                    properties.CopyTo(_inspectedObject as MapNodeConnection);
+                    break;
+            }
+        }
     }
 
     private void ShowContextMenu(object @object)
