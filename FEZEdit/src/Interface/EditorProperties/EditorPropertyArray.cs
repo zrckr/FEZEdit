@@ -63,9 +63,9 @@ public partial class EditorPropertyArray : EditorProperty
         _editorButtons.Clear();
         foreach (var child in _itemsContainer.GetChildren())
         {
-            child.QueueFree();
+            child.Free();
         }
-        _addContainer.RemoveChild(_addEditorProperty);
+        _addEditorProperty?.Free();
 
         var array = (Array)value;
         var elementType = Type.GetElementType();
@@ -135,20 +135,31 @@ public partial class EditorPropertyArray : EditorProperty
     
     private void OnItemAdd()
     {
-        if (_addEditorProperty?.Value != null)
+        // Ensures that the value in the editor is up to date
+        // before writing to UndoRedo
+        Callable.From(() =>
         {
-            var array = (Array)GetValue();
-            var arrayList = new ArrayList(array) { _addEditorProperty.Value };
-            SetValue(arrayList.ToArray(Type.GetElementType() ?? typeof(object)));
-        }
+            if (_addEditorProperty?.Value != null)
+            {
+                var array = (Array)GetValue();
+                var arrayList = new ArrayList(array) { _addEditorProperty.Value };
+                SetValue(arrayList.ToArray(Type.GetElementType() ?? typeof(object)));
+                OnItemValueChanged();
+            }
+        });
     }
     
     private void OnItemRemove(int index)
     {
-        var array = (Array)GetValue();
-        var arrayList = new ArrayList(array);
-        arrayList.RemoveAt(index);
-        SetValue(arrayList.ToArray(Type.GetElementType() ?? typeof(object)));
+        // Ditto
+        Callable.From(() =>
+        {
+            var array = (Array)GetValue();
+            var arrayList = new ArrayList(array);
+            arrayList.RemoveAt(index);
+            SetValue(arrayList.ToArray(Type.GetElementType() ?? typeof(object)));
+            OnItemValueChanged();
+        });
     }
     
     private static bool ArraysAreEqual(Array a, Array b)

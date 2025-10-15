@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
@@ -62,9 +61,9 @@ public partial class EditorPropertyList : EditorProperty
         _editorButtons.Clear();
         foreach (var child in _itemsContainer.GetChildren())
         {
-            child.QueueFree();
+            child.Free();
         }
-        _addContainer.RemoveChild(_addEditorProperty);
+        _addEditorProperty?.Free();
 
         var list = (IList)value;
         var elementType = Type.GetGenericArguments()[0];
@@ -134,19 +133,30 @@ public partial class EditorPropertyList : EditorProperty
     
     private void OnItemAdd()
     {
-        if (_addEditorProperty?.Value != null)
+        // Ensures that the value in the editor is up to date
+        // before writing to UndoRedo
+        Callable.From(() =>
         {
-            var list = (IList)GetValue();
-            list.Add(_addEditorProperty.Value);
-            SetValue(list);
-        }
+            if (_addEditorProperty?.Value != null)
+            {
+                var list = (IList)GetValue();
+                list.Add(_addEditorProperty.Value);
+                SetValue(list);
+                OnItemValueChanged();
+            }
+        }).CallDeferred();
     }
     
     private void OnItemRemove(int index)
     {
-        var list = (IList)GetValue();
-        list.RemoveAt(index);
-        SetValue(list);
+        // Ditto
+        Callable.From(() =>
+        {
+            var list = (IList)GetValue();
+            list.RemoveAt(index);
+            SetValue(list);
+            OnItemValueChanged();
+        }).CallDeferred();
     }
 
     private static bool ListsAreEqual(IList a, IList b)

@@ -64,10 +64,10 @@ public partial class EditorPropertyDictionary : EditorProperty
         _editorButtons.Clear();
         foreach (var child in _itemsContainer.GetChildren())
         {
-            child.QueueFree();
+            child.Free();
         }
-        _addContainer.RemoveChild(_addKeyEditorProperty);
-        _addContainer.RemoveChild(_addValueEditorProperty);
+        _addKeyEditorProperty?.Free();
+        _addValueEditorProperty?.Free();
 
         var dict = (IDictionary)value;
         var types = Type.GetGenericArguments();
@@ -145,19 +145,30 @@ public partial class EditorPropertyDictionary : EditorProperty
     
     private void OnItemAdd()
     {
-        if (_addKeyEditorProperty?.Value != null && _addValueEditorProperty?.Value != null)
+        // Ensures that the value in the editor is up to date
+        // before writing to UndoRedo
+        Callable.From(() =>
         {
-            var dict = (IDictionary)GetValue();
-            dict.Add(_addKeyEditorProperty.Value, _addValueEditorProperty.Value);
-            SetValue(dict);
-        }
+            if (_addKeyEditorProperty?.Value != null && _addValueEditorProperty?.Value != null)
+            {
+                var dict = (IDictionary)GetValue();
+                dict.Add(_addKeyEditorProperty.Value, _addValueEditorProperty.Value);
+                SetValue(dict);
+                OnDictionaryItemChanged();
+            }
+        });
     }
     
     private void OnItemRemove(object key)
     {
-        var dict = (IDictionary)GetValue();
-        dict.Remove(key);
-        SetValue(dict);
+        // Ditto
+        Callable.From(() =>
+        {
+            var dict = (IDictionary)GetValue();
+            dict.Remove(key);
+            SetValue(dict);
+            OnDictionaryItemChanged();
+        }).CallDeferred();
     }
     
     private static bool DictionariesAreEqual(IDictionary a, IDictionary b)
