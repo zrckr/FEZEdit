@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dmoelunkff8w8"]
 
 [ext_resource type="Script" uid="uid://b10rf7r11w65p" path="res://src/Interface/Gizmos/AxisGizmo3D.cs" id="1_bkrhm"]
-[ext_resource type="Script" uid="uid://c7pldlvtxi1mm" path="res://src/Interface/Gizmos/AxisGizmoOverlay.cs" id="1_c0olh"]
+[ext_resource type="Script" uid="uid://cvy4fvgtbn4d0" path="res://src/Interface/Gizmos/GizmoOverlay.cs" id="1_c0olh"]
 
 [node name="AxisGizmoOverlay" type="SubViewportContainer"]
 custom_minimum_size = Vector2(150, 150)
@@ -17,7 +17,7 @@ handle_input_locally = false
 size = Vector2i(150, 150)
 render_target_update_mode = 4
 
-[node name="AxisGizmo3D" type="Node3D" parent="SubViewport"]
+[node name="Gizmo" type="Node3D" parent="SubViewport"]
 unique_name_in_owner = true
 script = ExtResource("1_bkrhm")
 AxisLength = 0.75

@@ -8,7 +8,7 @@
 [ext_resource type="Shader" uid="uid://d4ls86wc0ehs7" path="res://src/Shaders/Outline.gdshader" id="3_pxhjn"]
 [ext_resource type="Texture2D" uid="uid://btwq2p33qd5ky" path="res://assets/MapIcons.png" id="7_hgsrs"]
 [ext_resource type="PackedScene" uid="uid://bmj4d2y0ijkef" path="res://src/Interface/Inspector.tscn" id="8_fivv6"]
-[ext_resource type="PackedScene" uid="uid://dmoelunkff8w8" path="res://src/Interface/Gizmos/AxisGizmoOverlay.tscn" id="8_ghhmx"]
+[ext_resource type="PackedScene" uid="uid://b27b7dnefl62j" path="res://src/Interface/Gizmos/FaceGizmoOverlay.tscn" id="8_ghhmx"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i2nqm"]
 render_priority = 0
@@ -230,7 +230,7 @@ texture = SubResource("AtlasTexture_gg0yb")
 layout_mode = 2
 text = "Secrets and Anti Cubes"
 
-[node name="AxisGizmoOverlay" parent="HSplitContainer/SubViewportContainer/SubViewport/CanvasLayer" node_paths=PackedStringArray("_trackedCamera") instance=ExtResource("8_ghhmx")]
+[node name="FaceGizmoOverlay" parent="HSplitContainer/SubViewportContainer/SubViewport/CanvasLayer" node_paths=PackedStringArray("_trackedCamera") instance=ExtResource("8_ghhmx")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
