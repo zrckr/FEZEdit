@@ -10,20 +10,20 @@ using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
 namespace FEZEdit.Interface.Editors.Jenna;
 
-public partial class JennaNode: MeshInstance3D
+public partial class JennaNode : MeshInstance3D
 {
     private const string MapNodeShader = "res://src/Shaders/MapNode.gdshader";
 
     private const string OutlineShader = "res://src/Shaders/Outline.gdshader";
-    
+
     private const string MapIconsTexture = "res://assets/MapIcons.png";
 
     private const string MissingTexture = "res://assets/Empty.png";
-    
+
     private const float OutlineMultiplier = 20f;
 
     public const float LinkThickness = 0.05375f;
-    
+
     private static readonly string[] IconNames =
     [
         "HasWarpGate",
@@ -40,26 +40,30 @@ public partial class JennaNode: MeshInstance3D
         get => _outlineSize;
         set
         {
-            _outlineSize = Mathf.Clamp(value, 0, 1);
+            _outlineSize = value;
             _outlineMaterial.SetShaderParameter("size", LinkThickness * OutlineMultiplier * _outlineSize);
         }
     }
 
-    public List<CollisionObject3D> Links { get; } = [];
+    public IEnumerable<CollisionObject3D> Links => _linksNode.GetChildren().OfType<CollisionObject3D>();
 
-    public List<Sprite3D> Icons { get; } = [];
+    public IEnumerable<Sprite3D> Icons => _iconsNode.GetChildren().OfType<Sprite3D>();
 
-    public List<JennaNode> Nodes { get; } = [];
+    public IEnumerable<JennaNode> Nodes => _nodesNode.GetChildren().OfType<JennaNode>();
+
+    public JennaNode Parent { get; private set; }
 
     private Node3D _linksNode;
-    
+
     private Node3D _iconsNode;
-    
+
     private Node3D _nodesNode;
 
     private ShaderMaterial _mapNodeMaterial;
-    
+
     private ShaderMaterial _outlineMaterial;
+
+    private Tween _tween;
 
     private float _outlineSize = 1.0f;
 
@@ -67,7 +71,7 @@ public partial class JennaNode: MeshInstance3D
     {
         _linksNode = new Node3D { Name = "Links" };
         AddChild(_linksNode);
-        
+
         _iconsNode = new Node3D { Name = "Icons" };
         AddChild(_iconsNode);
         for (int i = 0; i < IconNames.Length; i++)
@@ -86,9 +90,8 @@ public partial class JennaNode: MeshInstance3D
                 Visible = false
             };
             _iconsNode.AddChild(iconSprite);
-            Icons.Add(iconSprite);
         }
-        
+
         _nodesNode = new Node3D { Name = "Nodes" };
         AddChild(_nodesNode);
     }
@@ -97,16 +100,16 @@ public partial class JennaNode: MeshInstance3D
     {
         var jennaNode = new JennaNode { Name = node.LevelName };
         var jennaSize = node.NodeType.GetSizeFactor();
-        
+
         var mapNodeShader = ResourceLoader.Load<Shader>(MapNodeShader);
         jennaNode._mapNodeMaterial = new ShaderMaterial { Shader = mapNodeShader };
-        if (node.LevelName.Length > 0)
+        try
         {
             var mapNodeTexturePath = Path.Combine("other textures", "map_screens", node.LevelName.ToLower());
             var mapNodeTexture = (Texture2D)loader.LoadAsset(mapNodeTexturePath);
             jennaNode._mapNodeMaterial.SetShaderParameter("texture_albedo", mapNodeTexture.ToImageTexture());
         }
-        else
+        catch
         {
             var missingTexture = ResourceLoader.Load<Godot.Texture2D>(MissingTexture);
             jennaNode._mapNodeMaterial.SetShaderParameter("texture_albedo", missingTexture);
@@ -121,23 +124,22 @@ public partial class JennaNode: MeshInstance3D
         var mesh = new BoxMesh { Size = Vector3.One * jennaSize, Material = jennaNode._mapNodeMaterial };
         jennaNode.Mesh = mesh;
         jennaNode.AddChild(MaterializerProxy.CreateFromBox(node, mesh.Size));
-        
+
         return jennaNode;
     }
 
     public void AddJennaChild(JennaNode node, Vector3 position)
     {
         _nodesNode.AddChild(node, true);
-        Nodes.Add(node);
+        node.Parent = this;
         node.GlobalPosition = position;
     }
 
     public void CreateLink(MapNodeConnection connection)
     {
         var linkNode = MaterializerProxy.CreateEmpty(connection);
-        linkNode.Name= $"{connection.Face} ^ {connection.Node.LevelName}";
+        linkNode.Name = $"{connection.Face} ^ {connection.Node.LevelName}";
         _linksNode.AddChild(linkNode, true);
-        Links.Add(linkNode);
     }
 
     public void AddLinkBranch(Vector3 position, Vector3 scale)
@@ -162,22 +164,40 @@ public partial class JennaNode: MeshInstance3D
             node.Conditions.SplitUpCount > 0,
             node.Conditions.SecretCount > 0
         ];
-        
+
+        var i = 0;
         var y = 0;
-        for (int i = 0; i < Icons.Count; i++)
+        foreach (var icon in Icons)
         {
-            Icons[i].Visible = false;
-            Icons[i].Position = Vector3.Zero;
-            
+            icon.Visible = false;
+            icon.Position = Vector3.Zero;
             if (conditions[i])
             {
-                Icons[i].Visible = true;
-                Icons[i].Position = Vector3.Down * y / 2f;
+                icon.Visible = true;
+                icon.Position = Vector3.Down * y / 2f;
                 y++;
             }
+
+            i++;
         }
-        
+
         var size = node.NodeType.GetSizeFactor();
         _iconsNode.Position += Vector3.One * size / 1.5f;
+    }
+
+    public void SetHighlight(bool highlight)
+    {
+        if (_tween != null && _tween.IsValid())
+        {
+            _tween.Kill();
+        }
+
+        var value = highlight ? 1.25f : 1.0f;
+        var easing = highlight ? Tween.EaseType.In : Tween.EaseType.Out;
+
+        _tween = CreateTween();
+        _tween.TweenProperty(this, nameof(OutlineSize), value, 0.25f)
+            .SetEase(easing)
+            .SetTrans(Tween.TransitionType.Cubic);
     }
 }

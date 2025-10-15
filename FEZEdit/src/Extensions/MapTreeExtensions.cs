@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using FEZRepacker.Core.Definitions.Game.Common;
+using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
 
 namespace FEZEdit.Extensions;
@@ -48,5 +51,38 @@ public static class MapTreeExtensions
     public static bool IsSide(this FaceOrientation face)
     {
         return face is not (FaceOrientation.Down or FaceOrientation.Top);
+    }
+
+    public static MapNode FindParent(this MapTree tree, MapNode node)
+    {
+        var stack = new Stack<MapNode>();
+        stack.Push(tree.Root);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            if (current == node) return current;
+            foreach (var connection in current.Connections)
+                stack.Push(connection.Node);
+        }
+
+        return null;
+    }
+
+    public static MapNodeConnection FindParentConnection(this MapTree tree, MapNode node)
+    {
+        var stack = new Stack<MapNode>();
+        stack.Push(tree.Root);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            var currentConnection = current.Connections.FirstOrDefault(c => c.Node == node);
+            if (currentConnection != null) return currentConnection;
+            foreach (var connection in current.Connections)
+                stack.Push(connection.Node);
+        }
+
+        return null;
     }
 }

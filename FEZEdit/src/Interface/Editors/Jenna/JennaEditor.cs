@@ -1,6 +1,5 @@
 ﻿using System;
 using FEZEdit.Extensions;
-using FEZEdit.Materializers;
 using FEZRepacker.Core.Definitions.Game.Common;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
@@ -33,7 +32,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private JennaCamera _camera;
 
-    private MapTreeMaterializer _materializer;
+    private JennaMaterializer _materializer;
 
     private Inspector _inspector;
 
@@ -59,10 +58,10 @@ public partial class JennaEditor : TypedEditor<MapTree>
     private void InitializeContextMenu()
     {
         _contextMenu = GetNode<PopupMenu>("%ContextMenu");
-        _contextMenu.IdPressed += id => SelectOption((Options)id);
-        _contextMenu.PopupHide += () => _selectedObject = null;
+        _contextMenu.IdPressed += id => RemoveNode((Options)id);
         
         _addChildNodeMenu = _contextMenu.GetNode<PopupMenu>("AddChildNode");
+        _addChildNodeMenu.IndexPressed += face => AddMapNode((FaceOrientation)face);
         foreach (var face in Enum.GetNames<FaceOrientation>())
         {
             _addChildNodeMenu.AddItem(Tr(face));
@@ -82,11 +81,10 @@ public partial class JennaEditor : TypedEditor<MapTree>
         }
         
         GetNode("%WorldMap").QueueFree();
-        _materializer = new MapTreeMaterializer();
+        _materializer = new JennaMaterializer();
         _camera.AddSibling(_materializer, true);
         
-        _materializer.Loader = Loader;
-        _materializer.CreateNodesFrom(TypedValue);
+        _materializer.Initialize(TypedValue, Loader);
         _camera.SetTarget(_materializer, false);
     }
 
@@ -99,6 +97,15 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private void ShowPropertiesInInspector(object source)
     {
+        if (_inspectedObject is MapNode oldNode)
+        {
+            _materializer.HighlightNode(oldNode, false);
+        }
+        if (source is MapNode newNode)
+        {
+            _materializer.HighlightNode(newNode, true);
+        }
+        
         if (_inspectedObject != source)
         {
             object properties = source switch
@@ -118,11 +125,14 @@ public partial class JennaEditor : TypedEditor<MapTree>
         {
             switch (target)
             {
-                case MapNodeProperties properties:
-                    properties.CopyTo(_inspectedObject as MapNode);
+                case MapNodeProperties properties when _inspectedObject is MapNode node:
+                    properties.CopyTo(node);
+                    _materializer.UpdateMapNode(node);
                     break;
-                case ConnectionProperties properties:
-                    properties.CopyTo(_inspectedObject as MapNodeConnection);
+                
+                case ConnectionProperties properties when _inspectedObject is MapNodeConnection connection:
+                    properties.CopyTo(connection);
+                    _materializer.UpdateMapNode(connection.Node);
                     break;
             }
         }
@@ -138,15 +148,42 @@ public partial class JennaEditor : TypedEditor<MapTree>
         }
     }
 
-    private void SelectOption(Options options)
+    private void RemoveNode(Options options)
     {
-        switch (options)
+        if (options == Options.RemoveNode && _selectedObject is MapNode node)
         {
-            case Options.AddChildNode:
-                throw new NotImplementedException();
+            var parent = TypedValue.FindParent(node);
+            var parentConnection = TypedValue.FindParentConnection(node);
+            
+            UndoRedo.CreateAction("Remove Map Node", _materializer);
+            UndoRedo.AddDoMethod(() =>
+            {
+                _materializer.RemoveMapNode(node);
+            });
+            UndoRedo.AddUndoMethod(() =>
+            {
+                _materializer.AddMapNode(parent, node, parentConnection.Face);
+            });
+            UndoRedo.CommitAction();
+        }
+    }
 
-            case Options.RemoveNode:
-                throw new NotImplementedException();
+    private void AddMapNode(FaceOrientation orientation)
+    {
+        if (_selectedObject is MapNode parentNode)
+        {
+            var newNode = new MapNode { LevelName = "Untitled" };
+            
+            UndoRedo.CreateAction("Add Map Node", _materializer);
+            UndoRedo.AddDoMethod(() =>
+            {
+                _materializer.AddMapNode(parentNode, newNode, orientation);
+            });
+            UndoRedo.AddUndoMethod(() =>
+            {
+                _materializer.RemoveMapNode(newNode);
+            });
+            UndoRedo.CommitAction();
         }
     }
 }
