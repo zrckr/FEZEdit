@@ -15,11 +15,11 @@ public sealed class UndoRedo
     
     public string CurrentActionName => _currentAction?.Name;
 
-    public int HistoryCount => _undoQueue.Count;
+    public int HistoryCount => _undoStack.Count;
 
     public bool HasRedo => _redoStack.Count > 0;
 
-    public bool HasUndo => _undoQueue.Count > 0;
+    public bool HasUndo => _undoStack.Count > 0;
     
     public bool IsCommitting { get; private set; }
     
@@ -35,7 +35,7 @@ public sealed class UndoRedo
         }
     }
 
-    private readonly LinkedList<UndoRedoAction> _undoQueue = [];
+    private readonly LinkedList<UndoRedoAction> _undoStack = [];
 
     private readonly Stack<UndoRedoAction> _redoStack = new();
 
@@ -45,10 +45,13 @@ public sealed class UndoRedo
 
     public void CreateAction(string name)
     {
-        if (_currentAction != null )
+        if (_currentAction != null)
         {
             throw new InvalidOperationException("Previous action not committed. Commit action first.");
         }
+
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("Action name cannot be null or empty.", nameof(name));
 
         _currentAction = new UndoRedoAction(name);
     }
@@ -60,7 +63,7 @@ public sealed class UndoRedo
             throw new InvalidOperationException("No active action. Create action first.");
         }
 
-        _currentAction.AddDoStep(new MethodStep(method));
+        _currentAction.AddDoStep(new MethodStep(method ?? throw new ArgumentNullException(nameof(method))));
     }
 
     public void AddDoProperty<T>(Func<T> getter, Action<T> setter, T newValue)
@@ -70,7 +73,10 @@ public sealed class UndoRedo
             throw new InvalidOperationException("No active action. Create action first.");
         }
 
-        _currentAction.AddDoStep(new PropertyStep<T>(getter, setter, newValue));
+        _currentAction.AddDoStep(new PropertyStep<T>(
+            getter ?? throw new ArgumentNullException(nameof(getter)),
+            setter ?? throw new ArgumentNullException(nameof(setter)), 
+            newValue));
     }
 
     public void AddUndoMethod(Action method)
@@ -80,7 +86,7 @@ public sealed class UndoRedo
             throw new InvalidOperationException("No active action. Create action first.");
         }
 
-        _currentAction.AddUndoStep(new MethodStep(method));
+        _currentAction.AddUndoStep(new MethodStep(method ?? throw new ArgumentNullException(nameof(method))));
     }
 
     public void AddUndoProperty<T>(Func<T> getter, Action<T> setter, T newValue)
@@ -90,12 +96,15 @@ public sealed class UndoRedo
             throw new InvalidOperationException("No active action. Create action first.");
         }
 
-        _currentAction.AddUndoStep(new PropertyStep<T>(getter, setter, newValue));
+        _currentAction.AddUndoStep(new PropertyStep<T>(
+            getter ?? throw new ArgumentNullException(nameof(getter)),
+            setter ?? throw new ArgumentNullException(nameof(setter)), 
+            newValue));
     }
 
     public void Clear()
     {
-        _undoQueue.Clear();
+        _undoStack.Clear();
         _redoStack.Clear();
         _currentAction = null;
         Version = 0;
@@ -112,13 +121,14 @@ public sealed class UndoRedo
         try
         {
             _currentAction.ExecuteDo();
-            _undoQueue.AddLast(_currentAction);
+            _undoStack.AddLast(_currentAction);
             Version++;
             _redoStack.Clear();
             EnforceHistoryLimit();
         }
         finally
         {
+            _currentAction = null;
             IsCommitting = false;
         }
     }
@@ -135,7 +145,7 @@ public sealed class UndoRedo
         try
         {
             action.ExecuteDo();
-            _undoQueue.AddLast(action);
+            _undoStack.AddLast(action);
             Version++;
         }
         finally
@@ -151,8 +161,8 @@ public sealed class UndoRedo
             throw new InvalidOperationException("No actions to undo.");
         }
 
-        var action = _undoQueue.Last!.Value;
-        _undoQueue.RemoveLast();
+        var action = _undoStack.Last!.Value;
+        _undoStack.RemoveLast();
         
         IsCommitting = true;
         try
@@ -173,10 +183,10 @@ public sealed class UndoRedo
         {
             return;
         }
-        while (_undoQueue.Count > _maxHistorySteps)
+        while (_undoStack.Count > _maxHistorySteps)
         {
-            // Remove the oldest action
-            _undoQueue.RemoveLast();
+            // Remove the oldest action (from the front of the linked list)
+            _undoStack.RemoveFirst();
         }
     }
     
@@ -187,32 +197,36 @@ public sealed class UndoRedo
 
     private class MethodStep(Action method) : IStep
     {
-        public void Execute() => method?.Invoke();
+        private readonly Action _method = method ?? throw new ArgumentNullException(nameof(method));
+
+        public void Execute() => _method.Invoke();
     }
 
     private class PropertyStep<T>(Func<T> getter, Action<T> setter, T value) : IStep
     {
+        private readonly Func<T> _getter = getter ?? throw new ArgumentNullException(nameof(getter));
+        private readonly Action<T> _setter = setter ?? throw new ArgumentNullException(nameof(setter));
         private T _value = value;
 
         public void Execute()
         {
-            var currentValue = getter();
-            setter(_value);
+            var currentValue = _getter();
+            _setter(_value);
             _value = currentValue;
         }
     }
 
     private class UndoRedoAction(string name)
     {
-        public string Name { get; } = name;
+        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
 
         private readonly List<IStep> _doSteps = [];
 
         private readonly List<IStep> _undoSteps = [];
 
-        public void AddDoStep(IStep step) => _doSteps.Add(step);
+        public void AddDoStep(IStep step) => _doSteps.Add(step ?? throw new ArgumentNullException(nameof(step)));
 
-        public void AddUndoStep(IStep step) => _undoSteps.Add(step);
+        public void AddUndoStep(IStep step) => _undoSteps.Add(step ?? throw new ArgumentNullException(nameof(step)));
 
         public void ExecuteDo()
         {
