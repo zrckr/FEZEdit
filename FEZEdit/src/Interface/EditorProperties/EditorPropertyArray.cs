@@ -1,20 +1,28 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyArray : EditorProperty
 {
+    [Export] private Texture2D _removeIcon;
+    
     public override bool Disabled
     {
-        get => _editorProperties.All(i => i.Disabled);
+        get => _disabled;
         set
         {
-            foreach (var key in _editorProperties)
+            _disabled = value;
+            foreach (var property in _editorProperties)
             {
-                key.Disabled = value;
+                property.Disabled = _disabled;
+            }
+
+            foreach (var buttons in _editorButtons)
+            {
+                buttons.Disabled = _disabled;
             }
         }
     }
@@ -23,7 +31,17 @@ public partial class EditorPropertyArray : EditorProperty
 
     private VBoxContainer _itemsContainer;
 
+    private VBoxContainer _addContainer;
+
+    private Button _addButton;
+
     private readonly List<EditorProperty> _editorProperties = [];
+
+    private readonly List<Button> _editorButtons = [];
+    
+    private EditorProperty _addEditorProperty;
+
+    private bool _disabled;
     
     protected override object GetValue()
     {
@@ -42,10 +60,12 @@ public partial class EditorPropertyArray : EditorProperty
     protected override void SetValue(object value)
     {
         _editorProperties.Clear();
+        _editorButtons.Clear();
         foreach (var child in _itemsContainer.GetChildren())
         {
             child.QueueFree();
         }
+        _addContainer.RemoveChild(_addEditorProperty);
 
         var array = (Array)value;
         var elementType = Type.GetElementType();
@@ -53,6 +73,7 @@ public partial class EditorPropertyArray : EditorProperty
         
         for (int i = 0; i < array.Length; i++)
         {
+            var item = array.GetValue(i);
             var itemContainer = new HBoxContainer();
             _itemsContainer.AddChild(itemContainer);
 
@@ -61,24 +82,47 @@ public partial class EditorPropertyArray : EditorProperty
 
             var itemEditor = PropertyFactory.GetEditorProperty(elementType);
             itemEditor.UndoRedo = UndoRedo;
-            itemEditor.Target = this;
-            itemEditor.ValueChanged += OnItemValueChanged;
-
+            itemEditor.ValueChanged += _ => OnItemValueChanged();
             itemContainer.AddChild(itemEditor);
-            itemEditor.Value = array.GetValue(i);
+            itemEditor.Value = item;
             itemEditor.Label = string.Empty;
+            itemEditor.Disabled = true;
             _editorProperties.Add(itemEditor);
+
+            var index = i;
+            var itemButton = new Button
+            {
+                SizeFlagsHorizontal = SizeFlags.ShrinkEnd, 
+                IconAlignment = HorizontalAlignment.Center
+            };
+            itemContainer.AddChild(itemButton);
+            itemButton.Icon = _removeIcon;
+            itemButton.CustomMinimumSize = new Vector2(24, 16);
+            itemButton.Pressed += () => OnItemRemove(index);
+            _editorButtons.Add(itemButton);
         }
+        
+        _addEditorProperty = PropertyFactory.GetEditorProperty(elementType);
+        _addContainer.AddChild(_addEditorProperty);
+        _addContainer.MoveChild(_addEditorProperty, 0);
+        _addEditorProperty.Label = Tr("New value:");
+        _editorProperties.Add(_addEditorProperty);
+        
+        _editorButtons.Add(_addButton);
     }
 
     public override void _Ready()
     {
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
+        _foldableContainer.Folded = true;
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
+        _addContainer = GetNode<VBoxContainer>("%AddContainer");
+        _addButton = GetNode<Button>("%AddButton");
+        _addButton.Pressed += OnItemAdd;
     }
 
-    private void OnItemValueChanged(object newValue)
+    private void OnItemValueChanged()
     {
         var oldArray = (Array)PropertyInfo?.GetValue(Target);
         var newArray = (Array)GetValue();
@@ -87,6 +131,24 @@ public partial class EditorPropertyArray : EditorProperty
             RecordValueChange(oldArray, newArray);
             NotifyValueChanged(newArray);
         }
+    }
+    
+    private void OnItemAdd()
+    {
+        if (_addEditorProperty?.Value != null)
+        {
+            var array = (Array)GetValue();
+            var arrayList = new ArrayList(array) { _addEditorProperty.Value };
+            SetValue(arrayList.ToArray(Type.GetElementType() ?? typeof(object)));
+        }
+    }
+    
+    private void OnItemRemove(int index)
+    {
+        var array = (Array)GetValue();
+        var arrayList = new ArrayList(array);
+        arrayList.RemoveAt(index);
+        SetValue(arrayList.ToArray(Type.GetElementType() ?? typeof(object)));
     }
     
     private static bool ArraysAreEqual(Array a, Array b)

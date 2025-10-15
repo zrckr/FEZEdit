@@ -59,7 +59,7 @@ public abstract partial class EditorProperty : Control
     
     protected void RecordValueChange(object oldValue, object newValue)
     {
-        if (UndoRedo?.IsCommitting == true)
+        if (UndoRedo?.IsCommitting == false)
         {
             UndoRedo.CreateAction($"Change {Label}");
             UndoRedo.AddUndoProperty(

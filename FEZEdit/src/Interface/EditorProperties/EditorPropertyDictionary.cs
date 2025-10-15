@@ -1,23 +1,28 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
 namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyDictionary : EditorProperty
 {
+    [Export] private Texture2D _removeIcon;
+    
     public override bool Disabled
     {
-        get => _valueProperties.All(i => i.Disabled) && 
-               _keyProperties.All(i => i.Disabled);
+        get => _disabled;
         set
         {
-            for (int i = 0; i < _keyProperties.Count; i++)
+            _disabled = value;
+            foreach (var property in _editorProperties)
             {
-                _keyProperties[i].Disabled = value;
-                _valueProperties[i].Disabled = value;
+                property.Disabled = _disabled;
+            }
+
+            foreach (var buttons in _editorButtons)
+            {
+                buttons.Disabled = _disabled;
             }
         }
     }
@@ -25,10 +30,20 @@ public partial class EditorPropertyDictionary : EditorProperty
     private FoldableContainer _foldableContainer;
 
     private VBoxContainer _itemsContainer;
+    
+    private VBoxContainer _addContainer;
 
-    private readonly List<EditorProperty> _keyProperties = [];
+    private Button _addButton;
 
-    private readonly List<EditorProperty> _valueProperties = [];
+    private readonly List<EditorProperty> _editorProperties = [];
+
+    private readonly List<Button> _editorButtons = [];
+    
+    private EditorProperty _addKeyEditorProperty;
+    
+    private EditorProperty _addValueEditorProperty;
+    
+    private bool _disabled;
 
     protected override object GetValue()
     {
@@ -45,12 +60,14 @@ public partial class EditorPropertyDictionary : EditorProperty
 
     protected override void SetValue(object value)
     {
-        _keyProperties.Clear();
-        _valueProperties.Clear();
+        _editorProperties.Clear();
+        _editorButtons.Clear();
         foreach (var child in _itemsContainer.GetChildren())
         {
             child.QueueFree();
         }
+        _addContainer.RemoveChild(_addKeyEditorProperty);
+        _addContainer.RemoveChild(_addValueEditorProperty);
 
         var dict = (IDictionary)value;
         var types = Type.GetGenericArguments();
@@ -63,30 +80,59 @@ public partial class EditorPropertyDictionary : EditorProperty
 
             var keyProperty = PropertyFactory.GetEditorProperty(types[0]);
             keyProperty.UndoRedo = UndoRedo;
-            keyProperty.ValueChanged += OnDictionaryItemChanged;
+            keyProperty.ValueChanged += _ => OnDictionaryItemChanged();
             itemContainer.AddChild(keyProperty);
             keyProperty.Label = string.Empty;
             keyProperty.Value = entry.Key;
-            _keyProperties.Add(keyProperty);
+            _editorProperties.Add(keyProperty);
 
             var valueProperty = PropertyFactory.GetEditorProperty(types[1]);
             valueProperty.UndoRedo = UndoRedo;
-            valueProperty.ValueChanged += OnDictionaryItemChanged;
+            valueProperty.ValueChanged += _ => OnDictionaryItemChanged();
             itemContainer.AddChild(valueProperty);
             valueProperty.Label = string.Empty;
             valueProperty.Value = entry.Value;
-            _valueProperties.Add(valueProperty);
+            _editorProperties.Add(valueProperty);
+            
+            var itemButton = new Button
+            {
+                SizeFlagsHorizontal = SizeFlags.ShrinkEnd, 
+                IconAlignment = HorizontalAlignment.Center
+            };
+            itemContainer.AddChild(itemButton);
+            itemButton.Icon = _removeIcon;
+            itemButton.CustomMinimumSize = new Vector2(24, 16);
+            itemButton.Pressed += () => OnItemRemove(entry.Key);
+            _editorButtons.Add(itemButton);
         }
+        
+        _addKeyEditorProperty = PropertyFactory.GetEditorProperty(types[0]);
+        _addContainer.AddChild(_addKeyEditorProperty);
+        _addContainer.MoveChild(_addKeyEditorProperty, 0);
+        _addKeyEditorProperty.Label = Tr("New Key:");
+        _editorProperties.Add(_addKeyEditorProperty);
+        
+        _addValueEditorProperty = PropertyFactory.GetEditorProperty(types[1]);
+        _addContainer.AddChild(_addValueEditorProperty);
+        _addContainer.MoveChild(_addValueEditorProperty, 1);
+        _addValueEditorProperty.Label = Tr("New Value:s");
+        _editorProperties.Add(_addValueEditorProperty);
+        
+        _editorButtons.Add(_addButton);
     }
 
     public override void _Ready()
     {
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
+        _foldableContainer.Folded = true;
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
+        _addContainer = GetNode<VBoxContainer>("%AddContainer");
+        _addButton = GetNode<Button>("%AddButton");
+        _addButton.Pressed += OnItemAdd;
     }
 
-    private void OnDictionaryItemChanged(object newValue)
+    private void OnDictionaryItemChanged()
     {
         var oldDict = (IDictionary)PropertyInfo?.GetValue(Target);
         var newDict = (IDictionary)GetValue();
@@ -95,6 +141,23 @@ public partial class EditorPropertyDictionary : EditorProperty
             RecordValueChange(oldDict, newDict);
             NotifyValueChanged(newDict);
         }
+    }
+    
+    private void OnItemAdd()
+    {
+        if (_addKeyEditorProperty?.Value != null && _addValueEditorProperty?.Value != null)
+        {
+            var dict = (IDictionary)GetValue();
+            dict.Add(_addKeyEditorProperty.Value, _addValueEditorProperty.Value);
+            SetValue(dict);
+        }
+    }
+    
+    private void OnItemRemove(object key)
+    {
+        var dict = (IDictionary)GetValue();
+        dict.Remove(key);
+        SetValue(dict);
     }
     
     private static bool DictionariesAreEqual(IDictionary a, IDictionary b)

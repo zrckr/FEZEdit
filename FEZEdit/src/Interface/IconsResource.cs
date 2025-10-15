@@ -54,5 +54,7 @@ public partial class IconsResource : Resource
     
     [Export] public Texture2D ActionRemove { get; set; }
     
+    [Export] public Texture2D ActionEdit { get; set; }
+    
     [ExportGroup("Colors")] [Export] public Color FolderColor { get; set; }
 }

@@ -8,14 +8,22 @@ namespace FEZEdit.Interface.EditorProperties;
 
 public partial class EditorPropertyList : EditorProperty
 {
+    [Export] private Texture2D _removeIcon;
+    
     public override bool Disabled
     {
-        get => _editorProperties.All(i => i.Disabled);
+        get => _disabled;
         set
         {
-            foreach (var key in _editorProperties)
+            _disabled = value;
+            foreach (var property in _editorProperties)
             {
-                key.Disabled = value;
+                property.Disabled = _disabled;
+            }
+
+            foreach (var buttons in _editorButtons)
+            {
+                buttons.Disabled = _disabled;
             }
         }
     }
@@ -23,8 +31,18 @@ public partial class EditorPropertyList : EditorProperty
     private FoldableContainer _foldableContainer;
 
     private VBoxContainer _itemsContainer;
+    
+    private VBoxContainer _addContainer;
+
+    private Button _addButton;
 
     private readonly List<EditorProperty> _editorProperties = [];
+    
+    private readonly List<Button> _editorButtons = [];
+    
+    private EditorProperty _addEditorProperty;
+    
+    private bool _disabled;
 
     protected override object GetValue()
     {
@@ -41,10 +59,12 @@ public partial class EditorPropertyList : EditorProperty
     protected override void SetValue(object value)
     {
         _editorProperties.Clear();
+        _editorButtons.Clear();
         foreach (var child in _itemsContainer.GetChildren())
         {
             child.QueueFree();
         }
+        _addContainer.RemoveChild(_addEditorProperty);
 
         var list = (IList)value;
         var elementType = Type.GetGenericArguments()[0];
@@ -52,6 +72,7 @@ public partial class EditorPropertyList : EditorProperty
 
         for (int i = 0; i < list.Count; i++)
         {
+            var item = list[i];
             var itemContainer = new HBoxContainer();
             _itemsContainer.AddChild(itemContainer);
 
@@ -60,22 +81,47 @@ public partial class EditorPropertyList : EditorProperty
 
             var itemEditor = PropertyFactory.GetEditorProperty(elementType);
             itemEditor.UndoRedo = UndoRedo;
-            itemEditor.ValueChanged += OnItemValueChanged;
+            itemEditor.ValueChanged += _ => OnItemValueChanged();
             itemContainer.AddChild(itemEditor);
-            itemEditor.Value = list[i];
+            itemEditor.Value = item;
             itemEditor.Label = string.Empty;
+            itemEditor.Disabled = true;
             _editorProperties.Add(itemEditor);
+            
+            var index = i;
+            var itemButton = new Button
+            {
+                SizeFlagsHorizontal = SizeFlags.ShrinkEnd, 
+                IconAlignment = HorizontalAlignment.Center
+            };
+            itemContainer.AddChild(itemButton);
+            itemButton.Icon = _removeIcon;
+            itemButton.CustomMinimumSize = new Vector2(24, 16);
+            itemButton.Pressed += () => OnItemRemove(index);
+            _editorButtons.Add(itemButton);
         }
+        
+        _addEditorProperty = PropertyFactory.GetEditorProperty(elementType);
+        _addContainer.AddChild(_addEditorProperty);
+        _addContainer.MoveChild(_addEditorProperty, 0);
+        _addEditorProperty.Label = Tr("New value:");
+        _editorProperties.Add(_addEditorProperty);
+        
+        _editorButtons.Add(_addButton);
     }
 
     public override void _Ready()
     {
         base._Ready();
         _foldableContainer = GetNode<FoldableContainer>("%FoldableContainer");
+        _foldableContainer.Folded = true;
         _itemsContainer = GetNode<VBoxContainer>("%ItemsContainer");
+        _addContainer = GetNode<VBoxContainer>("%AddContainer");
+        _addButton = GetNode<Button>("%AddButton");
+        _addButton.Pressed += OnItemAdd;
     }
 
-    private void OnItemValueChanged(object newValue)
+    private void OnItemValueChanged()
     {
         var oldList = (IList)PropertyInfo?.GetValue(Target);
         var newList = (IList)GetValue();
@@ -84,6 +130,23 @@ public partial class EditorPropertyList : EditorProperty
             RecordValueChange(oldList, newList);
             NotifyValueChanged(newList);
         }
+    }
+    
+    private void OnItemAdd()
+    {
+        if (_addEditorProperty?.Value != null)
+        {
+            var list = (IList)GetValue();
+            list.Add(_addEditorProperty.Value);
+            SetValue(list);
+        }
+    }
+    
+    private void OnItemRemove(int index)
+    {
+        var list = (IList)GetValue();
+        list.RemoveAt(index);
+        SetValue(list);
     }
 
     private static bool ListsAreEqual(IList a, IList b)
