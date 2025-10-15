@@ -91,7 +91,7 @@ public class FolderLoader : ILoader
 
     public bool HasFile(string file)
     {
-        return _files.ContainsKey(file.ToLower());
+        return _files.Keys.Any(path => path.StartsWith(file, StringComparison.InvariantCultureIgnoreCase));
     }
 
     public void RefreshFiles()
