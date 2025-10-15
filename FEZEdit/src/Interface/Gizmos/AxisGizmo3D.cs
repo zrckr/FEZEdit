@@ -54,8 +54,13 @@ public partial class AxisGizmo3D : Node3D
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
         };
         
+        // Use a different up vector when direction is parallel to up axis
+        Vector3 lookAtUp = (direction == Vector3.Up || direction == -Vector3.Up) 
+            ? Vector3.Forward 
+            : Vector3.Up;
+        
         lineInstance.Position = direction * AxisLength * 0.5f;
-        lineInstance.LookAtFromPosition(lineInstance.Position, direction * AxisLength, Vector3.Up);
+        lineInstance.LookAtFromPosition(lineInstance.Position, direction * AxisLength, lookAtUp);
         lineInstance.RotateObjectLocal(Vector3.Right, Mathf.Pi / 2);
         AddChild(lineInstance);
         
@@ -74,7 +79,7 @@ public partial class AxisGizmo3D : Node3D
         };
 
         arrowInstance.Position = direction * AxisLength;
-        arrowInstance.LookAtFromPosition(arrowInstance.Position, direction * (AxisLength + 1), Vector3.Up);
+        arrowInstance.LookAtFromPosition(arrowInstance.Position, direction * (AxisLength + 1), lookAtUp);
         arrowInstance.RotateObjectLocal(Vector3.Right, -Mathf.Pi / 2);
         AddChild(arrowInstance);
         
