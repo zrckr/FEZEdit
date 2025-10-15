@@ -42,6 +42,8 @@ public abstract partial class EditorProperty : Control
     public Type Type { get; set; }
 
     private Label _label;
+    
+    private bool _isSettingValueFromCode;
 
     public override void _Ready()
     {
@@ -61,7 +63,7 @@ public abstract partial class EditorProperty : Control
     {
         if (UndoRedo?.IsCommitting == false)
         {
-            UndoRedo.CreateAction($"Change {Label}");
+            UndoRedo.CreateAction(name: $"Change {Label}", tag: Target);
             UndoRedo.AddUndoProperty(
                 () => PropertyInfo.GetValue(Target),
                 value => PropertyInfo.SetValue(Target, value),

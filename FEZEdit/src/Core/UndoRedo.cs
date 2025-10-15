@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FEZEdit.Core;
 
@@ -15,11 +16,11 @@ public sealed class UndoRedo
     
     public string CurrentActionName => _currentAction?.Name;
 
-    public int HistoryCount => _undoStack.Count;
+    public int HistoryCount => _undoQueue.Count;
 
     public bool HasRedo => _redoStack.Count > 0;
 
-    public bool HasUndo => _undoStack.Count > 0;
+    public bool HasUndo => _undoQueue.Count > 0;
     
     public bool IsCommitting { get; private set; }
     
@@ -35,15 +36,15 @@ public sealed class UndoRedo
         }
     }
 
-    private readonly LinkedList<UndoRedoAction> _undoStack = [];
+    private readonly LinkedList<UndoRedoAction> _undoQueue = [];
 
-    private readonly Stack<UndoRedoAction> _redoStack = new();
+    private Stack<UndoRedoAction> _redoStack = new();
 
     private UndoRedoAction _currentAction;
 
     private int _maxHistorySteps = NoLimit;
 
-    public void CreateAction(string name)
+    public void CreateAction(string name, object tag = null)
     {
         if (_currentAction != null)
         {
@@ -53,7 +54,7 @@ public sealed class UndoRedo
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Action name cannot be null or empty.", nameof(name));
 
-        _currentAction = new UndoRedoAction(name);
+        _currentAction = new UndoRedoAction(name, tag);
     }
 
     public void AddDoMethod(Action method)
@@ -104,10 +105,61 @@ public sealed class UndoRedo
 
     public void Clear()
     {
-        _undoStack.Clear();
+        _undoQueue.Clear();
         _redoStack.Clear();
         _currentAction = null;
         Version = 0;
+    }
+
+    public void ClearHistoryForTag(object tag)
+    {
+        if (tag == null)
+        {
+            return;
+        }
+
+        var current = _undoQueue.First;
+        while (current != null)
+        {
+            var next = current.Next;
+            if (tag.Equals(current.Value.Tag))
+            {
+                _undoQueue.Remove(current);
+            }
+            current = next;
+        }
+        
+        var newRedoStack = new Stack<UndoRedoAction>();
+        foreach (var action in _redoStack.Where(action => !tag.Equals(action.Tag)))
+        {
+            newRedoStack.Push(action);
+        }
+        _redoStack = newRedoStack;
+    }
+    
+    public IEnumerable<object> GetTagsInHistory()
+    {
+        var tags = new HashSet<object>();
+        foreach (var action in _undoQueue.Where(action => action.Tag != null))
+        {
+            tags.Add(action.Tag);
+        }
+        foreach (var action in _redoStack.Where(action => action.Tag != null))
+        {
+            tags.Add(action.Tag);
+        }
+        return tags;
+    }
+    
+    public bool HasHistoryForTag(object tag)
+    {
+        if (tag == null)
+        {
+            return false;
+        }
+
+        return _undoQueue.Any(a => tag.Equals(a.Tag)) || 
+               _redoStack.Any(a => tag.Equals(a.Tag));
     }
 
     public void CommitAction()
@@ -121,7 +173,7 @@ public sealed class UndoRedo
         try
         {
             _currentAction.ExecuteDo();
-            _undoStack.AddLast(_currentAction);
+            _undoQueue.AddLast(_currentAction);
             Version++;
             _redoStack.Clear();
             EnforceHistoryLimit();
@@ -145,7 +197,7 @@ public sealed class UndoRedo
         try
         {
             action.ExecuteDo();
-            _undoStack.AddLast(action);
+            _undoQueue.AddLast(action);
             Version++;
         }
         finally
@@ -161,8 +213,8 @@ public sealed class UndoRedo
             throw new InvalidOperationException("No actions to undo.");
         }
 
-        var action = _undoStack.Last!.Value;
-        _undoStack.RemoveLast();
+        var action = _undoQueue.Last!.Value;
+        _undoQueue.RemoveLast();
         
         IsCommitting = true;
         try
@@ -183,10 +235,10 @@ public sealed class UndoRedo
         {
             return;
         }
-        while (_undoStack.Count > _maxHistorySteps)
+        while (_undoQueue.Count > _maxHistorySteps)
         {
             // Remove the oldest action (from the front of the linked list)
-            _undoStack.RemoveFirst();
+            _undoQueue.RemoveFirst();
         }
     }
     
@@ -216,9 +268,11 @@ public sealed class UndoRedo
         }
     }
 
-    private class UndoRedoAction(string name)
+    private class UndoRedoAction(string name, object tag)
     {
         public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+
+        public object Tag { get; } = tag;   // nullable
 
         private readonly List<IStep> _doSteps = [];
 
