@@ -49,6 +49,8 @@ public partial class IconsResource : Resource
     [Export] public Texture2D MapFile { get; set; }
 
     [Export] public Texture2D SkyFile { get; set; }
+    
+    [Export] public Texture2D CloseFile { get; set; }
 
     [ExportGroup("Actions")] [Export] public Texture2D ActionAdd { get; set; }
     

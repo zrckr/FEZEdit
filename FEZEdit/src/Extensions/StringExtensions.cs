@@ -14,6 +14,9 @@ public static class StringExtensions
 
     public static string WithoutBaseDirectory(this string instance, string baseDirectory)
     {
-        return instance[(baseDirectory.Length + 1)..];
+        int length = baseDirectory.Length;
+        return length <= 0
+            ? instance
+            : instance[(baseDirectory.Length + 1)..];
     }
 }

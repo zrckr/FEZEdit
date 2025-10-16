@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://54v01g8k5xqy"]
+[gd_scene load_steps=8 format=3 uid="uid://54v01g8k5xqy"]
 
 [ext_resource type="Theme" uid="uid://bvigxeq8g32pu" path="res://assets/themes/DarkTheme.tres" id="1_6iwgk"]
 [ext_resource type="Script" uid="uid://nacgtixaucg7" path="res://src/Interface/Main.cs" id="1_vjwby"]
@@ -7,7 +7,6 @@
 [ext_resource type="Resource" uid="uid://hy3fg4dltudr" path="res://src/Interface/Editors/EditorFactory.tres" id="4_5fxee"]
 [ext_resource type="Resource" uid="uid://7jom0xw582pl" path="res://assets/Icons.tres" id="5_5fxee"]
 [ext_resource type="PackedScene" uid="uid://bakfevdwwou6d" path="res://src/Interface/StatusBar.tscn" id="5_hg55d"]
-[ext_resource type="PackedScene" uid="uid://boxkm45xewsqk" path="res://src/Interface/Editors/EmptyEditor.tscn" id="7_5fxee"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -55,7 +54,7 @@ unique_name_in_owner = true
 layout_mode = 2
 _icons = ExtResource("5_5fxee")
 
-[node name="Editor" parent="VBoxContainer/MainContainer/HSplitContainer" instance=ExtResource("7_5fxee")]
+[node name="EditorContainer" type="MarginContainer" parent="VBoxContainer/MainContainer/HSplitContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 

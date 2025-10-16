@@ -1,11 +1,17 @@
 [gd_resource type="Theme" load_steps=43 format=3 uid="uid://bvigxeq8g32pu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7ek4o"]
+content_margin_left = 4.0
+content_margin_right = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i4n7a"]
+content_margin_left = 4.0
+content_margin_right = 4.0
 bg_color = Color(0.29411766, 0.43137255, 0.6862745, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1usol"]
+content_margin_left = 4.0
+content_margin_right = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lssdj"]
 bg_color = Color(0, 0, 0, 1)

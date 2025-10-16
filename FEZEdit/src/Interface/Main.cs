@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -23,13 +24,17 @@ public partial class Main : Control
 
     private FileBrowser _fileBrowser;
 
-    private Editor _editor;
+    private Editor _currentEditor;
 
     private ILoader _loader;
 
     private bool _disabled;
 
-    private string _filePath;
+    private string _currentFilePath;
+
+    private Control _editorContainer;
+
+    private readonly Dictionary<string, Editor> _openEditors = new();
 
     public override void _EnterTree()
     {
@@ -44,24 +49,32 @@ public partial class Main : Control
         _mainMenu.WorkingFilePathRequested += RequestFilePath;
         _mainMenu.WorkingFileSaved += SaveFile;
         _mainMenu.ThemeSelected += ChangeTheme;
-        _mainMenu.UndoRedoRequested += () => _editor?.UndoRedo;
+        _mainMenu.UndoRedoRequested += () => _currentEditor?.UndoRedo;
 
         _fileBrowser = GetNode<FileBrowser>("%FileBrowser");
         _fileBrowser.FileMaterialized += EditFile;
+        _fileBrowser.FileShowed += ShowFile;
+        _fileBrowser.FileClosed += CloseFile;
         _fileBrowser.FileOrDirectoryRepacked += RepackFileOrDirectories;
 
-        _editor = GetNode<Editor>("%Editor");
+        _editorContainer = GetNode<Control>("%EditorContainer");
+        AttachEditor(_editors.EmptyEditor);
     }
 
-    private void AttachEditor(Editor editorInstance)
+    private void AttachEditor(Editor editor)
     {
-        var parent = _editor.GetParent<Control>();
-        var index = _editor.GetIndex();
+        if (_editorContainer.GetChildCount() > 0)
+        {
+            var currentChild = _editorContainer.GetChild(0);
+            _editorContainer.RemoveChild(currentChild);
+            if (!_openEditors.ContainsValue(currentChild as Editor))
+            {
+                currentChild.QueueFree();
+            }
+        }
 
-        _editor.QueueFree();
-        parent.AddChild(editorInstance);
-        parent.MoveChild(editorInstance, index);
-        _editor = editorInstance;
+        _editorContainer.AddChild(editor);
+        _currentEditor = editor;
     }
 
     private void LoadFilesFromLoader(FileSystemInfo workingTarget)
@@ -78,17 +91,17 @@ public partial class Main : Control
                         loader = PakLoader.Open(workingTarget);
                         _disabled = true;
                         break;
-                    
+
                     case DirectoryInfo:
                         Settings.CurrentFolder = workingTarget.FullName;
                         loader = FolderLoader.Open(workingTarget);
                         _disabled = false;
                         break;
-                    
-                     default:
+
+                    default:
                         throw new ArgumentOutOfRangeException(nameof(workingTarget));
                 }
-                
+
                 CloseLoader();
                 Callable.From(() =>
                 {
@@ -111,7 +124,7 @@ public partial class Main : Control
         {
             return;
         }
-        
+
         new Thread(() =>
         {
             try
@@ -129,7 +142,7 @@ public partial class Main : Control
             }
         }).Start();
     }
-    
+
     private void PopulateFileBrowser(ILoader loader)
     {
         var count = loader.GetFiles().Count();
@@ -155,8 +168,20 @@ public partial class Main : Control
     {
         Callable.From(() =>
         {
+            foreach (var editor in _openEditors.Values)
+            {
+                if (editor.GetParent() == _editorContainer)
+                {
+                    _editorContainer.RemoveChild(editor);
+                }
+
+                editor.QueueFree();
+            }
+
+            _openEditors.Clear();
+
             _loader = null;
-            _filePath = null;
+            _currentFilePath = null;
             _fileBrowser.ClearFiles();
             AttachEditor(_editors.EmptyEditor);
         }).CallDeferred();
@@ -180,9 +205,17 @@ public partial class Main : Control
                 EventBus.Progress(ProgressValue.Single);
                 (file, string _) = file.SplitAtExtension();
                 var @object = _loader.LoadAsset(file);
+                var icon = _loader.GetIcon(file, _icons);
 
                 Callable.From(() =>
                 {
+                    if (_openEditors.ContainsKey(file))
+                    {
+                        SwitchToEditor(file);
+                        EventBus.Progress(ProgressValue.Complete);
+                        return;
+                    }
+
                     try
                     {
                         if (!_editors.TryGetEditor(@object.GetType(), out var editor))
@@ -190,12 +223,12 @@ public partial class Main : Control
                             AttachEditor(_editors.UnsupportedEditor);
                             return;
                         }
-                        
+
                         editor.Loader = _loader;
                         editor.Value = @object;
-                        AttachEditor(editor);
-                        editor.Disabled = _disabled;
-                        _filePath = file;
+                        _openEditors[file] = editor;
+                        SwitchToEditor(file);
+                        _fileBrowser.ShowOpenFile(file, icon);
 
                         EventBus.Progress(ProgressValue.Complete);
                         EventBus.Success("Opened: {0}", file);
@@ -217,24 +250,105 @@ public partial class Main : Control
         }).Start();
     }
 
-    private string RequestFilePath()
+    private void SwitchToEditor(string filePath)
     {
-        return _loader != null 
-            ? _loader.GetFilePath(_filePath)
-            : System.Environment.CurrentDirectory;
-    }
-    
-    private void SaveFile(string path)
-    {
-        if (_editor?.Value == null)
+        if (!_openEditors.TryGetValue(filePath, out var editor))
         {
             return;
         }
-        
+
+        if (_currentFilePath != null &&
+            _openEditors.TryGetValue(_currentFilePath, out Editor currentEditor) &&
+            currentEditor.GetParent() == _editorContainer)
+        {
+            _editorContainer.RemoveChild(currentEditor);
+        }
+        else if (_currentFilePath == null && _editorContainer.GetChildCount() > 0)
+        {
+            var currentChild = _editorContainer.GetChild(0);
+            _editorContainer.RemoveChild(currentChild);
+            if (!_openEditors.ContainsValue(currentChild as Editor))
+            {
+                currentChild.QueueFree();
+            }
+        }
+
+        _editorContainer.AddChild(editor);
+        _currentFilePath = filePath;
+        _currentEditor = editor;
+        editor.Loader = _loader;
+        editor.Disabled = _disabled;
+    }
+
+    private void ShowFile(string file)
+    {
+        Callable.From(() =>
+        {
+            if (_openEditors.ContainsKey(file))
+            {
+                SwitchToEditor(file);
+            }
+        }).CallDeferred();
+    }
+
+    private void CloseFile(string file)
+    {
+        Callable.From(() =>
+        {
+            if (_openEditors.Remove(file, out var editor))
+            {
+                if (file == _currentFilePath)
+                {
+                    _editorContainer.RemoveChild(editor);
+                    SwitchToNextAvailableEditor(file);
+                }
+
+                editor.QueueFree();
+            }
+        }).CallDeferred();
+    }
+
+    private void SwitchToNextAvailableEditor(string closingFilePath)
+    {
+        var remainingEditors = _openEditors.Where(kvp => kvp.Key != closingFilePath).ToList();
+        if (remainingEditors.Count > 0)
+        {
+            var nextFile = remainingEditors[0].Key;
+            SwitchToEditor(nextFile);
+        }
+        else
+        {
+            AttachEditor(_editors.EmptyEditor);
+            _currentFilePath = null;
+        }
+    }
+
+    private string RequestFilePath()
+    {
+        return _loader != null
+            ? _loader.GetFilePath(_currentFilePath)
+            : System.Environment.CurrentDirectory;
+    }
+
+    private void SaveFile(string path)
+    {
+        if (_currentEditor?.Value == null)
+        {
+            return;
+        }
+
         new Thread(() =>
         {
-            _loader.SaveAsset(_editor.Value, path);
-            RefreshFileBrowser();
+            _loader.SaveAsset(_currentEditor.Value, path);
+            Callable.From(() =>
+            {
+                if (_currentFilePath != null)
+                {
+                    _fileBrowser.SetOpenFileAsEdited(_currentFilePath, false);
+                }
+
+                RefreshFileBrowser();
+            }).CallDeferred();
         }).Start();
     }
 

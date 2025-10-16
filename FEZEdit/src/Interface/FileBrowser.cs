@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
@@ -36,6 +35,10 @@ public partial class FileBrowser : Control
 
     public event Action<string> FileMaterialized;
 
+    public event Action<string> FileClosed;
+
+    public event Action<string> FileShowed;
+
     public event Action<string, string, RepackingMode> FileOrDirectoryRepacked;
 
     public bool CanConvert { get; set; }
@@ -48,6 +51,8 @@ public partial class FileBrowser : Control
 
     private Tree _filesTree;
 
+    private VBoxContainer _openFilesContainer;
+
     private PopupMenu _contextMenu;
 
     private TreeItem _rootItem;
@@ -57,6 +62,8 @@ public partial class FileBrowser : Control
     private string _sourcePath;
 
     private RepackingMode _repackMode;
+
+    private readonly Dictionary<string, PanelContainer> _openItems = new();
 
     public override void _Ready()
     {
@@ -71,6 +78,8 @@ public partial class FileBrowser : Control
         _filesTree.ItemSelected += UpdateAddressBar;
         _filesTree.ItemActivated += MaterializeAsset;
         _filesTree.GuiInput += ShowContextMenu;
+
+        _openFilesContainer = GetNode<VBoxContainer>("%OpenFilesContainer");
 
         _contextMenu = GetNode<PopupMenu>("%ContextMenu");
         _contextMenu.IdPressed += SelectActionOnAsset;
@@ -161,6 +170,56 @@ public partial class FileBrowser : Control
         _rootItem = null;
     }
 
+    public void ShowOpenFile(string path, Texture2D icon)
+    {
+        if (_openItems.ContainsKey(path))
+        {
+            throw new ArgumentException($"The path is already open: {path}");
+        }
+
+        var panelContainer = new PanelContainer { Name = path };
+        _openFilesContainer.AddChild(panelContainer);
+        _openItems.Add(path, panelContainer);
+
+        var hBoxContainer = new HBoxContainer();
+        panelContainer.AddChild(hBoxContainer, true);
+
+        var pathButton = new Button
+        {
+            Text = path,
+            Icon = icon,
+            IconAlignment = HorizontalAlignment.Left,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            Alignment = HorizontalAlignment.Left
+        };
+        pathButton.Pressed += () => FileShowed?.Invoke(path);
+        hBoxContainer.AddChild(pathButton);
+
+        var closeButton = new Button { Icon = _icons.CloseFile, IconAlignment = HorizontalAlignment.Center };
+        closeButton.Pressed += () =>
+        {
+            if (_openItems.Remove(path))
+            {
+                panelContainer.QueueFree();
+                FileClosed?.Invoke(path);
+            }
+        };
+        hBoxContainer.AddChild(closeButton);
+    }
+
+    public void SetOpenFileAsEdited(string path, bool edited)
+    {
+        if (!_openItems.TryGetValue(path, out var panel))
+        {
+            throw new ArgumentException($"Open file not found: {path}");
+        }
+
+        var pathButton = panel.GetChild(0).GetChild<Button>(0);
+        pathButton.Text = edited
+            ? "(*)" + pathButton.Text
+            : pathButton.Text.Replace("(*)", string.Empty);
+    }
+
     private bool IsPathValid(string path)
     {
         return string.IsNullOrEmpty(path) || _rootItem!.TryFindChildByText(path, out _);
@@ -218,7 +277,7 @@ public partial class FileBrowser : Control
         }
 
         var path = clickedItem.GetFullPath();
-        var extension = Path.GetExtension(path);
+        (_, string extension) = path.SplitAtExtension();
         var isFile = clickedItem.GetChildCount() == 0;
 
         _contextMenu.Clear(true);
@@ -228,6 +287,7 @@ public partial class FileBrowser : Control
             _contextMenu.AddItem(Tr("Open File"), (int)Options.FileOpen);
             _contextMenu.AddSeparator();
         }
+
         if (CanConvert)
         {
             if (isFile)
