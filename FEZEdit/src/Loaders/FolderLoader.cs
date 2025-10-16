@@ -182,7 +182,7 @@ public class FolderLoader : ILoader
             return;
         }
 
-        var originalPath = path.Replace("/", "\\");
+        var originalPath = Path.Combine(AssetDirectory.FullName, path.Replace("/", "\\"));
         switch (mode)
         {
             case RepackingMode.ConvertFromXnb:
