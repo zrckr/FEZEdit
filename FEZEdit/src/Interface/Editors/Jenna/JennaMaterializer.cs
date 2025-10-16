@@ -53,7 +53,7 @@ public partial class JennaMaterializer : Node3D
     {
         if (_jennaNodes.ContainsKey(nodeToRemove))
         {
-            var parent = _currentMapTree.FindParent(nodeToRemove);
+            (MapNode parent, _) = _currentMapTree.FindParentWithConnection(nodeToRemove);
             var connection = parent?.Connections.FirstOrDefault(c => c.Node == nodeToRemove);
             if (connection != null)
             {
@@ -73,7 +73,7 @@ public partial class JennaMaterializer : Node3D
 
     private void RebuildVisualTree(MapNode node)
     {
-        var parentConnection = _currentMapTree.FindParentConnection(node);
+        (_, MapNodeConnection parentConnection) = _currentMapTree.FindParentWithConnection(node);
         var jennaNode = _jennaNodes.GetValueOrDefault(node);
         var parentJennaNode = jennaNode?.Parent;
         var offset = jennaNode?.GlobalPosition ?? Vector3.Zero;

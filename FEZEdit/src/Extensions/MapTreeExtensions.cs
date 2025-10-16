@@ -53,7 +53,7 @@ public static class MapTreeExtensions
         return face is not (FaceOrientation.Down or FaceOrientation.Top);
     }
 
-    public static MapNode FindParent(this MapTree tree, MapNode node)
+    public static (MapNode, MapNodeConnection) FindParentWithConnection(this MapTree tree, MapNode node)
     {
         var stack = new Stack<MapNode>();
         stack.Push(tree.Root);
@@ -61,28 +61,13 @@ public static class MapTreeExtensions
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            if (current == node) return current;
+            foreach (var currentConnection in current.Connections)
+                if (currentConnection.Node == node)
+                    return (current, currentConnection);
             foreach (var connection in current.Connections)
                 stack.Push(connection.Node);
         }
 
-        return null;
-    }
-
-    public static MapNodeConnection FindParentConnection(this MapTree tree, MapNode node)
-    {
-        var stack = new Stack<MapNode>();
-        stack.Push(tree.Root);
-
-        while (stack.Count > 0)
-        {
-            var current = stack.Pop();
-            var currentConnection = current.Connections.FirstOrDefault(c => c.Node == node);
-            if (currentConnection != null) return currentConnection;
-            foreach (var connection in current.Connections)
-                stack.Push(connection.Node);
-        }
-
-        return null;
+        return (null, null);
     }
 }

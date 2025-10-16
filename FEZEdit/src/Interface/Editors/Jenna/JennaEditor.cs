@@ -152,9 +152,8 @@ public partial class JennaEditor : TypedEditor<MapTree>
     {
         if (options == Options.RemoveNode && _selectedObject is MapNode node)
         {
-            var parent = TypedValue.FindParent(node);
-            var parentConnection = TypedValue.FindParentConnection(node);
-            
+            (MapNode parent, MapNodeConnection parentConnection) = TypedValue.FindParentWithConnection(node);
+
             UndoRedo.CreateAction("Remove Map Node", _materializer);
             UndoRedo.AddDoMethod(() =>
             {
