@@ -219,11 +219,11 @@ public partial class MainMenu : Control
     private void OnMenuAboutToPopup()
     {
         var history = UndoRedoRequested?.Invoke();
-        _fileMenu.SetItemDisabled((int)Options.FileClose, _workingTarget is not DirectoryInfo);
-        _fileMenu.SetItemDisabled((int)Options.SaveFile, _workingTarget is not DirectoryInfo);
-        _fileMenu.SetItemDisabled((int)Options.SaveFileAs, _workingTarget is not DirectoryInfo);
-        _fileMenu.SetItemDisabled((int)Options.EditUndo, !history?.HasUndo ?? true);
-        _fileMenu.SetItemDisabled((int)Options.EditRedo, !history?.HasRedo ?? true);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), _workingTarget is not DirectoryInfo);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFile), _workingTarget is not DirectoryInfo);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFileAs), _workingTarget is not DirectoryInfo);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditUndo), !history?.HasUndo ?? true);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditRedo), !history?.HasRedo ?? true);
     }
 
     private void OnMenuItemPressed(long id)
