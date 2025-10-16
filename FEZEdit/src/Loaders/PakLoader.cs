@@ -48,6 +48,13 @@ public class PakLoader : ILoader
         return _files.Keys;
     }
 
+    public string GetFileExtension(string file)
+    {
+        return _files.TryGetValue(file, out var record)
+            ? record.FindExtension()
+            : string.Empty;
+    }
+
     public Godot.Texture2D GetIcon(string file, IconsResource icons)
     {
         if (!_files.TryGetValue(file.ToLower(), out var record))

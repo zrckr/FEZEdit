@@ -16,6 +16,8 @@ public interface ILoader
     string Root { get; }
     
     IEnumerable<string> GetFiles();
+    
+    string GetFileExtension(string file);
 
     Godot.Texture2D GetIcon(string file, IconsResource icons);
 

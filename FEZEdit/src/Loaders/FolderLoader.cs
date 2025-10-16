@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FEZEdit.Core;
+using FEZEdit.Extensions;
 using FEZEdit.Interface;
 using FEZRepacker.Core.Conversion;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
@@ -27,6 +28,8 @@ public class FolderLoader : ILoader
 
     private readonly Dictionary<string, FileInfo> _files = new();
 
+    private readonly Dictionary<string, string> _extensions = new();
+
     public static FolderLoader Open(FileSystemInfo info)
     {
         if (info is not DirectoryInfo directoryInfo)
@@ -49,6 +52,13 @@ public class FolderLoader : ILoader
         return _files.Keys;
     }
 
+    public string GetFileExtension(string file)
+    {
+        return _extensions.TryGetValue(file, out var extension)
+            ? extension
+            : string.Empty;
+    }
+
     public Godot.Texture2D GetIcon(string path, IconsResource icons)
     {
         if (!_files.TryGetValue(path, out var file))
@@ -56,9 +66,7 @@ public class FolderLoader : ILoader
             throw new FileNotFoundException(path);
         }
 
-        var index = file.FullName.IndexOf('.');
-        var extension = file.FullName[index..];
-
+        (string _, string extension) = file.FullName.SplitAtExtension();
         return extension switch
         {
             ".fezao.glb" => icons.MeshFile,
@@ -91,16 +99,19 @@ public class FolderLoader : ILoader
 
     public bool HasFile(string file)
     {
-        return _files.Keys.Any(path => path.StartsWith(file, StringComparison.InvariantCultureIgnoreCase));
+        return _files.Keys.Any(path => path.Equals(file, StringComparison.InvariantCultureIgnoreCase));
     }
 
     public void RefreshFiles()
     {
         _files.Clear();
+        _extensions.Clear();
         foreach (var file in AssetDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
         {
-            var path = file.FullName[(AssetDirectory.FullName.Length + 1)..];
-            _files[path] = file;
+            var path = file.FullName.WithoutBaseDirectory(AssetDirectory.FullName);
+            (string filePath, string extension) = path.SplitAtExtension();
+            _files[filePath] = file;
+            _extensions[filePath] = extension;
         }
     }
 
@@ -193,7 +204,7 @@ public class FolderLoader : ILoader
         try
         {
             using var bundle = FormatConversion.Convert(@object);
-            bundle.BundlePath = path[..path.IndexOf('.')];
+            bundle.BundlePath = path.GetBaseName();
         
             var progress = new ProgressValue(0, 0, bundle.Files.Count, 1);
             EventBus.Progress(progress);
@@ -381,7 +392,7 @@ public class FolderLoader : ILoader
         FileInfo info = null;
         foreach ((string filePath, FileInfo fileInfo) in _files)
         {
-            if (filePath.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+            if (filePath.Equals(path, StringComparison.InvariantCultureIgnoreCase))
             {
                 info = fileInfo;
             }

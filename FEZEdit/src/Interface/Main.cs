@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using FEZEdit.Core;
+using FEZEdit.Extensions;
 using FEZEdit.Interface.Editors;
 using FEZEdit.Loaders;
 using Godot;
@@ -139,8 +140,9 @@ public partial class Main : Control
         _fileBrowser.AddRoot(loader.Root);
         foreach (var path in loader.GetFiles())
         {
+            var extension = loader.GetFileExtension(path);
             var icon = loader.GetIcon(path, _icons);
-            _fileBrowser.AddFile(path, icon);
+            _fileBrowser.AddFile(path + extension, icon);
             progress.Next();
             EventBus.Progress(progress);
         }
@@ -176,6 +178,7 @@ public partial class Main : Control
             try
             {
                 EventBus.Progress(ProgressValue.Single);
+                (file, string _) = file.SplitAtExtension();
                 var @object = _loader.LoadAsset(file);
 
                 Callable.From(() =>
