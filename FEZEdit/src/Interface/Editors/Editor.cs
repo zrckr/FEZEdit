@@ -10,6 +10,8 @@ public abstract partial class Editor : Control
 
     public abstract object Value { get; set; }
 
+    public abstract event Action ValueChanged;
+    
     public ILoader Loader { get; set; }
 
     public UndoRedo UndoRedo { get; } = new();

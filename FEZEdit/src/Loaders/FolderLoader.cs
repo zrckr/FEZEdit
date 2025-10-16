@@ -204,7 +204,7 @@ public class FolderLoader : ILoader
         try
         {
             using var bundle = FormatConversion.Convert(@object);
-            bundle.BundlePath = path.GetBaseName();
+            (bundle.BundlePath, _) = path.SplitAtExtension();
         
             var progress = new ProgressValue(0, 0, bundle.Files.Count, 1);
             EventBus.Progress(progress);

@@ -6,7 +6,7 @@ using Godot;
 
 namespace FEZEdit.Interface.Editors.Jenna;
 
-public partial class JennaEditor : TypedEditor<MapTree>
+public partial class JennaEditor : Editor
 {
     public enum Options
     {
@@ -14,7 +14,13 @@ public partial class JennaEditor : TypedEditor<MapTree>
         RemoveNode
     }
 
-    public override MapTree TypedValue { get; set; }
+    public override event Action ValueChanged;
+
+    public override object Value
+    {
+        get => _mapTree;
+        set => _mapTree = (MapTree)value;
+    }
 
     public override bool Disabled
     {
@@ -25,6 +31,8 @@ public partial class JennaEditor : TypedEditor<MapTree>
     }
 
     [Export] private IconsResource _icons;
+
+    private MapTree _mapTree;
 
     private PopupMenu _contextMenu;
 
@@ -75,7 +83,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private void InitializeMaterializer()
     {
-        if (TypedValue == null)
+        if (_mapTree == null)
         {
             return;
         }
@@ -84,7 +92,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
         _materializer = new JennaMaterializer();
         _camera.AddSibling(_materializer, true);
         
-        _materializer.Initialize(TypedValue, Loader);
+        _materializer.Initialize(_mapTree, Loader);
         _camera.SetTarget(_materializer, false);
     }
 
@@ -128,11 +136,13 @@ public partial class JennaEditor : TypedEditor<MapTree>
                 case MapNodeProperties properties when _inspectedObject is MapNode node:
                     properties.CopyTo(node);
                     _materializer.UpdateMapNode(node);
+                    ValueChanged?.Invoke();
                     break;
                 
                 case ConnectionProperties properties when _inspectedObject is MapNodeConnection connection:
                     properties.CopyTo(connection);
                     _materializer.UpdateMapNode(connection.Node);
+                    ValueChanged?.Invoke();
                     break;
             }
         }
@@ -144,7 +154,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
         {
             _selectedMapNode = node;
             
-            (_, MapNodeConnection parentConnection) = TypedValue.FindParentWithConnection(node);
+            (_, MapNodeConnection parentConnection) = _mapTree.FindParentWithConnection(node);
             var parentFace = parentConnection?.Face.GetOpposite();
             var faces = Enum.GetValues<FaceOrientation>();
             
@@ -162,16 +172,18 @@ public partial class JennaEditor : TypedEditor<MapTree>
     {
         if (options == Options.RemoveNode && _selectedMapNode != null)
         {
-            (MapNode parent, MapNodeConnection parentConnection) = TypedValue.FindParentWithConnection(_selectedMapNode);
+            (MapNode parent, MapNodeConnection parentConnection) = _mapTree.FindParentWithConnection(_selectedMapNode);
 
             UndoRedo.CreateAction("Remove Map Node", _materializer);
             UndoRedo.AddDoMethod(() =>
             {
                 _materializer.RemoveMapNode(_selectedMapNode);
+                ValueChanged?.Invoke();
             });
             UndoRedo.AddUndoMethod(() =>
             {
                 _materializer.AddMapNode(parent, _selectedMapNode, parentConnection.Face);
+                ValueChanged?.Invoke();
             });
             UndoRedo.CommitAction();
         }
@@ -181,16 +193,18 @@ public partial class JennaEditor : TypedEditor<MapTree>
     {
         if (_selectedMapNode != null)
         {
-            var newNode = new MapNode { LevelName = "Untitled" };
+            var newNode = new MapNode { LevelName = "UNTITLED" };
             
             UndoRedo.CreateAction("Add Map Node", _materializer);
             UndoRedo.AddDoMethod(() =>
             {
                 _materializer.AddMapNode(_selectedMapNode, newNode, orientation);
+                ValueChanged?.Invoke();
             });
             UndoRedo.AddUndoMethod(() =>
             {
                 _materializer.RemoveMapNode(newNode);
+                ValueChanged?.Invoke();
             });
             UndoRedo.CommitAction();
         }

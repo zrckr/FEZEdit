@@ -13,8 +13,8 @@ material = SubResource("StandardMaterial3D_wdb2u")
 
 [node name="FaceGizmoOverlay" type="SubViewportContainer"]
 custom_minimum_size = Vector2(100, 100)
-offset_right = 100.0
-offset_bottom = 100.0
+offset_right = 50.0
+offset_bottom = 50.0
 stretch = true
 script = ExtResource("1_1rhbr")
 

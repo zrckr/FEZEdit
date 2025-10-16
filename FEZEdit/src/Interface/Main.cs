@@ -226,6 +226,7 @@ public partial class Main : Control
 
                         editor.Loader = _loader;
                         editor.Value = @object;
+                        editor.ValueChanged += OnEditorValueChanged;
                         _openEditors[file] = editor;
                         SwitchToEditor(file);
                         _fileBrowser.ShowOpenFile(file, icon);
@@ -297,6 +298,7 @@ public partial class Main : Control
         {
             if (_openEditors.Remove(file, out var editor))
             {
+                editor.ValueChanged -= OnEditorValueChanged;
                 if (file == _currentFilePath)
                 {
                     _editorContainer.RemoveChild(editor);
@@ -322,6 +324,18 @@ public partial class Main : Control
             _currentFilePath = null;
         }
     }
+    
+    private void OnEditorValueChanged()
+    {
+        Callable.From(() =>
+        {
+            if (!string.IsNullOrEmpty(_currentFilePath))
+            {
+                // Only mark the currently active file as edited
+                _fileBrowser.SetOpenFileAsEdited(_currentFilePath, true);
+            }
+        }).CallDeferred();
+    }
 
     private string RequestFilePath()
     {
@@ -342,11 +356,10 @@ public partial class Main : Control
             _loader.SaveAsset(_currentEditor.Value, path);
             Callable.From(() =>
             {
-                if (_currentFilePath != null)
+                if (!string.IsNullOrEmpty(_currentFilePath))
                 {
                     _fileBrowser.SetOpenFileAsEdited(_currentFilePath, false);
                 }
-
                 RefreshFileBrowser();
             }).CallDeferred();
         }).Start();

@@ -1,14 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace FEZEdit.Interface.Editors;
+namespace FEZEdit.Interface.Editors.Po;
 
-using TextStorage = Dictionary<string, Dictionary<string, string>>;
-
-public partial class PoEditor : TypedEditor<TextStorage>
+public partial class PoEditor : Editor
 {
-    public override TextStorage TypedValue { get; set; }
+    public override event Action ValueChanged; 
+    
+    public override object Value
+    {
+        get => _textStorage;
+        set => _textStorage = (TextStorage)value;
+    }
 
     public override bool Disabled
     {
@@ -29,6 +34,8 @@ public partial class PoEditor : TypedEditor<TextStorage>
     [Export] private string _sourceLanguage = string.Empty;
 
     [Export] private int _itemsPerPage = 20;
+
+    private TextStorage _textStorage;
 
     private OptionButton _languagesButton;
 
@@ -59,7 +66,7 @@ public partial class PoEditor : TypedEditor<TextStorage>
 
     private void InitializeKeys()
     {
-        _keys = TypedValue[_sourceLanguage].Keys.ToList();
+        _keys = _textStorage[_sourceLanguage].Keys.ToList();
     }
 
     private void InitializeLanguages()
@@ -113,7 +120,7 @@ public partial class PoEditor : TypedEditor<TextStorage>
     {
         _selectedLanguageIndex = index;
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = TypedValue[selectedLanguage];
+        var selectedStorage = _textStorage[selectedLanguage];
         
         _tableTree.Clear();
         _root = _tableTree.CreateItem();
@@ -150,8 +157,9 @@ public partial class PoEditor : TypedEditor<TextStorage>
         row.SetEditMultiline(1, true);
 
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = TypedValue[selectedLanguage];
+        var selectedStorage = _textStorage[selectedLanguage];
         selectedStorage.Add(key, string.Empty);
+        ValueChanged?.Invoke();
         
         _tableTree.ScrollToItem(row, true);
     }
@@ -171,8 +179,9 @@ public partial class PoEditor : TypedEditor<TextStorage>
         row.Free();
         
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = TypedValue[selectedLanguage];
+        var selectedStorage = _textStorage[selectedLanguage];
         selectedStorage.Remove(key);
+        ValueChanged?.Invoke();
     }
 
     private void UpdateRowInTable()
@@ -182,10 +191,11 @@ public partial class PoEditor : TypedEditor<TextStorage>
         var message = row.GetText(1).Replace("\n", "\r\n");
         
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = TypedValue[selectedLanguage];
+        var selectedStorage = _textStorage[selectedLanguage];
         if (selectedStorage.ContainsKey(key))
         {
             selectedStorage[key] = message;
+            ValueChanged?.Invoke();
         }
     }
 }

@@ -22,6 +22,8 @@ public partial class FileBrowser : Control
 
     private static readonly StringName ClickedItem = "clicked_item";
 
+    private const string EditedSymbol = "(*)";
+
     private static readonly Dictionary<Options, RepackingMode> OptionModes = new()
     {
         [Options.FileOpen] = RepackingMode.None,
@@ -215,9 +217,14 @@ public partial class FileBrowser : Control
         }
 
         var pathButton = panel.GetChild(0).GetChild<Button>(0);
-        pathButton.Text = edited
-            ? "(*)" + pathButton.Text
-            : pathButton.Text.Replace("(*)", string.Empty);
+        if (edited && !pathButton.Text.Contains(EditedSymbol))
+        {
+            pathButton.Text += EditedSymbol;
+        }
+        else if (!edited && pathButton.Text.Contains(EditedSymbol))
+        {
+            pathButton.Text = pathButton.Text.Replace(EditedSymbol, string.Empty);
+        }
     }
 
     private bool IsPathValid(string path)

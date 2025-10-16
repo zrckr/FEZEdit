@@ -1,14 +1,21 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using FEZRepacker.Core.Definitions.Game.TrackedSong;
 using Godot;
 
 namespace FEZEdit.Interface.Editors.Diez;
 
-public partial class DiezEditor: TypedEditor<TrackedSong>
+public partial class DiezEditor: Editor
 {
     [Export] private PackedScene _selectedLoopScene;
+
+    public override event Action ValueChanged;
     
-    public override TrackedSong TypedValue { get; set; }
+    public override object Value
+    {
+        get => _trackedSong;
+        set => _trackedSong = (TrackedSong)value;
+    }
     
     public override bool Disabled
     {
@@ -19,6 +26,8 @@ public partial class DiezEditor: TypedEditor<TrackedSong>
             _selectedLoop.Disabled = value;
         }
     }
+
+    private TrackedSong _trackedSong;
 
     private TrackedSongProperties _songProperties;
 
@@ -38,15 +47,15 @@ public partial class DiezEditor: TypedEditor<TrackedSong>
     private void InitializeSongProperties()
     {
         _songProperties = GetNode<TrackedSongProperties>("%TrackedSongProperties");
-        _songProperties.TrackedSong = TypedValue;
+        _songProperties.TrackedSong = _trackedSong;
         _songProperties.Loader = Loader;
     }
 
     private void InitializeLoopsList()
     {
         _loopsList = GetNode<TrackedSongLoops>("%TrackedSongLoops");
-        _loopsList.SongName = TypedValue.Name;
-        _loopsList.LoopsList = TypedValue.Loops.ToList();
+        _loopsList.SongName = _trackedSong.Name;
+        _loopsList.LoopsList = _trackedSong.Loops.ToList();
         _loopsList.LoopSelected += loop => Callable.From(() => InitializeSelectedLoop(loop)).CallDeferred();
     }
 
@@ -61,7 +70,7 @@ public partial class DiezEditor: TypedEditor<TrackedSong>
         if (loop != null)
         {
             _selectedLoop = _selectedLoopScene.Instantiate<TrackedSongLoop>();
-            _selectedLoop.SongName = TypedValue.Name;
+            _selectedLoop.SongName = _trackedSong.Name;
             _selectedLoop.Loop = loop;
             _selectedLoop.NameChanged += _loopsList.UpdateTree;
             _selectedLoopContainer.AddChild(_selectedLoop, true);

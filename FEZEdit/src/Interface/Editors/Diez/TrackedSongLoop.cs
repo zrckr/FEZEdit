@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using FEZEdit.Core;
 using FEZRepacker.Core.Definitions.Game.TrackedSong;
 using Godot;
