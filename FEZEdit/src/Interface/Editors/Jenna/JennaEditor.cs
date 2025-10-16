@@ -38,7 +38,7 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private object _inspectedObject;
     
-    private object _selectedObject;
+    private MapNode _selectedMapNode;
 
     public override void _Ready()
     {
@@ -140,9 +140,19 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private void ShowContextMenu(object @object)
     {
-        if (@object != null)
+        if (@object is MapNode node)
         {
-            _selectedObject = @object;
+            _selectedMapNode = node;
+            
+            (_, MapNodeConnection parentConnection) = TypedValue.FindParentWithConnection(node);
+            var parentFace = parentConnection?.Face.GetOpposite();
+            var faces = Enum.GetValues<FaceOrientation>();
+            
+            for (int i = 0; i < faces.Length; i++)
+            {
+                _addChildNodeMenu.SetItemDisabled(i, faces[i] == parentFace);
+            }
+            
             _contextMenu.Position = (Vector2I)GetGlobalMousePosition();
             _contextMenu.Popup();
         }
@@ -150,18 +160,18 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private void RemoveNode(Options options)
     {
-        if (options == Options.RemoveNode && _selectedObject is MapNode node)
+        if (options == Options.RemoveNode && _selectedMapNode != null)
         {
-            (MapNode parent, MapNodeConnection parentConnection) = TypedValue.FindParentWithConnection(node);
+            (MapNode parent, MapNodeConnection parentConnection) = TypedValue.FindParentWithConnection(_selectedMapNode);
 
             UndoRedo.CreateAction("Remove Map Node", _materializer);
             UndoRedo.AddDoMethod(() =>
             {
-                _materializer.RemoveMapNode(node);
+                _materializer.RemoveMapNode(_selectedMapNode);
             });
             UndoRedo.AddUndoMethod(() =>
             {
-                _materializer.AddMapNode(parent, node, parentConnection.Face);
+                _materializer.AddMapNode(parent, _selectedMapNode, parentConnection.Face);
             });
             UndoRedo.CommitAction();
         }
@@ -169,14 +179,14 @@ public partial class JennaEditor : TypedEditor<MapTree>
 
     private void AddMapNode(FaceOrientation orientation)
     {
-        if (_selectedObject is MapNode parentNode)
+        if (_selectedMapNode != null)
         {
             var newNode = new MapNode { LevelName = "Untitled" };
             
             UndoRedo.CreateAction("Add Map Node", _materializer);
             UndoRedo.AddDoMethod(() =>
             {
-                _materializer.AddMapNode(parentNode, newNode, orientation);
+                _materializer.AddMapNode(_selectedMapNode, newNode, orientation);
             });
             UndoRedo.AddUndoMethod(() =>
             {
