@@ -1,20 +1,20 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Godot;
-using Godot.Collections;
+using Serilog;
 
-namespace FEZEdit.Tools;
+namespace FEZEdit.Singletons;
 
-public static class GodotUtil
+public static class EditorPreviews
 {
+    private static readonly ILogger Logger = LoggerFactory.Create(nameof(EditorPreviews));
+    
     private const float CameraRotationX = -Mathf.Pi / 8f;
 
     private const float CameraRotationY = -Mathf.Pi / 4f;
 
-    public static async Task<Array<Texture2D>> GeneratePreviews(
-        SceneTree tree,
-        Array<Mesh> meshes,
-        int previewSize)
+    public static async IAsyncEnumerable<Texture2D> Generate(IEnumerable<Mesh> meshes, int previewSize)
     {
+        var tree = (SceneTree)Engine.GetMainLoop();
         await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
 
         var viewport = new SubViewport
@@ -51,8 +51,7 @@ public static class GodotUtil
         light.Transform = xform * Transform3D.Identity.LookingAt(new Vector3(-2, -1, -1), Vector3.Up);
         light2.Transform = xform * Transform3D.Identity.LookingAt(new Vector3(+1, -1, -2), Vector3.Up);
         meshInstance.Basis = Basis.Identity.Rotated(Vector3.Up, -Mathf.Pi / 2f);
-
-        var previews = new Array<Texture2D>();
+        
         foreach (var mesh in meshes)
         {
             var meshAabb = mesh.GetAabb();
@@ -74,16 +73,15 @@ public static class GodotUtil
             var texture = viewport.GetTexture();
             if (texture == null)
             {
-                GD.PushError($"Failed to get preview for mesh: {mesh.ResourceName}");
+                Logger.Error("Failed to get preview for mesh '{0}'", mesh.ResourceName);
                 continue;
             }
 
             var preview = ImageTexture.CreateFromImage(texture.GetImage());
             preview.ResourceName = mesh.ResourceName;
-            previews.Add(preview);
+            yield return preview;
         }
 
         viewport.QueueFree();
-        return previews;
     }
 }
