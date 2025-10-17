@@ -1,5 +1,4 @@
 ﻿using System;
-using FEZEdit.Core;
 using Godot;
 
 namespace FEZEdit.Editors.Jenna;

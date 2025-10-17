@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using FEZEdit.Core;
-using FEZEdit.Extensions;
+
 using Godot;
 
 namespace FEZEdit.Main;

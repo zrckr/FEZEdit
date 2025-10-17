@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using FEZRepacker.Core.Definitions.Game.Common;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;

@@ -1,5 +1,4 @@
-﻿using System;
-using Godot;
+﻿ using Godot;
 using Godot.Collections;
 using Array = Godot.Collections.Array;
 
@@ -161,7 +160,7 @@ public static class Settings
     {
         foreach (var section in DefaultSettings.Keys)
         {
-            var sectionDict = DefaultSettings[section].AsGodotDictionary();;
+            var sectionDict = DefaultSettings[section].AsGodotDictionary();
             foreach (var key in sectionDict.Keys)
             {
                 if (!config.HasSectionKey(section.AsString(), key.AsString()))

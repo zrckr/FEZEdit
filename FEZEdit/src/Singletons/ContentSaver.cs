@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Content;
 using FEZEdit.Core;
-using FEZEdit.Extensions;
 using FEZRepacker.Core.Conversion;
 using FEZRepacker.Core.FileSystem;
 using FEZRepacker.Core.XNB;
