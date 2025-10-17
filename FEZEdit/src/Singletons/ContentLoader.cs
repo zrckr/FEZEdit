@@ -20,7 +20,7 @@ public static class ContentLoader
     
     public static string Root => ContentProvider.Root;
     
-    public static IEnumerable<string> Files => ContentProvider.Files;
+    public static IEnumerable<string> Files => ContentProvider?.Files ?? [];
  
     public static IContentProvider ContentProvider { private get; set; }
     

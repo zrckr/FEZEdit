@@ -135,6 +135,13 @@ public partial class Main : Control
     private void PopulateFileBrowser()
     {
         var count = ContentLoader.Files.Count();
+        if (count < 1)
+        {
+            _fileBrowser.ClearFiles();
+            _fileBrowser.RefreshFiles();
+            return;
+        }
+
         var progress = new ProgressValue(0, 0, count, 1);
         EventBus.Progress(progress);
 
