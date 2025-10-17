@@ -2,6 +2,7 @@ using System;
 using FEZEdit.Extensions;
 using Godot;
 using System.Collections.Generic;
+using FEZEdit.Core;
 using static Godot.RenderingServer;
 
 namespace FEZEdit.Gizmos;

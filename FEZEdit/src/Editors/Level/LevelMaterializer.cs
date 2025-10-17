@@ -16,6 +16,8 @@ public partial class LevelMaterializer : Node3D
 {
     private const string BackgroundPlaneShader = "res://src/Shaders/BackgroundPlane.gdshader";
 
+    private const string DefaultAnimation = "default";
+
     private static readonly Orthogonal[] RotationIndices =
     [
         Orthogonal.BackUp,
@@ -123,8 +125,8 @@ public partial class LevelMaterializer : Node3D
                 child = new AnimatedSprite3D
                 {
                     Name = $"{key}_{plane.TextureName}",
-                    Animation = TextureExtensions.DefaultAnimation,
-                    Autoplay = TextureExtensions.DefaultAnimation,
+                    Animation = DefaultAnimation,
+                    Autoplay = DefaultAnimation,
                     SpriteFrames = frames
                 };
             }

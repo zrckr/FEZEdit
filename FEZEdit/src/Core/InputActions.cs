@@ -23,4 +23,25 @@ public static class InputActions
     public const string GizmoRotateMode = "gizmo_move_mode";
     
     public static Vector2 Movement => Input.GetVector(MoveLeft, MoveRight, MoveForward, MoveBackward);
+    
+    public static Shortcut WithShift(this Key key)
+    {
+        var shortcut = new Shortcut();
+        shortcut.Events.Add(new InputEventKey() { Keycode = key, ShiftPressed = true });
+        return shortcut;
+    }
+    
+    public static Shortcut WithCtrl(this Key key)
+    {
+        var shortcut = new Shortcut();
+        shortcut.Events.Add(new InputEventKey() { Keycode = key, CtrlPressed = true });
+        return shortcut;
+    }
+    
+    public static Shortcut WithCtrlShift(this Key key)
+    {
+        var shortcut = new Shortcut();
+        shortcut.Events.Add(new InputEventKey() { Keycode = key, CtrlPressed = true, ShiftPressed = true });
+        return shortcut;
+    }
 }
