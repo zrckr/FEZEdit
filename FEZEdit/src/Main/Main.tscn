@@ -1,0 +1,63 @@
+[gd_scene load_steps=8 format=3 uid="uid://54v01g8k5xqy"]
+
+[ext_resource type="Theme" uid="uid://bvigxeq8g32pu" path="res://assets/themes/DarkTheme.tres" id="1_6iwgk"]
+[ext_resource type="Script" uid="uid://nacgtixaucg7" path="res://src/Main/Main.cs" id="1_vjwby"]
+[ext_resource type="PackedScene" uid="uid://dvnr57r0raexl" path="res://src/Main/FileBrowser.tscn" id="2_vjwby"]
+[ext_resource type="PackedScene" uid="uid://s1x0ufpfro0d" path="res://src/Main/MainMenu.tscn" id="3_hg55d"]
+[ext_resource type="Resource" uid="uid://hy3fg4dltudr" path="res://src/Editors/EditorFactory.tres" id="4_5fxee"]
+[ext_resource type="Resource" uid="uid://7jom0xw582pl" path="res://src/Main/Icons.tres" id="5_5fxee"]
+[ext_resource type="PackedScene" uid="uid://bakfevdwwou6d" path="res://src/Main/StatusBar.tscn" id="5_hg55d"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_6iwgk")
+script = ExtResource("1_vjwby")
+_icons = ExtResource("5_5fxee")
+_editors = ExtResource("4_5fxee")
+metadata/_edit_vertical_guides_ = [-166.0]
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="MainMenu" parent="VBoxContainer" instance=ExtResource("3_hg55d")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MainContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/MainContainer"]
+layout_mode = 2
+
+[node name="FileBrowser" parent="VBoxContainer/MainContainer/HSplitContainer" instance=ExtResource("2_vjwby")]
+unique_name_in_owner = true
+layout_mode = 2
+_icons = ExtResource("5_5fxee")
+
+[node name="EditorContainer" type="MarginContainer" parent="VBoxContainer/MainContainer/HSplitContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatusBar" parent="VBoxContainer" instance=ExtResource("5_hg55d")]
+unique_name_in_owner = true
+layout_mode = 2

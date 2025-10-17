@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=7 format=3 uid="uid://hy3fg4dltudr"]
+
+[ext_resource type="Script" uid="uid://cqmpsayg17dx8" path="res://src/Editors/EditorFactory.cs" id="1_6u1xg"]
+[ext_resource type="PackedScene" uid="uid://dcjyca25agbd7" path="res://src/Editors/Po/PoEditor.tscn" id="1_nuwvy"]
+[ext_resource type="PackedScene" uid="uid://r5ks85k6g6w" path="res://src/Editors/Diez/DiezEditor.tscn" id="2_642f3"]
+[ext_resource type="PackedScene" uid="uid://bvdn32onbjv5x" path="res://src/Editors/Jenna/JennaEditor.tscn" id="3_642f3"]
+[ext_resource type="PackedScene" uid="uid://boxkm45xewsqk" path="res://src/Editors/EmptyEditor.tscn" id="3_t4sc5"]
+[ext_resource type="PackedScene" uid="uid://bo60r51psf8eo" path="res://src/Editors/UnsupportedEditor.tscn" id="4_ylesg"]
+
+[resource]
+script = ExtResource("1_6u1xg")
+_editors = Dictionary[String, PackedScene]({
+"FEZRepacker.Core.Definitions.Game.MapTree.MapTree": ExtResource("3_642f3"),
+"FEZRepacker.Core.Definitions.Game.TrackedSong.TrackedSong": ExtResource("2_642f3"),
+"System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.String]]": ExtResource("1_nuwvy")
+})
+_emptyEditor = ExtResource("3_t4sc5")
+_unsupportedEditor = ExtResource("4_ylesg")

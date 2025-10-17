@@ -1,0 +1,104 @@
+[gd_scene load_steps=2 format=3 uid="uid://c82lm5fpev8wg"]
+
+[ext_resource type="Script" uid="uid://b1qrnw5c7tex4" path="res://src/Editors/Properties/EditorPropertyVector4.cs" id="1_vpw8o"]
+
+[node name="EditorPropertyVector4" type="HBoxContainer"]
+offset_right = 196.0
+offset_bottom = 136.0
+size_flags_horizontal = 3
+script = ExtResource("1_vpw8o")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "<Vector4>"
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="XContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/XContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/XContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9607843, 0.2, 0.32156864, 1)
+text = "X"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxX" type="SpinBox" parent="Layout/XContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1
+
+[node name="YContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/YContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/YContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5294118, 0.8392157, 0.007843138, 1)
+text = "Y"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxY" type="SpinBox" parent="Layout/YContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1
+
+[node name="ZContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/ZContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/ZContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.16078432, 0.54901963, 0.9607843, 1)
+text = "Z"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxZ" type="SpinBox" parent="Layout/ZContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1
+
+[node name="WContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/WContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/WContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8627451, 0.019607844, 1)
+text = "W"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxW" type="SpinBox" parent="Layout/WContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1

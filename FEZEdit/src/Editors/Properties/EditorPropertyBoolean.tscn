@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6cyhrrrjspnc"]
+
+[ext_resource type="Script" uid="uid://budatnq8e48jg" path="res://src/Editors/Properties/EditorPropertyBoolean.cs" id="1_8rlp4"]
+
+[node name="EditorPropertyBoolean" type="HBoxContainer"]
+offset_right = 1.0
+offset_bottom = 23.0
+size_flags_horizontal = 3
+script = ExtResource("1_8rlp4")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "<Boolean>"
+
+[node name="CheckBox" type="CheckBox" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "On"

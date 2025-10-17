@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FEZEdit.Core;
-using FEZEdit.Interface;
+using FEZEdit.Main;
 using FEZRepacker.Core.Conversion;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
 using FEZRepacker.Core.Definitions.Game.TrileSet;

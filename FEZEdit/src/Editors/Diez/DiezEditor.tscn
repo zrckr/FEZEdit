@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3 uid="uid://r5ks85k6g6w"]
+
+[ext_resource type="PackedScene" uid="uid://rduycm2aapiw" path="res://src/Editors/Diez/TrackedSongLoops.tscn" id="1_vawx0"]
+[ext_resource type="Script" uid="uid://dj2fevnlbt5kh" path="res://src/Editors/Diez/DiezEditor.cs" id="1_x7c4j"]
+[ext_resource type="PackedScene" uid="uid://bku334cx3ogl6" path="res://src/Editors/Diez/TrackedSongLoop.tscn" id="2_x7c4j"]
+[ext_resource type="PackedScene" uid="uid://cxbm1jxc213li" path="res://src/Editors/Diez/TrackedSongProperties.tscn" id="3_lt6mc"]
+
+[node name="DiezEditor" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x7c4j")
+_selectedLoopScene = ExtResource("2_x7c4j")
+
+[node name="LayoutContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PanelContainer1" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TrackedSongProperties" parent="LayoutContainer/PanelContainer1" instance=ExtResource("3_lt6mc")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TrackedSongLoops" parent="LayoutContainer/PanelContainer2" instance=ExtResource("1_vawx0")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TrackedSongLoopContainer" type="MarginContainer" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3

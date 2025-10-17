@@ -1,0 +1,81 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8uwqmg4p3g2t"]
+
+[ext_resource type="Script" uid="uid://co8bx1j2htoeg" path="res://src/Editors/Properties/EditorPropertyVector3.cs" id="1_qk0v1"]
+
+[node name="EditorPropertyVector3" type="HBoxContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_qk0v1")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "<Vector3>"
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="XContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/XContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/XContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9607843, 0.2, 0.32156864, 1)
+text = "X"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxX" type="SpinBox" parent="Layout/XContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1
+
+[node name="YContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/YContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/YContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5294118, 0.8392157, 0.007843138, 1)
+text = "Y"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxY" type="SpinBox" parent="Layout/YContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1
+
+[node name="ZContainer" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Layout/ZContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/ZContainer/PanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.16078432, 0.54901963, 0.9607843, 1)
+text = "Z"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="SpinBoxZ" type="SpinBox" parent="Layout/ZContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.001
+alignment = 1

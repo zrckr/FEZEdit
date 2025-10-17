@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://bo60r51psf8eo"]
+
+[ext_resource type="Script" uid="uid://k124c81ybc78" path="res://src/Editors/EmptyEditor.cs" id="1_5dtrb"]
+
+[node name="UnsupportedEditor" type="MarginContainer"]
+offset_right = 1.0
+offset_bottom = 23.0
+script = ExtResource("1_5dtrb")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer"]
+layout_mode = 2
+text = "Unsupported"

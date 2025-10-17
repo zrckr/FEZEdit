@@ -1,0 +1,104 @@
+[gd_scene load_steps=4 format=3 uid="uid://sl7nynvsmo3e"]
+
+[ext_resource type="Texture2D" uid="uid://bipirl5kd6hdo" path="res://assets/Icon.png" id="1_o4aj8"]
+[ext_resource type="Theme" uid="uid://bvigxeq8g32pu" path="res://assets/themes/DarkTheme.tres" id="1_rvt10"]
+[ext_resource type="Script" uid="uid://bvnm5rigcc4r8" path="res://src/Main/AboutDialog.cs" id="2_y8gj8"]
+
+[node name="AboutDialog" type="AcceptDialog"]
+oversampling_override = 1.0
+title = "About FEZEdit"
+position = Vector2i(0, 36)
+size = Vector2i(640, 480)
+unresizable = true
+popup_window = true
+force_native = true
+theme = ExtResource("1_rvt10")
+script = ExtResource("2_y8gj8")
+_programLicense = "res://licenses/FEZEdit.txt"
+_godotLicense = "res://licenses/Godot.txt"
+_serilogLicense = "res://licenses/Serilog.txt"
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -41.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="LayoutContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="HeaderContainer" type="MarginContainer" parent="MarginContainer/LayoutContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="LayoutContainer" type="HBoxContainer" parent="MarginContainer/LayoutContainer/HeaderContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ProgramLogo" type="TextureRect" parent="MarginContainer/LayoutContainer/HeaderContainer/LayoutContainer"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+texture = ExtResource("1_o4aj8")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="CenterContainer" type="CenterContainer" parent="MarginContainer/LayoutContainer/HeaderContainer/LayoutContainer"]
+layout_mode = 2
+
+[node name="LayoutContainer" type="VBoxContainer" parent="MarginContainer/LayoutContainer/HeaderContainer/LayoutContainer/CenterContainer"]
+layout_mode = 2
+
+[node name="VersionLabel" type="Label" parent="MarginContainer/LayoutContainer/HeaderContainer/LayoutContainer/CenterContainer/LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Program Version"
+
+[node name="DevelopedByLabel" type="RichTextLabel" parent="MarginContainer/LayoutContainer/HeaderContainer/LayoutContainer/CenterContainer/LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+text = "Developed by [url=https://github.com/zrckr]zerocker[url]"
+fit_content = true
+autowrap_mode = 0
+
+[node name="PoweredByLabel" type="RichTextLabel" parent="MarginContainer/LayoutContainer/HeaderContainer/LayoutContainer/CenterContainer/LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+text = "Powered by [url=https://github.com/FEZModding/FEZRepacker]Krzyhau's FEZRepacker[/url]"
+fit_content = true
+autowrap_mode = 0
+
+[node name="BodyContainer" type="PanelContainer" parent="MarginContainer/LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SplitContainer" type="HSplitContainer" parent="MarginContainer/LayoutContainer/BodyContainer"]
+layout_mode = 2
+
+[node name="GroupsTree" type="Tree" parent="MarginContainer/LayoutContainer/BodyContainer/SplitContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+theme_override_constants/draw_relationship_lines = 0
+hide_root = true
+
+[node name="LicenseContainer" type="VBoxContainer" parent="MarginContainer/LayoutContainer/BodyContainer/SplitContainer"]
+layout_mode = 2
+
+[node name="LicenseText" type="TextEdit" parent="MarginContainer/LayoutContainer/BodyContainer/SplitContainer/LicenseContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+editable = false
+wrap_mode = 1

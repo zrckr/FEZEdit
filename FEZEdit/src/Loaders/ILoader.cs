@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using FEZEdit.Core;
-using FEZEdit.Interface;
+using FEZEdit.Main;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
-using FEZRepacker.Core.Definitions.Game.XNA;
 using Godot;
 using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;

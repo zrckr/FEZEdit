@@ -1,0 +1,74 @@
+[gd_scene load_steps=6 format=3 uid="uid://rduycm2aapiw"]
+
+[ext_resource type="Script" uid="uid://bbcmobcx7aida" path="res://src/Editors/Diez/TrackedSongLoops.cs" id="1_fermi"]
+[ext_resource type="Texture2D" uid="uid://cpfjqoqksn6mf" path="res://assets/icons/ArrowUp.png" id="1_x6a3a"]
+[ext_resource type="Texture2D" uid="uid://bdx8ajhlrv60t" path="res://assets/icons/ArrowDown.png" id="2_fermi"]
+[ext_resource type="Texture2D" uid="uid://cg332lrrmho5f" path="res://assets/icons/Add.png" id="3_vjy1k"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="4_oc60n"]
+
+[node name="TrackedSongLoops" type="VBoxContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+script = ExtResource("1_fermi")
+
+[node name="HeaderContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="HeaderContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Overlay Loops"
+horizontal_alignment = 1
+
+[node name="ActionsContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="ActionsContainer"]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="ActionsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="UpButton" type="Button" parent="ActionsContainer/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Up"
+icon = ExtResource("1_x6a3a")
+
+[node name="DownButton" type="Button" parent="ActionsContainer/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Down"
+icon = ExtResource("2_fermi")
+
+[node name="AddButton" type="Button" parent="ActionsContainer/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add"
+icon = ExtResource("3_vjy1k")
+
+[node name="RemoveButton" type="Button" parent="ActionsContainer/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Remove"
+icon = ExtResource("4_oc60n")
+
+[node name="TreeContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="LoopsTree" type="Tree" parent="TreeContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+hide_root = true
+scroll_horizontal_enabled = false
