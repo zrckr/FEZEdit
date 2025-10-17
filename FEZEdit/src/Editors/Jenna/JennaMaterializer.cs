@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FEZEdit.Core;
 using FEZEdit.Extensions;
 using FEZRepacker.Core.Definitions.Game.Common;
 using FEZRepacker.Core.Definitions.Game.MapTree;
@@ -10,8 +11,6 @@ namespace FEZEdit.Editors.Jenna;
 
 public partial class JennaMaterializer : Node3D
 {
-    private static readonly Vector3 XzMask = Vector3.One - Vector3.Up;
-
     private readonly Dictionary<MapNode, JennaNode> _jennaNodes = new();
     
     private MapTree _currentMapTree;
@@ -166,7 +165,7 @@ public partial class JennaMaterializer : Node3D
                 if (multiBranchCounts[item] > 1)
                 {
                     vector2 = ((multiBranchIds[item] - 1) - ((multiBranchCounts[item] - 1) / 2f)) *
-                              (XzMask - item.Face.AsVector().Abs()) * num4;
+                              (Mathz.XzMask - item.Face.AsVector().Abs()) * num4;
                 }
 
                 var childOffset = offset + (faceVector * sizeFactor) + vector2;
