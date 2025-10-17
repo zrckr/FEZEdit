@@ -12,10 +12,8 @@ namespace FEZEdit.Editors.Level;
 
 using Level = FEZRepacker.Core.Definitions.Game.Level.Level;
 
-public partial class LevelMaterializer : Materializer<Level>
+public partial class LevelMaterializer : Node3D
 {
-    private const float PixelSize = 1f / 16f;
-
     private const string BackgroundPlaneShader = "res://src/Shaders/BackgroundPlane.gdshader";
 
     private static readonly Orthogonal[] RotationIndices =
@@ -26,7 +24,7 @@ public partial class LevelMaterializer : Materializer<Level>
         Orthogonal.RightUp
     ];
 
-    public override void CreateNodesFrom(Level level)
+    public void Initialize(Level level)
     {
         Name = level.Name;
         MaterializeTriles(level);
@@ -149,7 +147,7 @@ public partial class LevelMaterializer : Materializer<Level>
             }
 
             backgroundPlanes.AddChild(child);
-            child.PixelSize = PixelSize;
+            child.PixelSize = Mathz.PixelSize;
             child.Billboard = plane.Billboard
                 ? BaseMaterial3D.BillboardModeEnum.FixedY
                 : BaseMaterial3D.BillboardModeEnum.Disabled;
@@ -187,7 +185,7 @@ public partial class LevelMaterializer : Materializer<Level>
             {
                 Name = $"{key}_{instance.Name}",
                 SpriteFrames = spriteFrames[instance.Name],
-                PixelSize = PixelSize,
+                PixelSize = Mathz.PixelSize,
                 Billboard = BaseMaterial3D.BillboardModeEnum.FixedY,
                 Shaded = true,
                 DoubleSided = true,

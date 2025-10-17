@@ -5,9 +5,9 @@ using Godot;
 
 namespace FEZEdit.Editors.Trixel;
 
-public partial class ArtObjectMaterializer : Materializer<ArtObject>
+public partial class ArtObjectMaterializer : Node3D
 {
-    public override void CreateNodesFrom(ArtObject artObject)
+    public void Initialize(ArtObject artObject)
     {
         var material = artObject.Cubemap.ToGodotMaterial();
         var mesh = artObject.Geometry.ToGodotMesh(material);

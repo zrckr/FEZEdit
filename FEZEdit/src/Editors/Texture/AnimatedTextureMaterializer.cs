@@ -5,20 +5,18 @@ using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTextu
 
 namespace FEZEdit.Editors.Texture;
 
-public partial class AnimatedTextureMaterializer: Materializer<AnimatedTexture>
+public partial class AnimatedTextureMaterializer : Node3D
 {
-    private const float PixelSize = 1f / 16f;
-    
     private const string DefaultAnimation = "default";
 
-    public override void CreateNodesFrom(AnimatedTexture animatedTexture)
+    public void Initialize(AnimatedTexture animatedTexture)
     {
         var animatedSprite = new AnimatedSprite3D
         {
             Animation = DefaultAnimation,
             Autoplay = DefaultAnimation,
             SpriteFrames = animatedTexture.ToSpriteFrames(),
-            PixelSize = PixelSize,
+            PixelSize = Mathz.PixelSize,
             Shaded = true,
             AlphaCut = SpriteBase3D.AlphaCutMode.Discard,
             TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest

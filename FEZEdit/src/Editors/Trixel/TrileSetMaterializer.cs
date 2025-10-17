@@ -5,7 +5,7 @@ using Godot;
 
 namespace FEZEdit.Editors.Trixel;
 
-public partial class TrileSetMaterializer : Materializer<TrileSet>
+public partial class TrileSetMaterializer : Node3D
 {
     private const float NewLineStep = 15;
 
@@ -13,7 +13,7 @@ public partial class TrileSetMaterializer : Materializer<TrileSet>
 
     private const float StepOffsetZ = -2f;
 
-    public override void CreateNodesFrom(TrileSet trileSet)
+    public void Initialize(TrileSet trileSet)
     {
         Name = trileSet.Name;
         var material = trileSet.TextureAtlas.ToGodotMaterial();
