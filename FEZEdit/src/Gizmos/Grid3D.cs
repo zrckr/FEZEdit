@@ -1,7 +1,7 @@
 ﻿using Godot;
 using Godot.Collections;
 
-namespace FEZEdit.Scene;
+namespace FEZEdit.Gizmos;
 
 public partial class Grid3D : Node3D
 {

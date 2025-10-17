@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using FEZEdit.Core;
 using FEZEdit.Extensions;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using Godot;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Editors.Trixel;
 
 public partial class TrileSetMaterializer : Materializer<TrileSet>
 {

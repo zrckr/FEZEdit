@@ -2,7 +2,7 @@
 using FEZEdit.Loaders;
 using Godot;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Core;
 
 public abstract partial class Materializer<T> : Node3D
 {

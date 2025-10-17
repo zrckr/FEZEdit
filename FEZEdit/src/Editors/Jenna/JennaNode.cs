@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Extensions;
 using FEZEdit.Loaders;
-using FEZEdit.Materializers;
+using FEZEdit.Core;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;

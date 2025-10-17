@@ -1,8 +1,9 @@
-﻿using FEZEdit.Extensions;
+﻿using FEZEdit.Core;
+using FEZEdit.Extensions;
 using Godot;
 using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Editors.Texture;
 
 public partial class AnimatedTextureMaterializer: Materializer<AnimatedTexture>
 {

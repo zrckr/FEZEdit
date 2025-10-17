@@ -1,8 +1,9 @@
-﻿using FEZEdit.Extensions;
+﻿using FEZEdit.Core;
+using FEZEdit.Extensions;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
 using Godot;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Editors.Trixel;
 
 public partial class ArtObjectMaterializer : Materializer<ArtObject>
 {

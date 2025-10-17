@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Core;
 
 public partial class MaterializerProxy : StaticBody3D
 {

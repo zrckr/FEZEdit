@@ -4,7 +4,7 @@ using Godot;
 using System.Collections.Generic;
 using static Godot.RenderingServer;
 
-namespace FEZEdit.Scene;
+namespace FEZEdit.Gizmos;
 
 /// <summary>
 /// Gizmo3D encapsulates the Godot Engines 3D move/scale/rotation gizmos into a customizable node for use at runtime.

@@ -7,7 +7,9 @@ using FEZRepacker.Core.Definitions.Game.Level;
 using Godot;
 using Mesh = Godot.Mesh;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Editors.Level;
+
+using Level = FEZRepacker.Core.Definitions.Game.Level.Level;
 
 public partial class LevelMaterializer : Materializer<Level>
 {

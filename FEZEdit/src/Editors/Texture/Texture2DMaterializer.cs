@@ -1,8 +1,9 @@
-﻿using FEZEdit.Extensions;
+﻿using FEZEdit.Core;
+using FEZEdit.Extensions;
 using Godot;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
-namespace FEZEdit.Materializers;
+namespace FEZEdit.Editors.Texture;
 
 public partial class Texture2DMaterializer: Materializer<Texture2D>
 {

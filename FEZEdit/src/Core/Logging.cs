@@ -1,18 +1,13 @@
 ﻿using Godot;
-using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Formatting;
 using Serilog.Formatting.Display;
-using Serilog.Parsing;
 using System;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using FEZEdit.Core;
 
-namespace FEZEdit.Core;
+// ReSharper disable once CheckNamespace
+namespace Serilog;
 
 public class GodotSink(string outputTemplate, IFormatProvider formatProvider) : ILogEventSink
 {
@@ -66,4 +61,20 @@ public static class GodotSinkExtensions
     {
         return configuration.Sink(new GodotSink(outputTemplate, formatProvider));
     }
+}
+
+public static class LoggerFactory
+{
+    private static readonly ILogger BaseLogger;
+
+    static LoggerFactory()
+    {
+        BaseLogger = new LoggerConfiguration()
+            .WriteTo.Godot()
+            .CreateLogger();
+    }
+
+    public static ILogger Create<T>() => BaseLogger.ForContext<T>();
+
+    public static ILogger Create(string context) => BaseLogger.ForContext("SourceContext", context);
 }

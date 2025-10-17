@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FEZEdit.Core;
 using Godot;
 using Vector3 = Godot.Vector3;
 using static Godot.RenderingServer;
 
-namespace FEZEdit.Core;
+namespace FEZEdit.Editors.Level;
 
 [Tool]
 public partial class TrileMap : Node3D
