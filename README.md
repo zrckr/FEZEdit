@@ -2,7 +2,20 @@
 
 ## Modding tool for FEZ
 
-![UI](Documentation/Screenshots/Levels.png)
+<table>
+  <tr>
+    <td><img src="./Documentation/Screenshots/ArtObjects.png" alt="ArtObjects" width="450"/></td>
+    <td><img src="./Documentation/Screenshots/TrileSets.png" alt="TrileSets" width="450"/></td>
+    <td><img src="./Documentation/Screenshots/Levels.png" alt="Levels" width="450"/></td>
+  </tr>
+  <tr>
+    <td><img src="./Documentation/Screenshots/WorldMap.png" alt="WorldMap" width="450"/></td>
+    <td><img src="./Documentation/Screenshots/BackgroundPlanes.png" alt="BackgroundPlanes" width="450"/></td>
+    <td><img src="./Documentation/Screenshots/CharacterAnimations.png" alt="CharacterAnimations" width="450"/></td>
+  </tr>
+</table>
+
+See the [Screenshots](./Documentation/Screenshots) for more images.
 
 ## Overview
 
@@ -43,17 +56,14 @@ It's still a work in progress so there are some pages missing.
 * Converting assets from XNB and back
 * Extracting assets from PAK and repacking them
 
-### Asset Viewing
+### Asset Editing
 
-* Art Objects
-* Background Planes (static and animated)
-* Character Animations
-* Levels
-* Various other textures
-* Skies (textures only)
-* Trile Sets
+* World Map
+* Tracked Songs
+* Static text (localization files)
 
 ## Special thanks to
 
 * [Godot contributors](https://github.com/godotengine/godot) for saving hours of headaches when creating a GUI with 3D support.
 * [Krzyhau's FEZRepacker](https://github.com/FEZModding/FEZRepacker) for taking on the heavy lifting of reading and converting assets.
+* [Jenna1337's FEZTools](https://github.com/Jenna1337/FezTools) for making a custom world map possible.
