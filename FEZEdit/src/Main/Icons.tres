@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=28 format=3 uid="uid://7jom0xw582pl"]
+[gd_resource type="Resource" load_steps=29 format=3 uid="uid://7jom0xw582pl"]
 
 [ext_resource type="Texture2D" uid="uid://bipirl5kd6hdo" path="res://assets/Icon.png" id="1_2teyg"]
 [ext_resource type="Texture2D" uid="uid://cuu5h2fpsxcbf" path="res://assets/icons/AnimatedTexture.png" id="1_cwo3y"]
@@ -26,6 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://cxms0uh5anb4o" path="res://assets/icons/ExternalLink.png" id="16_62kyr"]
 [ext_resource type="Texture2D" uid="uid://bf7hiedp82wro" path="res://assets/icons/StatusWarning.png" id="16_qd8q0"]
 [ext_resource type="Texture2D" uid="uid://cpyhcrs262ubg" path="res://assets/icons/Theme.png" id="20_0x2de"]
+[ext_resource type="Texture2D" uid="uid://ciqmmeihw4uvm" path="res://assets/icons/Save.png" id="21_8vqrb"]
 [ext_resource type="Script" uid="uid://b57scmsaxptka" path="res://src/Main/IconsResource.cs" id="23_1q82d"]
 
 [resource]
@@ -53,6 +54,7 @@ AnimatedTextureFile = ExtResource("1_cwo3y")
 LevelFile = ExtResource("8_j4ijc")
 MapFile = ExtResource("9_h68jq")
 SkyFile = ExtResource("11_qd8q0")
+SaveFile = ExtResource("21_8vqrb")
 CloseFile = ExtResource("7_ogqk7")
 ActionAdd = ExtResource("2_lb8rq")
 ActionRemove = ExtResource("3_tpjc1")

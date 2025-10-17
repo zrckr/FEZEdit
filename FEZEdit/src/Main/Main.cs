@@ -6,6 +6,7 @@ using System.Threading;
 using FEZEdit.Content;
 using FEZEdit.Core;
 using FEZEdit.Editors;
+using FEZEdit.Editors.Sally;
 using FEZEdit.Extensions;
 using FEZEdit.Singletons;
 using Godot;
@@ -47,6 +48,7 @@ public partial class Main : Control
         _mainMenu.WorkingTargetClosed += CloseProvider;
         _mainMenu.WorkingFilePathRequested += RequestFilePath;
         _mainMenu.WorkingFileSaved += SaveFile;
+        _mainMenu.SaveSlotOpened += OpenSaveEditor;
         _mainMenu.ThemeSelected += ChangeTheme;
         _mainMenu.UndoRedoRequested += () => _currentEditor?.UndoRedo;
 
@@ -356,6 +358,45 @@ public partial class Main : Control
                 }
 
                 RefreshFileBrowser();
+            }).CallDeferred();
+        }).Start();
+    }
+
+    private void OpenSaveEditor(FileInfo file)
+    {
+        new Thread(() =>
+        {
+            Callable.From(() =>
+            {
+                if (!file.Exists)
+                {
+                    EventBus.Error("File not found: {0}", file.FullName);
+                    Logger.Error("File not found '{0}'", file.FullName);
+                    return;
+                }
+                
+                try
+                {
+                    var path = file.FullName;
+                    if (_openEditors.ContainsKey(path))
+                    {
+                        SwitchToEditor(path);
+                        return;
+                    }
+                    
+                    var editor = _editors.SaveSlotEditor;
+                    editor.Value = ContentLoader.LoadSaveSlot(path);
+                    editor.ValueChanged += OnEditorValueChanged;
+                    _openEditors[path] = editor;
+                    SwitchToEditor(path);
+                    _fileBrowser.ShowOpenFile(path, _icons.SaveFile);
+                }
+                catch (Exception exception)
+                {
+                    AttachEditor(_editors.EmptyEditor);
+                    EventBus.Error(exception, "Failed to open save slot: {0}", file);
+                    Logger.Error(exception, "Failed to open save slot '{0}'", file);
+                }
             }).CallDeferred();
         }).Start();
     }

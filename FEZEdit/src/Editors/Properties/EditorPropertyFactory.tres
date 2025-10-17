@@ -21,6 +21,7 @@
 [resource]
 script = ExtResource("1_to8os")
 _editorProperties = Dictionary[String, PackedScene]({
+"FEZRepacker.Core.Definitions.Game.Level.TrileEmplacement": ExtResource("15_a8m1v"),
 "FEZRepacker.Core.Definitions.Game.XNA.Color": ExtResource("1_2oumw"),
 "FEZRepacker.Core.Definitions.Game.XNA.Quaternion": ExtResource("2_7pyia"),
 "FEZRepacker.Core.Definitions.Game.XNA.Rectangle": ExtResource("15_uwams"),
@@ -34,8 +35,7 @@ _editorProperties = Dictionary[String, PackedScene]({
 "System.Int32": ExtResource("11_f1pt5"),
 "System.Single": ExtResource("12_2llrk"),
 "System.String": ExtResource("13_hapks"),
-"System.TimeSpan": ExtResource("14_1rvkk"),
-"FEZRepacker.Core.Definitions.Game.Level.TrileEmplacement": ExtResource("15_a8m1v")
+"System.TimeSpan": ExtResource("14_1rvkk")
 })
 _defaultEditorProperty = ExtResource("13_hapks")
 _enumEditorProperty = ExtResource("10_prfnp")

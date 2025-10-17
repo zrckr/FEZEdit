@@ -48,6 +48,11 @@ public static class ContentLoader
 
     public static string GetFullPath(string path)
     {
+        if (Path.IsPathRooted(path))
+        {
+            return path;
+        }
+        
         if (ContentProvider == null)
         {
             Logger.Error("Failed to get full file path: {0}", path);
@@ -145,6 +150,20 @@ public static class ContentLoader
         {
             EventBus.Error("Failed to load sound file: {0}", path);
             Logger.Error(exception, "Failed to load sound file '{0}'", path);
+            return null;
+        }
+    }
+
+    public static SaveData LoadSaveSlot(string path)
+    {
+        try
+        {
+            return SaveDataProvider.Read(path);
+        }
+        catch (Exception exception)
+        {
+            EventBus.Error("Failed to load save slot: {0}", path);
+            Logger.Error(exception, "Failed to load save slot file '{0}'", path);
             return null;
         }
     }

@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://be2a22lw1wd1a"]
+
+[ext_resource type="Script" uid="uid://iw0ao755ihex" path="res://src/Editors/Sally/SallyEditor.cs" id="1_nj4xs"]
+[ext_resource type="PackedScene" uid="uid://lols3ow684lt" path="res://src/Editors/Sally/SaveDataProperties.tscn" id="2_ekyxt"]
+[ext_resource type="PackedScene" uid="uid://b32a74x156tgy" path="res://src/Editors/Sally/LevelSaveDataProperties.tscn" id="11_dr4ld"]
+[ext_resource type="PackedScene" uid="uid://u8rrlplo0w1y" path="res://src/Editors/Sally/LevelSaveDataList.tscn" id="11_gb8u2"]
+
+[node name="SallyEditor" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nj4xs")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PanelContainer1" type="PanelContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveDataProperties" parent="HBoxContainer/PanelContainer1" instance=ExtResource("2_ekyxt")]
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LevelSaveDataList" parent="HBoxContainer/PanelContainer2" instance=ExtResource("11_gb8u2")]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LevelSaveDataProperties" parent="HBoxContainer/MarginContainer" instance=ExtResource("11_dr4ld")]
+layout_mode = 2

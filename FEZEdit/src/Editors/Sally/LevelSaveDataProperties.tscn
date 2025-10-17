@@ -1,0 +1,105 @@
+[gd_scene load_steps=6 format=3 uid="uid://b32a74x156tgy"]
+
+[ext_resource type="PackedScene" uid="uid://uc0knt4edolu" path="res://src/Editors/Properties/EditorPropertyList.tscn" id="1_kcuyg"]
+[ext_resource type="PackedScene" uid="uid://c43l67tu41dc2" path="res://src/Editors/Properties/EditorPropertyDictionary.tscn" id="2_pb080"]
+[ext_resource type="PackedScene" uid="uid://c6cyhrrrjspnc" path="res://src/Editors/Properties/EditorPropertyBoolean.tscn" id="3_i5fo1"]
+[ext_resource type="PackedScene" uid="uid://ypig16ts7eib" path="res://src/Editors/Properties/EditorPropertyFloat.tscn" id="4_3dpi6"]
+[ext_resource type="PackedScene" uid="uid://txwiwt6grvvx" path="res://src/Editors/Properties/EditorPropertyInteger.tscn" id="5_upvtu"]
+
+[node name="LevelSaveDataProperties" type="VBoxContainer"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 327.0
+grow_vertical = 2
+
+[node name="HeaderContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="HeaderContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HeaderContainer"]
+layout_mode = 2
+text = "Level Save Data Properties"
+horizontal_alignment = 1
+
+[node name="PropertiesContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PropertiesContainer"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="LayoutContainer" type="VBoxContainer" parent="PropertiesContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DestroyedTriles" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="InactiveTriles" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="InactiveArtObjects" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="InactiveEvents" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="InactiveGroups" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="InactiveVolumes" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="InactiveNPCs" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="PivotRotations" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("2_pb080")]
+layout_mode = 2
+
+[node name="LastStableLiquidHeight" type="VBoxContainer" parent="PropertiesContainer/ScrollContainer/LayoutContainer"]
+layout_mode = 2
+
+[node name="HasValue" parent="PropertiesContainer/ScrollContainer/LayoutContainer/LastStableLiquidHeight" instance=ExtResource("3_i5fo1")]
+layout_mode = 2
+
+[node name="Value" parent="PropertiesContainer/ScrollContainer/LayoutContainer/LastStableLiquidHeight" instance=ExtResource("4_3dpi6")]
+layout_mode = 2
+
+[node name="FirstVisit" parent="PropertiesContainer/ScrollContainer/LayoutContainer" instance=ExtResource("3_i5fo1")]
+layout_mode = 2
+
+[node name="FilledConditions" type="FoldableContainer" parent="PropertiesContainer/ScrollContainer/LayoutContainer"]
+layout_mode = 2
+folded = true
+title = "FilledConditions"
+
+[node name="Properties" type="VBoxContainer" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions"]
+visible = false
+layout_mode = 2
+
+[node name="ChestCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
+
+[node name="LockedDoorCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
+
+[node name="UnlockedDoorCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
+
+[node name="ScriptIds" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("1_kcuyg")]
+layout_mode = 2
+
+[node name="CubeShardCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
+
+[node name="OtherCollectibleCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
+
+[node name="SplitUpCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
+
+[node name="SecretCount" parent="PropertiesContainer/ScrollContainer/LayoutContainer/FilledConditions/Properties" instance=ExtResource("5_upvtu")]
+layout_mode = 2
