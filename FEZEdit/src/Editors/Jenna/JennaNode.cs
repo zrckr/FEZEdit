@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using FEZEdit.Extensions;
-using FEZEdit.Core;
 using FEZEdit.Singletons;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
@@ -84,7 +83,7 @@ public partial class JennaNode : MeshInstance3D
                 Frame = i,
                 Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
                 DoubleSided = false,
-                Texture = ResourceLoader.Load<Godot.Texture2D>(MapIconsTexture),
+                Texture = ResourceLoader.Load<Texture2D>(MapIconsTexture),
                 TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest,
                 Visible = false
             };
