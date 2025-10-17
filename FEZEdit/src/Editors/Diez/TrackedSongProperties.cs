@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using FEZEdit.Loaders;
+using FEZEdit.Singletons;
 using FEZRepacker.Core.Definitions.Game.TrackedSong;
 using Godot;
 
@@ -10,8 +10,6 @@ namespace FEZEdit.Editors.Diez;
 public partial class TrackedSongProperties : Control
 {
     public TrackedSong TrackedSong { get; set; }
-
-    public ILoader Loader { get; set; }
 
     public bool Disabled
     {
@@ -131,7 +129,7 @@ public partial class TrackedSongProperties : Control
     {
         var index = _assembleChord.GetSelected();
         var chordPath = _assembleChord.GetItemMetadata(index).AsString();
-        _assembleChordPlayer.Stream = Loader.LoadSound(chordPath);
+        _assembleChordPlayer.Stream = ContentLoader.LoadSound(chordPath);
         _assembleChordPlayer.Play();
         _assembleChordPreview.Disabled = true;
     }

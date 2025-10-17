@@ -93,7 +93,7 @@ public partial class JennaEditor : Editor
         _materializer = new JennaMaterializer();
         _camera.AddSibling(_materializer, true);
         
-        _materializer.Initialize(_mapTree, Loader);
+        _materializer.Initialize(_mapTree);
         _camera.SetTarget(_materializer, false);
     }
 

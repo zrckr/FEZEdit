@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
+using FEZEdit.Singletons;
 using FEZRepacker.Core.Definitions.Game.Level;
 using Godot;
 using Mesh = Godot.Mesh;
@@ -36,7 +37,7 @@ public partial class LevelMaterializer : Materializer<Level>
 
     private void MaterializeTriles(Level level)
     {
-        var trileSet = Loader.LoadTrileSet(level.TrileSetName);
+        var trileSet = ContentLoader.LoadTrileSet(level.TrileSetName);
         var meshLibrary = new MeshLibrary { ResourceName = level.TrileSetName };
         var material = trileSet.TextureAtlas.ToGodotMaterial();
 
@@ -72,7 +73,7 @@ public partial class LevelMaterializer : Materializer<Level>
         var meshes = new Dictionary<string, Mesh>();
         foreach (var name in levelArtObjects)
         {
-            var artObject = Loader.LoadArtObject(name);
+            var artObject = ContentLoader.LoadArtObject(name);
             var material = artObject.Cubemap.ToGodotMaterial();
             var mesh = artObject.Geometry.ToGodotMesh(material);
             meshes.Add(name, mesh);
@@ -105,12 +106,12 @@ public partial class LevelMaterializer : Materializer<Level>
         {
             try
             {
-                var animatedTexture = Loader.LoadAnimatedBackgroundPlane(name);
+                var animatedTexture = ContentLoader.LoadBackgroundPlaneAnimated(name);
                 spriteFrames.Add(name, animatedTexture.ToSpriteFrames());
             }
             catch (Exception)
             {
-                var texture2D = Loader.LoadBackgroundPlane(name);
+                var texture2D = ContentLoader.LoadBackgroundPlane(name);
                 imageTextures.Add(name, texture2D.ToImageTexture());
             }
         }
@@ -175,7 +176,7 @@ public partial class LevelMaterializer : Materializer<Level>
         var spriteFrames = new Dictionary<string, SpriteFrames>();
         foreach (var name in levelCharacters)
         {
-            var animations = Loader.LoadCharacterAnimations(name);
+            var animations = ContentLoader.LoadCharacterAnimations(name);
             spriteFrames.Add(name, animations.ToSpriteFrames());
         }
 

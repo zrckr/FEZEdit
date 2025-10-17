@@ -48,7 +48,6 @@ public partial class DiezEditor: Editor
     {
         _songProperties = GetNode<TrackedSongProperties>("%TrackedSongProperties");
         _songProperties.TrackedSong = _trackedSong;
-        _songProperties.Loader = Loader;
         _songProperties.Initialize();
     }
 

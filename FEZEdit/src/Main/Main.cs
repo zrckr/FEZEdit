@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using FEZEdit.Content;
 using FEZEdit.Core;
 using FEZEdit.Editors;
 using FEZEdit.Extensions;
-using FEZEdit.Loaders;
+using FEZEdit.Singletons;
 using Godot;
 using Serilog;
 
@@ -14,7 +15,7 @@ namespace FEZEdit.Main;
 
 public partial class Main : Control
 {
-    private static readonly ILogger Logger = LoggerFactory.Create<PakLoader>();
+    private static readonly ILogger Logger = LoggerFactory.Create<Main>();
 
     [Export] private IconsResource _icons;
 
@@ -26,8 +27,6 @@ public partial class Main : Control
 
     private Editor _currentEditor;
 
-    private ILoader _loader;
-
     private bool _disabled;
 
     private string _currentFilePath;
@@ -38,14 +37,14 @@ public partial class Main : Control
 
     public override void _EnterTree()
     {
-        GetWindow().FocusEntered += RefreshFileBrowser;
+        // GetWindow().FocusEntered += RefreshFileBrowser;
     }
 
     public override void _Ready()
     {
         _mainMenu = GetNode<MainMenu>("%MainMenu");
         _mainMenu.WorkingTargetOpened += LoadFilesFromLoader;
-        _mainMenu.WorkingTargetClosed += CloseLoader;
+        _mainMenu.WorkingTargetClosed += CloseProvider;
         _mainMenu.WorkingFilePathRequested += RequestFilePath;
         _mainMenu.WorkingFileSaved += SaveFile;
         _mainMenu.ThemeSelected += ChangeTheme;
@@ -83,18 +82,23 @@ public partial class Main : Control
         {
             try
             {
-                ILoader loader;
+                CloseProvider();
+                IContentProvider contentProvider;
                 switch (workingTarget)
                 {
                     case FileInfo fileInfo:
                         Settings.CurrentFolder = fileInfo.DirectoryName;
-                        loader = PakLoader.Open(workingTarget);
+                        contentProvider = new PakProvider(workingTarget);
+                        ContentLoader.ContentProvider = contentProvider;
+                        ContentSaver.ContentProvider = contentProvider;
                         _disabled = true;
                         break;
 
                     case DirectoryInfo:
                         Settings.CurrentFolder = workingTarget.FullName;
-                        loader = FolderLoader.Open(workingTarget);
+                        contentProvider = new FolderProvider(workingTarget);
+                        ContentLoader.ContentProvider = contentProvider;
+                        ContentSaver.ContentProvider = contentProvider;
                         _disabled = false;
                         break;
 
@@ -102,12 +106,10 @@ public partial class Main : Control
                         throw new ArgumentOutOfRangeException(nameof(workingTarget));
                 }
 
-                CloseLoader();
                 Callable.From(() =>
                 {
-                    _loader = loader;
-                    PopulateFileBrowser(loader);
-                    EventBus.Success("Loaded: {0}", loader.Root);
+                    PopulateFileBrowser();
+                    EventBus.Success("Loaded: {0}", ContentLoader.Root);
                 }).CallDeferred();
             }
             catch (Exception exception)
@@ -120,51 +122,37 @@ public partial class Main : Control
 
     private void RefreshFileBrowser()
     {
-        if (_loader == null)
-        {
-            return;
-        }
-
         new Thread(() =>
         {
-            try
+            Callable.From(() =>
             {
-                Callable.From(() =>
-                {
-                    _loader.RefreshFiles();
-                    PopulateFileBrowser(_loader);
-                }).CallDeferred();
-            }
-            catch (Exception exception)
-            {
-                EventBus.Error("Failed to refresh: {0}", _loader.Root);
-                Logger.Error(exception, "Failed to refresh '{0}'", _loader.Root);
-            }
+                ContentLoader.Refresh();
+                PopulateFileBrowser();
+            }).CallDeferred();
         }).Start();
     }
 
-    private void PopulateFileBrowser(ILoader loader)
+    private void PopulateFileBrowser()
     {
-        var count = loader.GetFiles().Count();
+        var count = ContentLoader.Files.Count();
         var progress = new ProgressValue(0, 0, count, 1);
         EventBus.Progress(progress);
 
         _fileBrowser.ClearFiles();
-        _fileBrowser.AddRoot(loader.Root);
-        foreach (var path in loader.GetFiles())
+        _fileBrowser.AddRoot(ContentLoader.Root);
+        foreach (var path in ContentLoader.Files)
         {
-            var extension = loader.GetFileExtension(path);
-            var icon = loader.GetIcon(path, _icons);
+            var extension = ContentLoader.GetExtension(path);
+            var icon = ContentLoader.GetIcon(path, _icons);
             _fileBrowser.AddFile(path + extension, icon);
             progress.Next();
             EventBus.Progress(progress);
         }
 
         _fileBrowser.RefreshFiles();
-        _fileBrowser.CanConvert = loader is FolderLoader;
     }
 
-    private void CloseLoader()
+    private void CloseProvider()
     {
         Callable.From(() =>
         {
@@ -178,21 +166,21 @@ public partial class Main : Control
                 editor.QueueFree();
             }
 
-            _openEditors.Clear();
-
-            _loader = null;
+            ContentLoader.ContentProvider = null;
+            ContentSaver.ContentProvider = null;
             _currentFilePath = null;
+            _openEditors.Clear();
             _fileBrowser.ClearFiles();
             AttachEditor(_editors.EmptyEditor);
         }).CallDeferred();
     }
 
-    private void RepackFileOrDirectories(string source, string targetDirectory, RepackingMode mode)
+    private void RepackFileOrDirectories(string source, string targetDirectory, ContentSaver.RepackingMode mode)
     {
         new Thread(() =>
         {
             Thread.CurrentThread.IsBackground = true;
-            _loader.RepackAsset(source, targetDirectory, mode);
+            ContentSaver.Repack(source, targetDirectory, mode);
         }).Start();
     }
 
@@ -204,8 +192,8 @@ public partial class Main : Control
             {
                 EventBus.Progress(ProgressValue.Single);
                 (file, string _) = file.SplitAtExtension();
-                var @object = _loader.LoadAsset(file);
-                var icon = _loader.GetIcon(file, _icons);
+                var @object = ContentLoader.Load<object>(file);
+                var icon = ContentLoader.GetIcon(file, _icons);
 
                 Callable.From(() =>
                 {
@@ -224,7 +212,6 @@ public partial class Main : Control
                             return;
                         }
 
-                        editor.Loader = _loader;
                         editor.Value = @object;
                         editor.ValueChanged += OnEditorValueChanged;
                         _openEditors[file] = editor;
@@ -277,7 +264,6 @@ public partial class Main : Control
         _editorContainer.AddChild(editor);
         _currentFilePath = filePath;
         _currentEditor = editor;
-        editor.Loader = _loader;
         editor.Disabled = _disabled;
     }
 
@@ -324,7 +310,7 @@ public partial class Main : Control
             _currentFilePath = null;
         }
     }
-    
+
     private void OnEditorValueChanged()
     {
         Callable.From(() =>
@@ -339,9 +325,10 @@ public partial class Main : Control
 
     private string RequestFilePath()
     {
-        return _loader != null
-            ? _loader.GetFilePath(_currentFilePath)
-            : System.Environment.CurrentDirectory;
+        var path = ContentLoader.GetFullPath(_currentFilePath);
+        return string.IsNullOrEmpty(path)
+            ? System.Environment.CurrentDirectory
+            : path;
     }
 
     private void SaveFile(string path)
@@ -353,13 +340,14 @@ public partial class Main : Control
 
         new Thread(() =>
         {
-            _loader.SaveAsset(_currentEditor.Value, path);
+            ContentSaver.Save(_currentEditor.Value, path);
             Callable.From(() =>
             {
                 if (!string.IsNullOrEmpty(_currentFilePath))
                 {
                     _fileBrowser.SetOpenFileAsEdited(_currentFilePath, false);
                 }
+
                 RefreshFileBrowser();
             }).CallDeferred();
         }).Start();

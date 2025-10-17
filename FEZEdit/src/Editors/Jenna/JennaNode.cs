@@ -2,11 +2,10 @@
 using System.IO;
 using System.Linq;
 using FEZEdit.Extensions;
-using FEZEdit.Loaders;
 using FEZEdit.Core;
+using FEZEdit.Singletons;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
-using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
 namespace FEZEdit.Editors.Jenna;
 
@@ -96,22 +95,23 @@ public partial class JennaNode : MeshInstance3D
         AddChild(_nodesNode);
     }
 
-    public static JennaNode Create(ILoader loader, MapNode node)
+    public static JennaNode Create(MapNode node)
     {
         var jennaNode = new JennaNode { Name = node.LevelName };
         var jennaSize = node.NodeType.GetSizeFactor();
 
         var mapNodeShader = ResourceLoader.Load<Shader>(MapNodeShader);
         jennaNode._mapNodeMaterial = new ShaderMaterial { Shader = mapNodeShader };
-        try
+        var mapNodeTexturePath = Path.Combine("map_screens", node.LevelName);
+        var mapNodeTexture = ContentLoader.LoadOtherTexture(mapNodeTexturePath);
+        if (mapNodeTexture != null)
         {
-            var mapNodeTexturePath = Path.Combine("other textures", "map_screens", node.LevelName.ToLower());
-            var mapNodeTexture = (Texture2D)loader.LoadAsset(mapNodeTexturePath);
-            jennaNode._mapNodeMaterial.SetShaderParameter("texture_albedo", mapNodeTexture.ToImageTexture());
+            var imageTexture = mapNodeTexture.ToImageTexture();
+            jennaNode._mapNodeMaterial.SetShaderParameter("texture_albedo", imageTexture);
         }
-        catch
+        else
         {
-            var missingTexture = ResourceLoader.Load<Godot.Texture2D>(MissingTexture);
+            var missingTexture = ResourceLoader.Load<Texture2D>(MissingTexture);
             jennaNode._mapNodeMaterial.SetShaderParameter("texture_albedo", missingTexture);
         }
         jennaNode._mapNodeMaterial.SetShaderParameter("texture_scale", 1f / jennaSize);

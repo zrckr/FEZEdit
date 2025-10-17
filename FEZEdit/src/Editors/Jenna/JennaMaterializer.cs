@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Extensions;
-using FEZEdit.Loaders;
 using FEZRepacker.Core.Definitions.Game.Common;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
@@ -14,8 +13,6 @@ public partial class JennaMaterializer : Node3D
     private static readonly Vector3 XzMask = Vector3.One - Vector3.Up;
 
     private readonly Dictionary<MapNode, JennaNode> _jennaNodes = new();
-
-    private ILoader _loader;
     
     private MapTree _currentMapTree;
 
@@ -24,9 +21,8 @@ public partial class JennaMaterializer : Node3D
         Name = nameof(JennaMaterializer);
     }
 
-    public void Initialize(MapTree mapTree, ILoader loader)
+    public void Initialize(MapTree mapTree)
     {
-        _loader = loader;
         _currentMapTree = mapTree;
         _jennaNodes.Clear();
         RebuildVisualTree(mapTree.Root);
@@ -91,7 +87,7 @@ public partial class JennaMaterializer : Node3D
         {
             (node, parentConnection, parentJennaNode, offset) = stack.Pop();
 
-            jennaNode = JennaNode.Create(_loader, node);
+            jennaNode = JennaNode.Create(node);
             if (parentJennaNode == null)
             {
                 AddChild(jennaNode, true);

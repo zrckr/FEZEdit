@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
+using FEZEdit.Singletons;
 using Godot;
 
 namespace FEZEdit.Main;
@@ -24,15 +25,14 @@ public partial class FileBrowser : Control
 
     private const string EditedSymbol = "(*)";
 
-    private static readonly Dictionary<Options, RepackingMode> OptionModes = new()
+    private static readonly Dictionary<Options, ContentSaver.RepackingMode> OptionModes = new()
     {
-        [Options.FileOpen] = RepackingMode.None,
-        [Options.UnpackRaw] = RepackingMode.UnpackRaw,
-        [Options.UnpackDecompressed] = RepackingMode.UnpackDecompressXnb,
-        [Options.UnpackConverted] = RepackingMode.UnpackConverted,
-        [Options.ConvertFromXnb] = RepackingMode.ConvertFromXnb,
-        [Options.ConvertToXnb] = RepackingMode.ConvertToXnb,
-        [Options.PackAssets] = RepackingMode.PackAssets
+        [Options.UnpackRaw] = ContentSaver.RepackingMode.UnpackRaw,
+        [Options.UnpackDecompressed] = ContentSaver.RepackingMode.UnpackDecompressXnb,
+        [Options.UnpackConverted] = ContentSaver.RepackingMode.UnpackConverted,
+        [Options.ConvertFromXnb] = ContentSaver.RepackingMode.ConvertFromXnb,
+        [Options.ConvertToXnb] = ContentSaver.RepackingMode.ConvertToXnb,
+        [Options.PackAssets] = ContentSaver.RepackingMode.PackAssets
     };
 
     public event Action<string> FileMaterialized;
@@ -41,9 +41,7 @@ public partial class FileBrowser : Control
 
     public event Action<string> FileShowed;
 
-    public event Action<string, string, RepackingMode> FileOrDirectoryRepacked;
-
-    public bool CanConvert { get; set; }
+    public event Action<string, string, ContentSaver.RepackingMode> FileOrDirectoryRepacked;
 
     [Export] private IconsResource _icons;
 
@@ -63,7 +61,7 @@ public partial class FileBrowser : Control
 
     private string _sourcePath;
 
-    private RepackingMode _repackMode;
+    private ContentSaver.RepackingMode _repackMode;
 
     private readonly Dictionary<string, PanelContainer> _openItems = new();
 
@@ -295,7 +293,7 @@ public partial class FileBrowser : Control
             _contextMenu.AddSeparator();
         }
 
-        if (CanConvert)
+        if (ContentSaver.CanConvert)
         {
             if (isFile)
             {
@@ -336,15 +334,15 @@ public partial class FileBrowser : Control
         }
 
         var path = clickedItem.GetFullPath(excludeRoot: true);
-        var mode = OptionModes[(Options)id];
-        if (mode == RepackingMode.None)
+        var option = (Options)id;
+        if (option == Options.FileOpen)
         {
             FileMaterialized?.Invoke(path);
             return;
         }
 
         _sourcePath = path;
-        _repackMode = mode;
+        _repackMode = OptionModes[option];
         _saveToFolderDialog.CurrentDir = Settings.LastSaveFolder;
         _saveToFolderDialog.PopupCentered();
     }
