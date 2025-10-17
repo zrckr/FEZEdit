@@ -53,7 +53,7 @@ public class GodotSink(string outputTemplate, IFormatProvider formatProvider) : 
 public static class GodotSinkExtensions
 {
     private const string DefaultGodotSinkOutputTemplate =
-        "({Timestamp:yyyy-MM-dd HH:mm:ss.fff}) [{Level:u3}] {SourceContext} : {Message:lj}{Exception}";
+        "({Timestamp:yyyy-MM-dd HH:mm:ss.fff}) [{Level:u3}] {SourceContext} : {Message:lj}";
 
     public static LoggerConfiguration Godot(this LoggerSinkConfiguration configuration,
         string outputTemplate = DefaultGodotSinkOutputTemplate,

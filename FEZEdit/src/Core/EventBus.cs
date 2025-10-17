@@ -26,7 +26,6 @@ public static class EventBus
         params object[] args)
     {
         SendMessage(EventType.Information, messageTemplate, args);
-        Logger.Information(messageTemplate, args);
     }
     
     public static void Success(
@@ -34,7 +33,6 @@ public static class EventBus
         params object[] args)
     {
         SendMessage(EventType.Success, messageTemplate, args);
-        Logger.Information(messageTemplate, args);
     }
     
     public static void Warning(
@@ -42,7 +40,6 @@ public static class EventBus
         params object[] args)
     {
         SendMessage(EventType.Warning, messageTemplate, args);
-        Logger.Warning(messageTemplate, args);
     }
     
     public static void Error(
@@ -50,13 +47,11 @@ public static class EventBus
         params object[] args)
     {
         SendMessage(EventType.Error, messageTemplate, args);
-        Logger.Error(messageTemplate, args);
     }
     
     public static void Error(Exception exception, params object[] args)
     {
         SendMessage(EventType.Error, exception.Message, args);
-        Logger.Error("{0}", args);
     }
     
     public static void Progress(
