@@ -2,8 +2,8 @@
 using System.IO;
 using System.Linq;
 using FEZEdit.Core;
-
 using Godot;
+using Environment = System.Environment;
 
 namespace FEZEdit.Main;
 
@@ -14,6 +14,7 @@ public partial class MainMenu : Control
         FileOpenPak,
         FileOpenFolder,
         FileOpenRecent,
+        FileOpenSaveSlot,
         FileClose,
         FileQuit,
         
@@ -30,6 +31,8 @@ public partial class MainMenu : Control
     }
 
     public event Action<FileSystemInfo> WorkingTargetOpened;
+    
+    public event Action<FileInfo> SaveSlotOpened;
 
     public event Action WorkingTargetClosed;
 
@@ -73,7 +76,9 @@ public partial class MainMenu : Control
 
     private FileDialog _saveFileDialog;
 
-    private FileSystemInfo _workingTarget;
+    private FileDialog _saveSlotDialog;
+
+    private bool _canSaveFiles;
 
     private int _unpackMenuIndex;
     
@@ -101,6 +106,7 @@ public partial class MainMenu : Control
         _fileMenu.AddItem(Tr("Open PAK File..."), (int)Options.FileOpenPak);
         _fileMenu.AddItem(Tr("Open Assets Folder..."), (int)Options.FileOpenFolder);
         _fileMenu.AddSubmenuNodeItem(Tr("Open Recent"), _fileRecentMenu, (int)Options.FileOpenRecent);
+        _fileMenu.AddItem(Tr("Open Save Slot..."), (int)Options.FileOpenSaveSlot);
         _fileMenu.AddItem(Tr("Close"), (int)Options.FileClose);
         _fileMenu.AddSeparator();
         _fileMenu.AddItem(Tr("Save File"), (int)Options.SaveFile);
@@ -173,6 +179,9 @@ public partial class MainMenu : Control
         
         _saveFileDialog ??= GetNode<FileDialog>("%SaveFileDialog");
         _saveFileDialog.FileSelected += OnFileGlobalSave;
+
+        _saveSlotDialog ??= GetNode<FileDialog>("%SaveSlotDialog");
+        _saveSlotDialog.FileSelected += OnSaveSlotSelected;
     }
 
     private void InitializeRecentFiles()
@@ -219,9 +228,9 @@ public partial class MainMenu : Control
     private void OnMenuAboutToPopup()
     {
         var history = UndoRedoRequested?.Invoke();
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), _workingTarget is not DirectoryInfo);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFile), _workingTarget is not DirectoryInfo);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFileAs), _workingTarget is not DirectoryInfo);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), !_canSaveFiles);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFile), !_canSaveFiles);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFileAs), !_canSaveFiles);
         _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditUndo), !history?.HasUndo ?? true);
         _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditRedo), !history?.HasRedo ?? true);
     }
@@ -238,8 +247,14 @@ public partial class MainMenu : Control
                 _assetFolderDialog.PopupCentered();
                 break;
 
+            case Options.FileOpenSaveSlot:
+                var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                _saveSlotDialog.CurrentDir = Path.Combine(appdata, "FEZ").Replace('\\', '/');
+                _saveSlotDialog.PopupCentered();
+                break;
+
             case Options.FileClose:
-                _workingTarget = null;
+                _canSaveFiles = false;
                 WorkingTargetClosed?.Invoke();
                 break;
 
@@ -292,16 +307,22 @@ public partial class MainMenu : Control
 
     private void OnPakFileSelected(string file)
     {
-        _workingTarget = new FileInfo(file);
-        WorkingTargetOpened?.Invoke(_workingTarget);
+        _canSaveFiles = false;
+        WorkingTargetOpened?.Invoke(new FileInfo(file));
         AddPathToRecent(file);
     }
 
     private void OnAssetFolderSelected(string folder)
     {
-        _workingTarget = new DirectoryInfo(folder);
-        WorkingTargetOpened?.Invoke(_workingTarget);
+        _canSaveFiles = true;
+        WorkingTargetOpened?.Invoke(new DirectoryInfo(folder));
         AddPathToRecent(folder);
+    }
+    
+    private void OnSaveSlotSelected(string file)
+    {
+        _canSaveFiles = true;
+        SaveSlotOpened?.Invoke(new FileInfo(file));
     }
 
     private void OnFileGlobalSave(string file)
@@ -326,16 +347,22 @@ public partial class MainMenu : Control
         }
 
         var path = recentFiles[(int)index];
-        FileSystemInfo info = File.GetAttributes(path).HasFlag(FileAttributes.Directory)
-            ? new DirectoryInfo(path)
-            : new FileInfo(path);
-
-        recentFiles.RemoveAt((int)index);
+        FileSystemInfo info;
+        if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+        {
+            _canSaveFiles = true;
+            info = new DirectoryInfo(path);
+        }
+        else
+        {
+            _canSaveFiles = false;
+            info = new FileInfo(path);
+        }
         
+        recentFiles.RemoveAt((int)index);
         if (info.Exists)
         {
             recentFiles.Insert(0, path);
-            _workingTarget = info;
             WorkingTargetOpened?.Invoke(info);
         }
         

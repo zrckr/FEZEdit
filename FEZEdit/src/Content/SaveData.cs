@@ -11,7 +11,7 @@ public sealed class SaveData
 {
     public bool IsNew = true;
 
-    public long CreationTime = DateTimeOffset.Now.ToFileTime();
+    public long CreationTime = DateTime.Now.ToFileTimeUtc();
 
     public long PlayTime;
 

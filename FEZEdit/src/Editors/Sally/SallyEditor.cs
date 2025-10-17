@@ -16,7 +16,7 @@ public partial class SallyEditor : Editor
     
     public override bool Disabled
     {
-        set => throw new NotImplementedException();
+        set {}
     }
     
     private SaveData _saveData;

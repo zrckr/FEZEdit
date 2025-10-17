@@ -11,10 +11,10 @@
 [resource]
 script = ExtResource("1_6u1xg")
 _editors = Dictionary[String, PackedScene]({
-"FEZEdit.Content.SaveData": ExtResource("4_ojxfn"),
 "FEZRepacker.Core.Definitions.Game.MapTree.MapTree": ExtResource("3_642f3"),
 "FEZRepacker.Core.Definitions.Game.TrackedSong.TrackedSong": ExtResource("2_642f3"),
 "System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.String]]": ExtResource("1_nuwvy")
 })
 _emptyEditor = ExtResource("3_t4sc5")
 _unsupportedEditor = ExtResource("4_ylesg")
+_saveSlotEditor = ExtResource("4_ojxfn")

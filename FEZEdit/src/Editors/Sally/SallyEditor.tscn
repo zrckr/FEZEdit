@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://be2a22lw1wd1a"]
+[gd_scene load_steps=2 format=3 uid="uid://be2a22lw1wd1a"]
+
+[ext_resource type="Script" uid="uid://iw0ao755ihex" path="res://src/Editors/Sally/SallyEditor.cs" id="1_nj4xs"]
 
 [node name="SallyEditor" type="MarginContainer"]
 anchors_preset = 15
@@ -6,6 +8,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_nj4xs")
 
-[node name="LayoutContainer" type="HBoxContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer"]
+layout_mode = 2
+text = "Sally Editor"

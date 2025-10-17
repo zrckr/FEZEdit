@@ -11,9 +11,13 @@ public partial class EditorFactory : Resource
     
     [Export] private PackedScene _unsupportedEditor;
     
+    [Export] private PackedScene _saveSlotEditor;
+    
     public Editor EmptyEditor => _emptyEditor.Instantiate<Editor>();
 
     public Editor UnsupportedEditor => _unsupportedEditor.Instantiate<Editor>();
+
+    public Editor SaveSlotEditor => _saveSlotEditor.Instantiate<Editor>();
 
     public bool TryGetEditor(Type type, out Editor editor)
     {

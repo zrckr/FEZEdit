@@ -23,6 +23,21 @@ public static class ContentSaver
 
     public static void Save(object data, string path)
     {
+        if (data is SaveData saveData)
+        {
+            try
+            {
+                SaveDataProvider.Write(path, saveData);
+                EventBus.Success("Save slot writen: {0}", path);
+            }
+            catch (Exception exception)
+            {
+                EventBus.Error("Failed to write to save slot: {0}", path);
+                Logger.Error(exception, "Failed to write to save slot '{0}'", path);
+            }
+            return;
+        }
+        
         if (ContentProvider == null)
         {
             EventBus.Error("Files are not loaded in FEZEdit: {0}", path);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using FEZEdit.Extensions;
 using FEZRepacker.Core.Definitions.Game.Common;
@@ -20,6 +21,8 @@ public static class SaveDataProvider
         using var reader = new BinaryReader(stream);
 
         var saveData = new SaveData();
+        reader.ReadInt64();     // Reads PC save timestamp
+        
         var version = reader.ReadInt64();
         if (version != Version)
         {
@@ -230,6 +233,7 @@ public static class SaveDataProvider
         using var stream = new FileStream(path, FileMode.Create);
         using var w = new BinaryWriter(stream);
 
+        w.Write(DateTime.Now.ToFileTimeUtc());
         w.Write(Version);
         w.Write(saveData.CreationTime);
         w.Write(saveData.Finished32);
