@@ -36,7 +36,7 @@ public partial class TrackedSongLoops : Control
 
     private TreeItem _root;
 
-    public override void _EnterTree()
+    public void Initialize()
     {
         InitializeUp();
         InitializeDown();

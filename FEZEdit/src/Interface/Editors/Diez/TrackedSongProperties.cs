@@ -46,7 +46,7 @@ public partial class TrackedSongProperties : Control
 
     private TextEdit _customOrdering;
 
-    public override void _EnterTree()
+    public void Initialize()
     {
         InitializeName();
         InitializeTempo();

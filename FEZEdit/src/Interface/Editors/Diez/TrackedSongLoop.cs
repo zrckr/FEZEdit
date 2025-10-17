@@ -68,7 +68,7 @@ public partial class TrackedSongLoop : Control
 
     private FileDialog _loopSelectDialog;
 
-    public override void _EnterTree()
+    public void Initialize()
     {
         InitializeName();
         InitializeTrigger();

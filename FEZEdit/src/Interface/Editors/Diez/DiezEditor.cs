@@ -23,7 +23,7 @@ public partial class DiezEditor: Editor
         {
             _songProperties.Disabled = value;
             _loopsList.Disabled = value;
-            _selectedLoop.Disabled = value;
+            if (_selectedLoop != null) _selectedLoop.Disabled = value;
         }
     }
 
@@ -37,7 +37,7 @@ public partial class DiezEditor: Editor
 
     private TrackedSongLoop _selectedLoop;
 
-    public override void _EnterTree()
+    public override void _Ready()
     {
         InitializeSongProperties();
         InitializeLoopsList();
@@ -49,6 +49,7 @@ public partial class DiezEditor: Editor
         _songProperties = GetNode<TrackedSongProperties>("%TrackedSongProperties");
         _songProperties.TrackedSong = _trackedSong;
         _songProperties.Loader = Loader;
+        _songProperties.Initialize();
     }
 
     private void InitializeLoopsList()
@@ -57,6 +58,7 @@ public partial class DiezEditor: Editor
         _loopsList.SongName = _trackedSong.Name;
         _loopsList.LoopsList = _trackedSong.Loops.ToList();
         _loopsList.LoopSelected += loop => Callable.From(() => InitializeSelectedLoop(loop)).CallDeferred();
+        _loopsList.Initialize();
     }
 
     private void InitializeSelectedLoopContainer()
@@ -74,6 +76,7 @@ public partial class DiezEditor: Editor
             _selectedLoop.Loop = loop;
             _selectedLoop.NameChanged += _loopsList.UpdateTree;
             _selectedLoopContainer.AddChild(_selectedLoop, true);
+            _selectedLoop.Initialize();
         }
     }
 }
