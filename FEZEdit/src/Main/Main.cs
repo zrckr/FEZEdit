@@ -137,6 +137,13 @@ public partial class Main : Control
     private void PopulateFileBrowser()
     {
         var count = ContentLoader.Files.Count();
+        if (count < 1)
+        {
+            _fileBrowser.ClearFiles();
+            _fileBrowser.RefreshFiles();
+            return;
+        }
+
         var progress = new ProgressValue(0, 0, count, 1);
         EventBus.Progress(progress);
 
@@ -367,7 +374,7 @@ public partial class Main : Control
                     Logger.Error("File not found '{0}'", file.FullName);
                     return;
                 }
-                
+
                 try
                 {
                     var path = file.FullName;
@@ -376,7 +383,7 @@ public partial class Main : Control
                         SwitchToEditor(path);
                         return;
                     }
-                    
+
                     var editor = _editors.SaveSlotEditor;
                     editor.Value = ContentLoader.LoadSaveSlot(path);
                     editor.ValueChanged += OnEditorValueChanged;
