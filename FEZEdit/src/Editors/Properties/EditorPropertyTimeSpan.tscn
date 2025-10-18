@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://f0h4dx3auw1r" path="res://src/Editors/Properties/EditorPropertyTimeSpan.cs" id="1_6tbyg"]
 
-[node name="EditorPropertyTimeSpan" type="VBoxContainer"]
-offset_right = 158.0
+[node name="EditorPropertyTimeSpan" type="HBoxContainer"]
+offset_right = 213.0
 offset_bottom = 163.0
 size_flags_horizontal = 3
 script = ExtResource("1_6tbyg")
