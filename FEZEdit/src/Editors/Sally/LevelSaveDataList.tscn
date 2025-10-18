@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://u8rrlplo0w1y"]
+
+[node name="LevelSaveDataList" type="VBoxContainer"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 118.0
+grow_vertical = 2
+size_flags_horizontal = 3
+
+[node name="SelectedContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HeaderContainer" type="MarginContainer" parent="SelectedContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="SelectedContainer/HeaderContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SelectedContainer/HeaderContainer"]
+layout_mode = 2
+text = "Selected Levels"
+horizontal_alignment = 1
+
+[node name="SelectedTree" type="Tree" parent="SelectedContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="AvailableContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HeaderContainer" type="MarginContainer" parent="AvailableContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="AvailableContainer/HeaderContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AvailableContainer/HeaderContainer"]
+layout_mode = 2
+text = "Available Levels"
+horizontal_alignment = 1
+
+[node name="AvailableTree" type="Tree" parent="AvailableContainer"]
+layout_mode = 2
+size_flags_vertical = 3

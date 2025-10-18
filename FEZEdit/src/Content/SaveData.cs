@@ -104,8 +104,6 @@ public sealed class SaveData
 
 public sealed class LevelSaveData
 {
-    public static readonly LevelSaveData Default = new LevelSaveData();
-
     public List<TrileEmplacement> DestroyedTriles = [];
 
     public List<TrileEmplacement> InactiveTriles = [];

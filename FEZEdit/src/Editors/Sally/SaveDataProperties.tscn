@@ -1,0 +1,131 @@
+[gd_scene load_steps=10 format=3 uid="uid://lols3ow684lt"]
+
+[ext_resource type="PackedScene" uid="uid://c6cyhrrrjspnc" path="res://src/Editors/Properties/EditorPropertyBoolean.tscn" id="1_vq51v"]
+[ext_resource type="PackedScene" uid="uid://c43l67tu41dc2" path="res://src/Editors/Properties/EditorPropertyDictionary.tscn" id="2_6ceqx"]
+[ext_resource type="PackedScene" uid="uid://b2f8nfen1gtvs" path="res://src/Editors/Properties/EditorPropertyString.tscn" id="3_ajxks"]
+[ext_resource type="PackedScene" uid="uid://e4ieg55ki7mf" path="res://src/Editors/Properties/EditorPropertyEnum.tscn" id="4_llrgs"]
+[ext_resource type="PackedScene" uid="uid://cp3kp3dm3j3yq" path="res://src/Editors/Properties/EditorPropertyTrileEmplacement.tscn" id="5_5xtwk"]
+[ext_resource type="PackedScene" uid="uid://dcin6fx5ljo6u" path="res://src/Editors/Properties/EditorPropertyTimeSpan.tscn" id="6_8buo6"]
+[ext_resource type="PackedScene" uid="uid://txwiwt6grvvx" path="res://src/Editors/Properties/EditorPropertyInteger.tscn" id="7_irrgk"]
+[ext_resource type="PackedScene" uid="uid://uc0knt4edolu" path="res://src/Editors/Properties/EditorPropertyList.tscn" id="8_y0asr"]
+[ext_resource type="PackedScene" uid="uid://ypig16ts7eib" path="res://src/Editors/Properties/EditorPropertyFloat.tscn" id="9_hvye6"]
+
+[node name="SaveDataProperties" type="VBoxContainer"]
+anchors_preset = -1
+anchor_right = 0.3625
+anchor_bottom = 1.0
+grow_vertical = 2
+size_flags_horizontal = 3
+metadata/_edit_use_anchors_ = true
+
+[node name="HeaderContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="HeaderContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HeaderContainer"]
+layout_mode = 2
+text = "Save Data Properties"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Finished32" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="Finished64" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="HasFPView" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="HasStereo3D" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="CanNewGamePlus" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="IsNewGamePlus" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="OneTimeTutorials" parent="ScrollContainer/VBoxContainer" instance=ExtResource("2_6ceqx")]
+layout_mode = 2
+
+[node name="Level" parent="ScrollContainer/VBoxContainer" instance=ExtResource("3_ajxks")]
+layout_mode = 2
+
+[node name="View" parent="ScrollContainer/VBoxContainer" instance=ExtResource("4_llrgs")]
+layout_mode = 2
+
+[node name="Ground" parent="ScrollContainer/VBoxContainer" instance=ExtResource("5_5xtwk")]
+layout_mode = 2
+
+[node name="TimeOfDay" parent="ScrollContainer/VBoxContainer" instance=ExtResource("6_8buo6")]
+layout_mode = 2
+
+[node name="Keys" parent="ScrollContainer/VBoxContainer" instance=ExtResource("2_6ceqx")]
+layout_mode = 2
+
+[node name="CubeShards" parent="ScrollContainer/VBoxContainer" instance=ExtResource("7_irrgk")]
+layout_mode = 2
+
+[node name="SecretCubes" parent="ScrollContainer/VBoxContainer" instance=ExtResource("7_irrgk")]
+layout_mode = 2
+
+[node name="CollectedParts" parent="ScrollContainer/VBoxContainer" instance=ExtResource("7_irrgk")]
+layout_mode = 2
+
+[node name="CollectedOwls" parent="ScrollContainer/VBoxContainer" instance=ExtResource("7_irrgk")]
+layout_mode = 2
+
+[node name="PiecesOfHeart" parent="ScrollContainer/VBoxContainer" instance=ExtResource("7_irrgk")]
+layout_mode = 2
+
+[node name="Maps" parent="ScrollContainer/VBoxContainer" instance=ExtResource("8_y0asr")]
+layout_mode = 2
+
+[node name="Artifacts" parent="ScrollContainer/VBoxContainer" instance=ExtResource("8_y0asr")]
+layout_mode = 2
+
+[node name="EarnedAchievements" parent="ScrollContainer/VBoxContainer" instance=ExtResource("8_y0asr")]
+layout_mode = 2
+
+[node name="EarnedGamerPictures" parent="ScrollContainer/VBoxContainer" instance=ExtResource("8_y0asr")]
+layout_mode = 2
+
+[node name="ScriptingState" parent="ScrollContainer/VBoxContainer" instance=ExtResource("3_ajxks")]
+layout_mode = 2
+
+[node name="FezHidden" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="GlobalWaterLevelModifier" type="VBoxContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HasValue" parent="ScrollContainer/VBoxContainer/GlobalWaterLevelModifier" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="Value" parent="ScrollContainer/VBoxContainer/GlobalWaterLevelModifier" instance=ExtResource("9_hvye6")]
+layout_mode = 2
+
+[node name="HasHadMapHelp" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="CanOpenMap" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="AchievementCheatCodeDone" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="AnyCodeDeciphered" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
+
+[node name="MapCheatCodeDone" parent="ScrollContainer/VBoxContainer" instance=ExtResource("1_vq51v")]
+layout_mode = 2
