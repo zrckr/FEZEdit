@@ -30,7 +30,6 @@ _editorProperties = Dictionary[String, PackedScene]({
 "FEZRepacker.Core.Definitions.Game.XNA.Vector2": ExtResource("3_q56c3"),
 "FEZRepacker.Core.Definitions.Game.XNA.Vector3": ExtResource("4_pe45y"),
 "FEZRepacker.Core.Definitions.Game.XNA.Vector4": ExtResource("5_7ug82"),
-"System.Array": ExtResource("6_wyfuv"),
 "System.Boolean": ExtResource("7_ft6b0"),
 "System.Collections.Generic.Dictionary": ExtResource("8_2qlwc"),
 "System.Collections.Generic.List": ExtResource("9_kneek"),
@@ -43,3 +42,4 @@ _editorProperties = Dictionary[String, PackedScene]({
 _defaultEditorProperty = ExtResource("13_hapks")
 _enumEditorProperty = ExtResource("10_prfnp")
 _nullableEditorProperty = ExtResource("17_sju0v")
+_arrayEditorProperty = ExtResource("6_wyfuv")
