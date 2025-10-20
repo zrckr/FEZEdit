@@ -28,6 +28,11 @@ public static class BinaryExtensions
         return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
     }
 
+    public static DateTime ReadDateTime(this BinaryReader reader)
+    {
+        return DateTime.FromFileTimeUtc(reader.ReadInt64());
+    }
+    
     public static TimeSpan ReadTimeSpan(this BinaryReader reader)
     {
         return new TimeSpan(reader.ReadInt64());
@@ -66,6 +71,11 @@ public static class BinaryExtensions
         writer.Write(vector.X);
         writer.Write(vector.Y);
         writer.Write(vector.Z);
+    }
+
+    public static void Write(this BinaryWriter writer, DateTime dateTime)
+    {
+        writer.Write(dateTime.Ticks);
     }
 
     public static void Write(this BinaryWriter writer, TimeSpan timeSpan)

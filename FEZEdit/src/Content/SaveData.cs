@@ -11,11 +11,9 @@ public sealed class SaveData
 {
     public bool IsNew = true;
 
-    public long CreationTime = DateTime.Now.ToFileTimeUtc();
+    public DateTime CreationTime = DateTime.Now.ToUniversalTime();
 
-    public long PlayTime;
-
-    public long? SinceLastSaved;
+    public TimeSpan PlayTime;
 
     public bool CanNewGamePlus;
 

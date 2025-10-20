@@ -29,7 +29,7 @@ public static class SaveDataProvider
             throw new IOException($"Invalid version: {version} (expected {Version})");
         }
 
-        saveData.CreationTime = reader.ReadInt64();
+        saveData.CreationTime = reader.ReadDateTime();
         saveData.Finished32 = reader.ReadBoolean();
         saveData.Finished64 = reader.ReadBoolean();
         saveData.HasFPView = reader.ReadBoolean();
@@ -126,7 +126,7 @@ public static class SaveDataProvider
         reader.ReadBoolean();
         saveData.ScoreDirty = true;
         saveData.HasDoneHeartReboot = reader.ReadBoolean();
-        saveData.PlayTime = reader.ReadInt64();
+        saveData.PlayTime = reader.ReadTimeSpan();
         saveData.IsNew = string.IsNullOrEmpty(saveData.Level) ||
                          saveData.CanNewGamePlus ||
                          saveData.World.Count == 0;
