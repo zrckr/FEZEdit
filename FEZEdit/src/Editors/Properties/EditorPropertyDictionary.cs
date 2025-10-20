@@ -80,18 +80,18 @@ public partial class EditorPropertyDictionary : EditorProperty
 
             var keyProperty = PropertyFactory.GetEditorProperty(types[0]);
             keyProperty.UndoRedo = UndoRedo;
-            keyProperty.ValueChanged += _ => OnDictionaryItemChanged();
             itemContainer.AddChild(keyProperty);
             keyProperty.Label = string.Empty;
             keyProperty.Value = entry.Key;
+            keyProperty.ValueChanged += _ => OnDictionaryItemChanged();
             _editorProperties.Add(keyProperty);
 
             var valueProperty = PropertyFactory.GetEditorProperty(types[1]);
             valueProperty.UndoRedo = UndoRedo;
-            valueProperty.ValueChanged += _ => OnDictionaryItemChanged();
             itemContainer.AddChild(valueProperty);
             valueProperty.Label = string.Empty;
             valueProperty.Value = entry.Value;
+            valueProperty.ValueChanged += _ => OnDictionaryItemChanged();
             _editorProperties.Add(valueProperty);
             
             var itemButton = new Button

@@ -82,10 +82,10 @@ public partial class EditorPropertyArray : EditorProperty
 
             var itemEditor = PropertyFactory.GetEditorProperty(elementType);
             itemEditor.UndoRedo = UndoRedo;
-            itemEditor.ValueChanged += _ => OnItemValueChanged();
             itemContainer.AddChild(itemEditor);
-            itemEditor.Value = item;
             itemEditor.Label = string.Empty;
+            itemEditor.Value = item;
+            itemEditor.ValueChanged += _ => OnItemValueChanged();
             itemEditor.Disabled = true;
             _editorProperties.Add(itemEditor);
 
