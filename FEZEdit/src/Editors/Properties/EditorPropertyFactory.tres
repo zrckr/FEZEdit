@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=19 format=3 uid="uid://bwvj2k1utwp0y"]
+[gd_resource type="Resource" load_steps=20 format=3 uid="uid://bwvj2k1utwp0y"]
 
 [ext_resource type="PackedScene" uid="uid://c67kuxugbjfbl" path="res://src/Editors/Properties/EditorPropertyColor.tscn" id="1_2oumw"]
 [ext_resource type="Script" uid="uid://d0d4t0pqadqkq" path="res://src/Editors/Properties/EditorPropertyFactory.cs" id="1_to8os"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://dcin6fx5ljo6u" path="res://src/Editors/Properties/EditorPropertyTimeSpan.tscn" id="14_1rvkk"]
 [ext_resource type="PackedScene" uid="uid://cp3kp3dm3j3yq" path="res://src/Editors/Properties/EditorPropertyTrileEmplacement.tscn" id="15_a8m1v"]
 [ext_resource type="PackedScene" uid="uid://c6abv4xm4530" path="res://src/Editors/Properties/EditorPropertyRectangle.tscn" id="15_uwams"]
+[ext_resource type="PackedScene" uid="uid://dvomeuejo2yn4" path="res://src/Editors/Properties/EditorPropertyDateTime.tscn" id="16_wkyy0"]
 [ext_resource type="PackedScene" uid="uid://c8a8ifga3xps1" path="res://src/Editors/Properties/EditorPropertyNullable.tscn" id="17_sju0v"]
 
 [resource]
@@ -33,6 +34,7 @@ _editorProperties = Dictionary[String, PackedScene]({
 "System.Boolean": ExtResource("7_ft6b0"),
 "System.Collections.Generic.Dictionary": ExtResource("8_2qlwc"),
 "System.Collections.Generic.List": ExtResource("9_kneek"),
+"System.DateTime": ExtResource("16_wkyy0"),
 "System.Int32": ExtResource("11_f1pt5"),
 "System.Single": ExtResource("12_2llrk"),
 "System.String": ExtResource("13_hapks"),
