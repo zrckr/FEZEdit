@@ -158,7 +158,8 @@ public static class ContentLoader
     {
         try
         {
-            return SaveDataProvider.Read(path);
+            using var stream = new FileStream(path, FileMode.Open);
+            return SaveDataProvider.Read(stream);
         }
         catch (Exception exception)
         {

@@ -27,7 +27,9 @@ public static class ContentSaver
         {
             try
             {
-                SaveDataProvider.Write(path, saveData);
+                using var stream = SaveDataProvider.Write(saveData);
+                using var fileStream = new FileStream(path, FileMode.Create);
+                stream.CopyTo(fileStream);
                 EventBus.Success("Save slot writen: {0}", path);
             }
             catch (Exception exception)

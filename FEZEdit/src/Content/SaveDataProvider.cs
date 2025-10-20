@@ -15,9 +15,8 @@ public static class SaveDataProvider
 
     #region Reading
 
-    public static SaveData Read(string path)
+    public static SaveData Read(Stream stream)
     {
-        using var stream = new FileStream(path, FileMode.Open);
         using var reader = new BinaryReader(stream);
 
         var saveData = new SaveData();
@@ -228,9 +227,9 @@ public static class SaveDataProvider
 
     #region Writing
 
-    public static void Write(string path, SaveData saveData)
+    public static Stream Write(SaveData saveData)
     {
-        using var stream = new FileStream(path, FileMode.Create);
+        var stream = new MemoryStream();
         using var w = new BinaryWriter(stream);
 
         w.Write(DateTime.Now.ToFileTimeUtc());
@@ -308,6 +307,8 @@ public static class SaveDataProvider
         w.Write(saveData.HasDoneHeartReboot);
         w.Write(saveData.PlayTime);
         w.Write(saveData.IsNew);
+        
+        return stream;
     }
 
     private static void WriteLevelSaveData(BinaryWriter write, LevelSaveData levelSaveData)
