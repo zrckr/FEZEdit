@@ -12,6 +12,12 @@ public abstract partial class EditorProperty : Control
         set => _label.Text = value;
     }
 
+    public string Tooltip
+    {
+        get => _label.TooltipText;
+        set => _label.TooltipText = value;
+    }
+    
     public abstract bool Disabled { get; set; }
 
     public object Value
