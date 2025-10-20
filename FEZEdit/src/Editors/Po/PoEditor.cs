@@ -29,6 +29,8 @@ public partial class PoEditor : Editor
         }
     }
     
+    public override UndoRedo UndoRedo { get; } = new();
+    
     [Export] private Godot.Collections.Dictionary<string, string> _languages = new();
 
     [Export] private string _sourceLanguage = string.Empty;

@@ -9,4 +9,6 @@ public partial class EmptyEditor : Editor
     public override object Value { get; set; }
 
     public override bool Disabled { set {} }
+    
+    public override UndoRedo UndoRedo { get; } = new();
 }

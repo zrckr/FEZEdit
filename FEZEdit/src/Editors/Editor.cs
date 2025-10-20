@@ -11,5 +11,5 @@ public abstract partial class Editor : Control
 
     public abstract event Action ValueChanged;
 
-    public UndoRedo UndoRedo { get; } = new();
+    public abstract UndoRedo UndoRedo { get; }
 }

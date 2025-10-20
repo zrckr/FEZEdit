@@ -101,6 +101,8 @@ public partial class SallyEditor : Editor
         }
     }
     
+    public override UndoRedo UndoRedo { get; } = new();
+    
     private List<string> LevelKeys => _saveData.World.Keys.OrderBy(k => k).ToList();
 
     [Export] private Godot.Collections.Dictionary<string, string> _saveDataTooltips = new();

@@ -57,6 +57,8 @@ public partial class DiezEditor : Editor
         }
     }
 
+    public override UndoRedo UndoRedo { get; } = new();
+
     private TrackedSong _trackedSong;
 
     private Inspector _songInspector;

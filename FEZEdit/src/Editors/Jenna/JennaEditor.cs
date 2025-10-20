@@ -30,6 +30,8 @@ public partial class JennaEditor : Editor
             _inspector.Disabled = value;
         }
     }
+    
+    public override UndoRedo UndoRedo { get; } = new();
 
     [Export] private IconsResource _icons;
 
