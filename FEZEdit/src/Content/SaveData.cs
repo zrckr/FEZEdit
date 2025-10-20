@@ -9,77 +9,77 @@ namespace FEZEdit.Content;
 
 public sealed class SaveData
 {
-    public bool IsNew = true;
+    public bool IsNew { get; set; } = true;
 
-    public DateTime CreationTime = DateTime.Now.ToUniversalTime();
+    public DateTime CreationTime { get; set; } = DateTime.Now.ToUniversalTime();
 
-    public TimeSpan PlayTime;
+    public TimeSpan PlayTime { get; set; }
 
-    public bool CanNewGamePlus;
+    public bool CanNewGamePlus { get; set; }
 
-    public bool IsNewGamePlus;
+    public bool IsNewGamePlus { get; set; }
 
-    public bool Finished32;
+    public bool Finished32 { get; set; }
 
-    public bool Finished64;
+    public bool Finished64 { get; set; }
 
-    public bool HasFPView;
+    public bool HasFPView { get; set; }
 
-    public bool HasStereo3D;
+    public bool HasStereo3D { get; set; }
 
-    public bool HasDoneHeartReboot;
+    public bool HasDoneHeartReboot { get; set; }
 
-    public string Level;
+    public string Level { get; set; }
 
-    public Viewpoint View;
+    public Viewpoint View { get; set; }
 
-    public Vector3 Ground;
+    public Vector3 Ground { get; set; }
 
-    public TimeSpan TimeOfDay = TimeSpan.FromHours(12.0);
+    public TimeSpan TimeOfDay { get; set; } = TimeSpan.FromHours(12.0);
 
-    public List<string> UnlockedWarpDestinations = ["NATURE_HUB"];
+    public List<string> UnlockedWarpDestinations { get; set; } = ["NATURE_HUB"];
 
-    public int Keys;
+    public int Keys { get; set; }
 
-    public int CubeShards;
+    public int CubeShards { get; set; }
 
-    public int SecretCubes;
+    public int SecretCubes { get; set; }
 
-    public int CollectedParts;
+    public int CollectedParts { get; set; }
 
-    public int CollectedOwls;
+    public int CollectedOwls { get; set; }
 
-    public int PiecesOfHeart;
+    public int PiecesOfHeart { get; set; }
 
-    public List<string> Maps = [];
+    public List<string> Maps { get; set; } = [];
 
-    public List<ActorType> Artifacts = [];
+    public List<ActorType> Artifacts { get; set; } = [];
 
-    public List<string> EarnedAchievements = [];
+    public List<string> EarnedAchievements { get; set; } = [];
 
-    public List<string> EarnedGamerPictures = [];
+    public List<string> EarnedGamerPictures { get; set; } = [];
 
-    public bool ScoreDirty;
+    public bool ScoreDirty { get; set; }
 
-    public string ScriptingState;
+    public string ScriptingState { get; set; }
 
-    public bool FezHidden;
+    public bool FezHidden { get; set; }
 
-    public float? GlobalWaterLevelModifier;
+    public float? GlobalWaterLevelModifier { get; set; }
 
-    public bool HasHadMapHelp;
+    public bool HasHadMapHelp { get; set; }
 
-    public bool CanOpenMap;
+    public bool CanOpenMap { get; set; }
 
-    public bool AchievementCheatCodeDone;
+    public bool AchievementCheatCodeDone { get; set; }
 
-    public bool MapCheatCodeDone;
+    public bool MapCheatCodeDone { get; set; }
 
-    public bool AnyCodeDeciphered;
+    public bool AnyCodeDeciphered { get; set; }
 
-    public Dictionary<string, LevelSaveData> World = new();
+    public Dictionary<string, LevelSaveData> World { get; set; } = new();
 
-    public Dictionary<string, bool> OneTimeTutorials = new()
+    public Dictionary<string, bool> OneTimeTutorials { get; set; } = new()
     {
         { "DOT_LOCKED_DOOR_A", false },
         { "DOT_NUT_N_BOLT_A", false },
@@ -102,27 +102,27 @@ public sealed class SaveData
 
 public sealed class LevelSaveData
 {
-    public List<TrileEmplacement> DestroyedTriles = [];
+    public List<TrileEmplacement> DestroyedTriles { get; set; } = [];
 
-    public List<TrileEmplacement> InactiveTriles = [];
+    public List<TrileEmplacement> InactiveTriles { get; set; } = [];
 
-    public List<int> InactiveArtObjects = [];
+    public List<int> InactiveArtObjects { get; set; } = [];
 
-    public List<int> InactiveEvents = [];
+    public List<int> InactiveEvents { get; set; } = [];
 
-    public List<int> InactiveGroups = [];
+    public List<int> InactiveGroups { get; set; } = [];
 
-    public List<int> InactiveVolumes = [];
+    public List<int> InactiveVolumes { get; set; } = [];
 
-    public List<int> InactiveNPCs = [];
+    public List<int> InactiveNPCs { get; set; } = [];
 
-    public Dictionary<int, int> PivotRotations = new();
+    public Dictionary<int, int> PivotRotations { get; set; } = new();
 
-    public float? LastStableLiquidHeight;
+    public float? LastStableLiquidHeight { get; set; }
 
-    public string ScriptingState;
+    public string ScriptingState { get; set; }
 
-    public WinConditions FilledConditions = new();
+    public WinConditions FilledConditions { get; set; } = new();
 
-    public bool FirstVisit;
+    public bool FirstVisit { get; set; }
 }
