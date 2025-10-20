@@ -13,6 +13,21 @@ public static class SaveDataProvider
 {
     private const long Version = 6L;
 
+    private const int EasyStorageMaxSize = 40960;
+    
+    /// <summary>
+    /// Ticks from 12:00 midnight, January 1, 1601 A.D. UTC to 00:00:00 on 1 January 1970 UTC
+    /// </summary>
+    private const long UnixTimeUtcDiffTicks = 116444080000000000;
+
+    public enum SaveFormat
+    {
+        Pc,
+        Ios
+    }
+
+    public static SaveFormat Format { get; set; } = SaveFormat.Pc;
+
     #region Reading
 
     public static SaveData Read(Stream stream)
@@ -20,7 +35,7 @@ public static class SaveDataProvider
         using var reader = new BinaryReader(stream);
 
         var saveData = new SaveData();
-        reader.ReadInt64();     // Reads PC save timestamp
+        reader.ReadInt64();     // Value written in EasyStorage.dll
         
         var version = reader.ReadInt64();
         if (version != Version)
@@ -307,6 +322,12 @@ public static class SaveDataProvider
         w.Write(saveData.HasDoneHeartReboot);
         w.Write(saveData.PlayTime);
         w.Write(saveData.IsNew);
+
+        if (stream.Position > EasyStorageMaxSize)
+        {
+            stream.Dispose();
+            throw new FormatException("Save file greater than the imposed EasyStorage limit!");
+        }
         
         return stream;
     }
@@ -385,5 +406,61 @@ public static class SaveDataProvider
         writer.Write(wc.SecretCount);
     }
 
+    #endregion
+    
+    #region Extensions
+
+    private static string ReadNullableString(this BinaryReader reader)
+    {
+        switch (Format)
+        {
+            case SaveFormat.Ios:
+                return reader.ReadString();
+            
+            default:
+                return BinaryExtensions.ReadNullableString(reader);
+        }
+    }
+
+    private static DateTime ReadDateTime(this BinaryReader reader)
+    {
+        switch (Format)
+        {
+            case SaveFormat.Ios:
+                return BinaryExtensions.ReadDateTime(reader).AddTicks(UnixTimeUtcDiffTicks);
+            
+            default:
+                return BinaryExtensions.ReadDateTime(reader);
+        }
+    }
+
+    private static void WriteNullable(this BinaryWriter writer, string value)
+    {
+        switch (Format)
+        {
+            case SaveFormat.Ios:
+                writer.Write(value);
+                break;
+            
+            default:
+                BinaryExtensions.WriteNullable(writer, value);
+                break;
+        }
+    }
+
+    private static void Write(this BinaryWriter writer, DateTime dateTime)
+    {
+        switch (Format)
+        {
+            case SaveFormat.Ios:
+                writer.Write(dateTime.Ticks - UnixTimeUtcDiffTicks);
+                break;
+            
+            default:
+                BinaryExtensions.Write(writer, dateTime);
+                break;
+        }
+    }
+    
     #endregion
 }
