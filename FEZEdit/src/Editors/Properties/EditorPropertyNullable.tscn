@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8a8ifga3xps1"]
+
+[ext_resource type="Script" uid="uid://bsfcmx5sycwnr" path="res://src/Editors/Properties/EditorPropertyNullable.cs" id="1_jso5s"]
+
+[node name="EditorPropertyNullable" type="HBoxContainer"]
+offset_right = 192.0
+offset_bottom = 35.0
+size_flags_horizontal = 3
+script = ExtResource("1_jso5s")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "<Nullable>"
+
+[node name="Container" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CheckBox" type="CheckBox" parent="Container"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Has Value"
+
+[node name="PropertyContainer" type="MarginContainer" parent="Container"]
+unique_name_in_owner = true
+layout_mode = 2

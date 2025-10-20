@@ -13,12 +13,18 @@ public partial class EditorPropertyFactory: Resource
     [Export] private PackedScene _defaultEditorProperty;
     
     [Export] private PackedScene _enumEditorProperty;
+    
+    [Export] private PackedScene _nullableEditorProperty;
 
     public EditorProperty GetEditorProperty(Type type)
     {
         var scene = _defaultEditorProperty;
         var typeName = type.ToString().Split('`')[0];
-        if (type.IsEnum)
+        if (type.IsValueType && Nullable.GetUnderlyingType(type) != null)
+        {
+            scene = _nullableEditorProperty;
+        }
+        else if (type.IsEnum)
         {
             scene = _enumEditorProperty;
         }
