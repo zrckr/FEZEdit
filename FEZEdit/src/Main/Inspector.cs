@@ -94,7 +94,7 @@ public partial class Inspector : Control
         var type = target.GetType();
         var header = !string.IsNullOrEmpty(_initialHeaderText)
             ? _initialHeaderText
-            : NameRegex().Replace(type.Name, " $1");
+            : NameRegex().Replace(type.Name, " ").Trim();
         
         Visible = true;
         SetHeaderText(header);
@@ -110,7 +110,7 @@ public partial class Inspector : Control
         editorProperty.Name = propertyInfo.Name;
         _properties.AddChild(editorProperty, true);
         
-        editorProperty.Label = NameRegex().Replace(propertyInfo.Name, " $1");
+        editorProperty.Label = NameRegex().Replace(propertyInfo.Name, " ").Trim();
         editorProperty.Value = propertyInfo.GetValue(target);
         editorProperty.UndoRedo = UndoRedo;     // Enable undo/redo after initial value was set
         editorProperty.Disabled = Disabled;
@@ -129,6 +129,6 @@ public partial class Inspector : Control
         }
     }
     
-    [GeneratedRegex("(\\B[A-Z])")]
+    [GeneratedRegex("(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")]
     private static partial Regex NameRegex();
 }
