@@ -1,46 +1,77 @@
-[gd_scene format=3 uid="uid://u8rrlplo0w1y"]
+[gd_scene load_steps=5 format=3 uid="uid://u8rrlplo0w1y"]
 
-[node name="LevelSaveDataList" type="VBoxContainer"]
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 118.0
-grow_vertical = 2
+[ext_resource type="Script" uid="uid://bvuq8w2bll6o" path="res://src/Editors/Sally/LevelSaveDataList.cs" id="1_rfra3"]
+[ext_resource type="Texture2D" uid="uid://cg332lrrmho5f" path="res://assets/icons/Add.png" id="2_4ckhk"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="3_ibxpj"]
+[ext_resource type="Texture2D" uid="uid://dotquijyhytuo" path="res://assets/icons/Rename.png" id="3_w5a8f"]
+
+[node name="LevelSaveDataList" type="MarginContainer"]
+offset_right = 123.0
+offset_bottom = 92.0
+script = ExtResource("1_rfra3")
+
+[node name="LayoutContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="PanelContainer" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="HeaderContainer" type="MarginContainer" parent="LayoutContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Label" type="Label" parent="LayoutContainer/PanelContainer/HeaderContainer"]
+layout_mode = 2
+text = "Levels"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="ActionsContainer" type="MarginContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="LayoutContainer/ActionsContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="LayoutContainer/ActionsContainer"]
+layout_mode = 2
+
+[node name="AddButton" type="Button" parent="LayoutContainer/ActionsContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
 size_flags_horizontal = 3
+text = "Add"
+icon = ExtResource("2_4ckhk")
 
-[node name="SelectedContainer" type="VBoxContainer" parent="."]
+[node name="RenameButton" type="Button" parent="LayoutContainer/ActionsContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rename"
+icon = ExtResource("3_w5a8f")
+
+[node name="RemoveButton" type="Button" parent="LayoutContainer/ActionsContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove"
+icon = ExtResource("3_ibxpj")
+
+[node name="PanelContainer2" type="PanelContainer" parent="LayoutContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HeaderContainer" type="MarginContainer" parent="SelectedContainer"]
-layout_mode = 2
-
-[node name="Panel" type="Panel" parent="SelectedContainer/HeaderContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="SelectedContainer/HeaderContainer"]
-layout_mode = 2
-text = "Selected Levels"
-horizontal_alignment = 1
-
-[node name="SelectedTree" type="Tree" parent="SelectedContainer"]
+[node name="LevelTree" type="Tree" parent="LayoutContainer/PanelContainer2"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="AvailableContainer" type="VBoxContainer" parent="."]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="HeaderContainer" type="MarginContainer" parent="AvailableContainer"]
-layout_mode = 2
-
-[node name="Panel" type="Panel" parent="AvailableContainer/HeaderContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="AvailableContainer/HeaderContainer"]
-layout_mode = 2
-text = "Available Levels"
-horizontal_alignment = 1
-
-[node name="AvailableTree" type="Tree" parent="AvailableContainer"]
-layout_mode = 2
-size_flags_vertical = 3
+allow_search = false
+hide_root = true
+select_mode = 1
+scroll_horizontal_enabled = false

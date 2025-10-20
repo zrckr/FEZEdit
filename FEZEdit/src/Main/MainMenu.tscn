@@ -31,6 +31,11 @@ title = "File"
 
 [node name="Recent" type="PopupMenu" parent="PanelContainer/MenuBar/FileMenu"]
 
+[node name="ToolsMenu" type="PopupMenu" parent="PanelContainer/MenuBar"]
+unique_name_in_owner = true
+oversampling_override = 1.0
+title = "Tools"
+
 [node name="ViewMenu" type="PopupMenu" parent="PanelContainer/MenuBar"]
 unique_name_in_owner = true
 oversampling_override = 1.0
@@ -76,7 +81,7 @@ use_native_dialog = true
 
 [node name="SaveSlotDialog" type="FileDialog" parent="Dialogs"]
 unique_name_in_owner = true
-title = "Select a SaveSlot file"
+title = "Open a File"
 file_mode = 0
 display_mode = 1
 access = 2

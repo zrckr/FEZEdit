@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using FEZEdit.Content;
 using FEZEdit.Core;
 using Godot;
 using Environment = System.Environment;
@@ -14,7 +15,6 @@ public partial class MainMenu : Control
         FileOpenPak,
         FileOpenFolder,
         FileOpenRecent,
-        FileOpenSaveSlot,
         FileClose,
         FileQuit,
         
@@ -23,6 +23,9 @@ public partial class MainMenu : Control
         
         EditUndo,
         EditRedo,
+        
+        ToolsOpenSaveSlotPc,
+        ToolsOpenSaveSlotIos,
 
         ViewChangeLanguage,
         ViewChangeTheme,
@@ -60,6 +63,8 @@ public partial class MainMenu : Control
 
     private PopupMenu _fileRecentMenu;
 
+    private PopupMenu _toolsMenu;
+
     private PopupMenu _viewMenu;
 
     private PopupMenu _viewThemeMenu;
@@ -87,6 +92,7 @@ public partial class MainMenu : Control
     public override void _Ready()
     {
         InitializeFileMenu();
+        InitializeToolsMenu();
         InitializeViewMenu();
         InitializeHelpMenu();
         InitializeDialogs();
@@ -106,7 +112,6 @@ public partial class MainMenu : Control
         _fileMenu.AddItem(Tr("Open PAK File..."), (int)Options.FileOpenPak);
         _fileMenu.AddItem(Tr("Open Assets Folder..."), (int)Options.FileOpenFolder);
         _fileMenu.AddSubmenuNodeItem(Tr("Open Recent"), _fileRecentMenu, (int)Options.FileOpenRecent);
-        _fileMenu.AddItem(Tr("Open Save Slot..."), (int)Options.FileOpenSaveSlot);
         _fileMenu.AddItem(Tr("Close"), (int)Options.FileClose);
         _fileMenu.AddSeparator();
         _fileMenu.AddItem(Tr("Save File"), (int)Options.SaveFile);
@@ -125,6 +130,17 @@ public partial class MainMenu : Control
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.SaveFileAs), Key.S.WithCtrlShift());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.EditUndo), Key.Z.WithCtrl());
         _fileMenu.SetItemShortcut(_fileMenu.GetItemIndex((int)Options.EditRedo), Key.Y.WithCtrl());
+    }
+
+    private void InitializeToolsMenu()
+    {
+        _toolsMenu ??= GetNode<PopupMenu>("%ToolsMenu");
+        _toolsMenu.IdPressed += OnMenuItemPressed;
+        _toolsMenu.AboutToPopup += OnMenuAboutToPopup;
+        
+        _toolsMenu.Clear(true);
+        _toolsMenu.AddItem(Tr("Open Save Slot (PC)..."), (int)Options.ToolsOpenSaveSlotPc);
+        _toolsMenu.AddItem(Tr("Open Save Slot (iOS)..."), (int)Options.ToolsOpenSaveSlotIos);
     }
 
     private void InitializeViewMenu()
@@ -247,12 +263,6 @@ public partial class MainMenu : Control
                 _assetFolderDialog.PopupCentered();
                 break;
 
-            case Options.FileOpenSaveSlot:
-                var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                _saveSlotDialog.CurrentDir = Path.Combine(appdata, "FEZ").Replace('\\', '/');
-                _saveSlotDialog.PopupCentered();
-                break;
-
             case Options.FileClose:
                 _canSaveFiles = false;
                 WorkingTargetClosed?.Invoke();
@@ -284,6 +294,14 @@ public partial class MainMenu : Control
                     undo.Undo();
                 }
                 break;
+            
+            case Options.ToolsOpenSaveSlotPc:
+                PopupSaveSlotDialog(SaveDataProvider.SaveFormat.Pc);
+                break;
+            
+            case Options.ToolsOpenSaveSlotIos:
+                PopupSaveSlotDialog(SaveDataProvider.SaveFormat.Ios);
+                break;
 
             case Options.HelpAbout:
                 Callable.From(() =>
@@ -305,6 +323,14 @@ public partial class MainMenu : Control
         }
     }
 
+    private void PopupSaveSlotDialog(SaveDataProvider.SaveFormat format)
+    {
+        var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        _saveSlotDialog.CurrentDir = Path.Combine(appdata, "FEZ").Replace('\\', '/');
+        _saveSlotDialog.PopupCentered();
+        _saveSlotDialog.SetMeta(nameof(SaveDataProvider.SaveFormat), (int)format);
+    }
+
     private void OnPakFileSelected(string file)
     {
         _canSaveFiles = false;
@@ -323,6 +349,11 @@ public partial class MainMenu : Control
     {
         _canSaveFiles = true;
         SaveSlotOpened?.Invoke(new FileInfo(file));
+        
+        var format = _saveSlotDialog.GetMeta(nameof(SaveDataProvider.SaveFormat)).AsInt32();
+        _saveSlotDialog.RemoveMeta(nameof(SaveDataProvider.SaveFormat));
+        
+        SaveDataProvider.Format = (SaveDataProvider.SaveFormat)format;
     }
 
     private void OnFileGlobalSave(string file)

@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://be2a22lw1wd1a"]
+[gd_scene load_steps=7 format=3 uid="uid://be2a22lw1wd1a"]
 
 [ext_resource type="Script" uid="uid://iw0ao755ihex" path="res://src/Editors/Sally/SallyEditor.cs" id="1_nj4xs"]
-[ext_resource type="PackedScene" uid="uid://lols3ow684lt" path="res://src/Editors/Sally/SaveDataProperties.tscn" id="2_ekyxt"]
-[ext_resource type="PackedScene" uid="uid://b32a74x156tgy" path="res://src/Editors/Sally/LevelSaveDataProperties.tscn" id="11_dr4ld"]
+[ext_resource type="PackedScene" uid="uid://bmj4d2y0ijkef" path="res://src/Main/Inspector.tscn" id="2_1dgsq"]
+[ext_resource type="Texture2D" uid="uid://bb5bhdnyjsydy" path="res://assets/icons/RotateLeft.png" id="2_ekyxt"]
+[ext_resource type="Texture2D" uid="uid://gk0wxih0bh0c" path="res://assets/icons/NonFavorite.png" id="3_unykx"]
+[ext_resource type="Texture2D" uid="uid://bh2cscq1julxk" path="res://assets/icons/Favorites.png" id="4_rp3ux"]
 [ext_resource type="PackedScene" uid="uid://u8rrlplo0w1y" path="res://src/Editors/Sally/LevelSaveDataList.tscn" id="11_gb8u2"]
 
 [node name="SallyEditor" type="MarginContainer"]
@@ -12,27 +14,128 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_nj4xs")
+_saveDataTooltips = Dictionary[String, String]({
+"Artifacts": "ActorType is saved as int",
+"IsNew": "Should only be true if the save file exists, but the save data is clear",
+"Level": "Current level name",
+"OneTimeTutorials": "Used to keep track of some of Dot's tutorial text; key is GameText key, and value should only ever really be true",
+"UnlockedWarpDestinations": "Used for big hub warp gates; includes NATURE_HUB by default",
+"View": "Viewpoint is saved as int"
+})
+_levelSaveDataTooltips = Dictionary[String, String]({
+"DestroyedTriles": "Bell cube, bombable walls, permanent despawning groups (dunno what that means), NameOfGodPuzzle treasure, treasure chest treasures, tuning fork treasures, cube bits, TetrisPuzzle treasure, and UnfoldPuzzle treasure",
+"InactiveArtObjects": "Clock tower cubes, bell, bit doors, the mailbox, NameOfGodPuzzle (hardcoded to 0), treasure chests, that one openable bookcase, turing forks, the spinning rings animation in STARGATE (hardcoded to 0), TetrisPuzzle (hardcoded to 0), and UnfoldPuzzle (hardcoded to 0). All the ones that are not hardcoded to 0 use the Id of the associated ArtObject",
+"InactiveEvents": "Keeps track of Level Scripts that have OneTime set to true and that have already been activated",
+"InactiveGroups": "Permanent PushSwitches (which I think is all the ones used in-game) and the glowing on the door in Waterfall",
+"InactiveNPCs": "Owls",
+"InactiveTriles": "Doors",
+"InactiveVolumes": "Typically used for Volumes that have codes that should only be activated once (e.g., the waterfall and the moria door in Waterfall)",
+"LastStableLiquidHeight": "Leave empty is no liquid",
+"PivotRotations": "Keeps track of the rotations of all the things you can spin around (time switches, tombstones, those big platforms you can push to rotate, that one bookcase, etc.)"
+})
+_filledConditionsTooltips = Dictionary[String, String]({
+"ChestCount": "Number of treasure chests",
+"CubeShardCount": "Number of larger golden cubes",
+"LockedDoorCount": "Doors that have locks",
+"OtherCollectibleCount": "Used for maps, artifacts, anticubes, or any other collectible that isn't a golden cube",
+"ScriptIds": "Script IDs that count towards win conditions",
+"SecretCount": "Used for puzzles",
+"SplitUpCount": "Number of cube bits",
+"UnlockedDoorCount": "Doors that don't have locks"
+})
+_oneHundredSaveFile = "res://assets/saves/100%"
+_twoHundredSaveFile = "res://assets/saves/209,4%"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="LayoutContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderContainer" type="MarginContainer" parent="LayoutContainer"]
 layout_mode = 2
 
-[node name="PanelContainer1" type="PanelContainer" parent="HBoxContainer"]
+[node name="Panel" type="Panel" parent="LayoutContainer/HeaderContainer"]
+layout_mode = 2
+
+[node name="ActionsContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FormatContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="LayoutContainer/HeaderContainer/ActionsContainer/FormatContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Format:"
+
+[node name="FormatOption" type="OptionButton" parent="LayoutContainer/HeaderContainer/ActionsContainer/FormatContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Control" type="Control" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SaveDataProperties" parent="HBoxContainer/PanelContainer1" instance=ExtResource("2_ekyxt")]
+[node name="NewSaveButton" type="Button" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
+unique_name_in_owner = true
 layout_mode = 2
+text = "New Save"
+icon = ExtResource("2_ekyxt")
 
-[node name="PanelContainer2" type="PanelContainer" parent="HBoxContainer"]
+[node name="TwoHundredButton" type="Button" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "209.4% Save"
+icon = ExtResource("3_unykx")
+
+[node name="OneHundredButton" type="Button" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Full Completion Save"
+icon = ExtResource("4_rp3ux")
+
+[node name="EditorContainer" type="HBoxContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SaveDataInspector" parent="LayoutContainer/EditorContainer" instance=ExtResource("2_1dgsq")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+_initialHeaderText = "Properties"
+
+[node name="LevelSaveDataList" parent="LayoutContainer/EditorContainer" instance=ExtResource("11_gb8u2")]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="LevelSaveDataList" parent="HBoxContainer/PanelContainer2" instance=ExtResource("11_gb8u2")]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer"]
+[node name="LevelSaveDataContainer" type="VBoxContainer" parent="LayoutContainer/EditorContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 0
 
-[node name="LevelSaveDataProperties" parent="HBoxContainer/MarginContainer" instance=ExtResource("11_dr4ld")]
+[node name="LevelSaveDataInspector" parent="LayoutContainer/EditorContainer/LevelSaveDataContainer" instance=ExtResource("2_1dgsq")]
+unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 3
+_initialHeaderText = "Level Save Data"
+
+[node name="FilledConditionsInspector" parent="LayoutContainer/EditorContainer/LevelSaveDataContainer" instance=ExtResource("2_1dgsq")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+_initialHeaderText = "Win Conditions"
+
+[node name="Dialogs" type="Node" parent="."]
+
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="Dialogs"]
+unique_name_in_owner = true
+force_native = true
+ok_button_text = "Proceed"
+dialog_text = "Warning!
+The current save data will be overwritten."

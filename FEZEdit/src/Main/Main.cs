@@ -175,6 +175,7 @@ public partial class Main : Control
                 editor.QueueFree();
             }
 
+            SaveDataProvider.Format = SaveDataProvider.SaveFormat.Pc;
             ContentLoader.ContentProvider = null;
             ContentSaver.ContentProvider = null;
             _currentFilePath = null;
