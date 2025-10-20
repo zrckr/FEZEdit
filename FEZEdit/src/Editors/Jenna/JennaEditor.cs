@@ -27,7 +27,7 @@ public partial class JennaEditor : Editor
     {
         set
         {
-            _inspector.ShowDisabled = value;
+            _inspector.Disabled = value;
         }
     }
 
@@ -123,7 +123,7 @@ public partial class JennaEditor : Editor
                 MapNodeConnection mapNodeConnection => ConnectionProperties.CopyFrom(mapNodeConnection),
                 _ => null
             };
-            _inspector.Inspect(properties);
+            _inspector.InspectObject(properties);
             _inspectedObject = source;
         }
     }

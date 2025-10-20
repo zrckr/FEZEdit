@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using FEZEdit.Editors.Properties;
 using Godot;
@@ -7,15 +9,15 @@ namespace FEZEdit.Main;
 
 public partial class Inspector : Control
 {
-    [Export] public bool ShowDisabled { get; set; }
-    
     [Export] private EditorPropertyFactory _factory;
+
+    [Export] private string _initialHeaderText;
 
     public event Action<object> TargetChanged;
 
-    public UndoRedo UndoRedo { get; set; }
+    public bool Disabled { private get; set; }
     
-    private object _currentTarget;
+    public UndoRedo UndoRedo { private get; set; }
 
     private TextureRect _headerIcon;
     
@@ -28,45 +30,105 @@ public partial class Inspector : Control
         _headerIcon = GetNode<TextureRect>("%HeaderIcon");
         _headerLabel = GetNode<Label>("%HeaderLabel");
         _properties = GetNode<VBoxContainer>("%Properties");
-        RefreshProperties();
+        SetHeaderText(_initialHeaderText);
+        ClearProperties();
     }
 
-    public void Inspect(object target)
+    public void InspectObject(object target)
     {
-        if (_currentTarget != null)
+        if (target != null)
         {
-            UndoRedo.ClearHistoryForTag(_currentTarget);
+            UndoRedo.ClearHistoryForTag(target);
         }
-        _currentTarget = target;
-        Callable.From(RefreshProperties).CallDeferred();
+        Callable.From(() => AddEditorProperties(target)).CallDeferred();
     }
 
-    private void RefreshProperties()
+    public void InspectProperty(object target, string propertyName)
+    {
+        if (target == null)
+        {
+            throw new ArgumentNullException(nameof(target));
+        }
+
+        var type = target.GetType();
+        var propertyInfo = type.GetProperty(propertyName);
+        
+        if (propertyInfo == null)
+        {
+            throw new ArgumentNullException(nameof(propertyName));
+        }
+
+        Callable.From(() => AddEditorProperty(target, propertyInfo)).CallDeferred();
+    }
+
+    public void AddPropertyTooltip(string propertyName, string tooltip)
+    {
+        Callable.From(() => AddPropertyTooltipInternal(propertyName, tooltip)).CallDeferred();
+    }
+
+    public void SetHeaderText(string text)
+    {
+        if (_headerLabel != null)
+        {
+            _headerLabel.Text = Tr(text);
+        }
+    }
+
+    public void ClearProperties()
     {
         foreach (var node in _properties.GetChildren())
         {
-            node.QueueFree();
+            node.Free();
         }
+    }
 
-        if (_currentTarget == null)
+    private void AddEditorProperties(object target)
+    {
+        if (target == null)
         {
+            ClearProperties();
             Visible = false;
             return;
         }
         
-        var currentType = _currentTarget.GetType();
-        _headerLabel.Text = Regex.Replace(currentType.Name, "(\\B[A-Z])", " $1");
+        var type = target.GetType();
+        var header = !string.IsNullOrEmpty(_initialHeaderText)
+            ? _initialHeaderText
+            : NameRegex().Replace(type.Name, " $1");
+        
         Visible = true;
-
-        foreach (var property in currentType.GetProperties())
+        SetHeaderText(header);
+        foreach (var property in type.GetProperties())
         {
-            var editorProperty = _factory.GetEditorProperty(_currentTarget, property);
-            _properties.AddChild(editorProperty, true);
-            editorProperty.Label = Regex.Replace(property.Name, "(\\B[A-Z])", " $1");
-            editorProperty.Value = property.GetValue(_currentTarget);
-            editorProperty.UndoRedo = UndoRedo;     // Enable undo/redo after initial value was set
-            editorProperty.Disabled = ShowDisabled;
-            editorProperty.ValueChanged += _ => TargetChanged?.Invoke(_currentTarget);
+            AddEditorProperty(target, property);
         }
     }
+
+    private void AddEditorProperty(object target, PropertyInfo propertyInfo)
+    {
+        var editorProperty = _factory.GetEditorProperty(target, propertyInfo);
+        editorProperty.Name = propertyInfo.Name;
+        _properties.AddChild(editorProperty, true);
+        
+        editorProperty.Label = NameRegex().Replace(propertyInfo.Name, " $1");
+        editorProperty.Value = propertyInfo.GetValue(target);
+        editorProperty.UndoRedo = UndoRedo;     // Enable undo/redo after initial value was set
+        editorProperty.Disabled = Disabled;
+        editorProperty.ValueChanged += _ => TargetChanged?.Invoke(target);
+    }
+
+    private void AddPropertyTooltipInternal(string propertyName, string tooltip)
+    {
+        var editorProperty = _properties.GetChildren()
+            .OfType<Editors.Properties.EditorProperty>()
+            .FirstOrDefault(ed => ed.Name == propertyName);
+
+        if (editorProperty != null)
+        {
+            editorProperty.TooltipText = Tr(tooltip);
+        }
+    }
+    
+    [GeneratedRegex("(\\B[A-Z])")]
+    private static partial Regex NameRegex();
 }
