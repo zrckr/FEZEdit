@@ -117,14 +117,16 @@ public partial class JennaEditor : Editor
         
         if (_inspectedObject != source)
         {
-            object properties = source switch
-            {
-                MapNode mapNode => MapNodeProperties.CopyFrom(mapNode),
-                MapNodeConnection mapNodeConnection => ConnectionProperties.CopyFrom(mapNodeConnection),
-                _ => null
-            };
-            _inspector.InspectObject(properties);
             _inspectedObject = source;
+            switch (source)
+            {
+                case MapNode mapNode:
+                    InspectMapNode(mapNode);
+                    break;
+                case MapNodeConnection connection:
+                    InspectMapConnection(connection);
+                    break;
+            }
         }
     }
 
@@ -134,14 +136,12 @@ public partial class JennaEditor : Editor
         {
             switch (target)
             {
-                case MapNodeProperties properties when _inspectedObject is MapNode node:
-                    properties.CopyTo(node);
+                case MapNode node:
                     _materializer.UpdateMapNode(node);
                     ValueChanged?.Invoke();
                     break;
                 
-                case ConnectionProperties properties when _inspectedObject is MapNodeConnection connection:
-                    properties.CopyTo(connection);
+                case MapNodeConnection connection:
                     _materializer.UpdateMapNode(connection.Node);
                     ValueChanged?.Invoke();
                     break;
@@ -209,5 +209,28 @@ public partial class JennaEditor : Editor
             });
             UndoRedo.CommitAction();
         }
+    }
+
+    private void InspectMapNode(MapNode mapNode)
+    {
+        _inspector.ClearProperties();
+        _inspector.InspectProperty(mapNode, nameof(MapNode.LevelName)); 
+        _inspector.InspectProperty(mapNode, nameof(MapNode.NodeType)); 
+        _inspector.InspectProperty(mapNode, nameof(MapNode.HasLesserGate)); 
+        _inspector.InspectProperty(mapNode, nameof(MapNode.HasWarpGate)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.ChestCount)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.LockedDoorCount)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.UnlockedDoorCount)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.ScriptIds)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.CubeShardCount)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.OtherCollectibleCount)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.SplitUpCount)); 
+        _inspector.InspectProperty(mapNode.Conditions, nameof(WinConditions.SecretCount));
+    }
+
+    private void InspectMapConnection(MapNodeConnection connection)
+    {
+        _inspector.ClearProperties();
+        _inspector.InspectProperty(connection, nameof(MapNodeConnection.BranchOversize));
     }
 }
