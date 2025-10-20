@@ -1,9 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://r5ks85k6g6w"]
 
-[ext_resource type="PackedScene" uid="uid://rduycm2aapiw" path="res://src/Editors/Diez/TrackedSongLoops.tscn" id="1_vawx0"]
+[ext_resource type="PackedScene" uid="uid://rduycm2aapiw" path="res://src/Editors/Diez/OverlayLoopList.tscn" id="1_vawx0"]
 [ext_resource type="Script" uid="uid://dj2fevnlbt5kh" path="res://src/Editors/Diez/DiezEditor.cs" id="1_x7c4j"]
-[ext_resource type="PackedScene" uid="uid://bku334cx3ogl6" path="res://src/Editors/Diez/TrackedSongLoop.tscn" id="2_x7c4j"]
-[ext_resource type="PackedScene" uid="uid://cxbm1jxc213li" path="res://src/Editors/Diez/TrackedSongProperties.tscn" id="3_lt6mc"]
+[ext_resource type="Texture2D" uid="uid://bky42in2t5cfv" path="res://assets/icons/Play.png" id="3_4pij2"]
+[ext_resource type="PackedScene" uid="uid://bmj4d2y0ijkef" path="res://src/Main/Inspector.tscn" id="4_4pij2"]
 
 [node name="DiezEditor" type="MarginContainer"]
 anchors_preset = 15
@@ -12,28 +12,60 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_x7c4j")
-_selectedLoopScene = ExtResource("2_x7c4j")
 
-[node name="LayoutContainer" type="HBoxContainer" parent="."]
+[node name="LayoutContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderContainer" type="MarginContainer" parent="LayoutContainer"]
 layout_mode = 2
 
-[node name="PanelContainer1" type="PanelContainer" parent="LayoutContainer"]
+[node name="Panel" type="Panel" parent="LayoutContainer/HeaderContainer"]
+layout_mode = 2
+
+[node name="ActionsContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer"]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AssembleChordButton" type="Button" parent="LayoutContainer/HeaderContainer/ActionsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(0.3882353, 0.93333334, 0.45882353, 1)
+theme_override_colors/icon_pressed_color = Color(0.23921569, 0.5019608, 0.27058825, 1)
+theme_override_colors/icon_hover_color = Color(0.2688, 0.64, 0.31829336, 1)
+text = "Play Assemble Chord"
+icon = ExtResource("3_4pij2")
+
+[node name="LayoutContainer" type="HBoxContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SongInspector" parent="LayoutContainer/LayoutContainer" instance=ExtResource("4_4pij2")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+_initialHeaderText = "Song Properties"
+
+[node name="TrackedSongLoops" parent="LayoutContainer/LayoutContainer" instance=ExtResource("1_vawx0")]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TrackedSongProperties" parent="LayoutContainer/PanelContainer1" instance=ExtResource("3_lt6mc")]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="PanelContainer2" type="PanelContainer" parent="LayoutContainer"]
+[node name="LoopContainer" type="MarginContainer" parent="LayoutContainer/LayoutContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TrackedSongLoops" parent="LayoutContainer/PanelContainer2" instance=ExtResource("1_vawx0")]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="TrackedSongLoopContainer" type="MarginContainer" parent="LayoutContainer"]
+[node name="LoopInspector" parent="LayoutContainer/LayoutContainer/LoopContainer" instance=ExtResource("4_4pij2")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+_initialHeaderText = "Loop Properties"
+
+[node name="Players" type="Node" parent="."]
+
+[node name="AssembleChordPlayer" type="AudioStreamPlayer" parent="Players"]
+unique_name_in_owner = true

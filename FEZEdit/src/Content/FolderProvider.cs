@@ -104,6 +104,7 @@ public sealed class FolderProvider : IContentProvider
         {
             if (file.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
             {
+                // BUG: Godot reports that the number of bytes counted is less than stated.
                 return AudioStreamWav.LoadFromFile(info.FullName);
             }
         }
