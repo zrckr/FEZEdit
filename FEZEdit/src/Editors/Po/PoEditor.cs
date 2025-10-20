@@ -160,10 +160,21 @@ public partial class PoEditor : Editor
 
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
         var selectedStorage = _textStorage[selectedLanguage];
-        selectedStorage.Add(key, string.Empty);
-        ValueChanged?.Invoke();
         
-        _tableTree.ScrollToItem(row, true);
+        UndoRedo.CreateAction("Add new row");
+        UndoRedo.AddDoMethod(() =>
+        {
+            _tableTree.ScrollToItem(row, true);
+            selectedStorage.Add(key, string.Empty);
+            ValueChanged?.Invoke();
+        });
+        UndoRedo.AddUndoMethod(() =>
+        {
+            _root.RemoveChild(row);
+            selectedStorage.Remove(key);
+            ValueChanged?.Invoke();
+        });
+        UndoRedo.CommitAction();
     }
     
     private void PreRemoveRowFromTable()
@@ -178,12 +189,25 @@ public partial class PoEditor : Editor
     {
         var row = _tableTree.GetSelected();
         var key = row.GetText(0).ToUpper();
-        row.Free();
         
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
         var selectedStorage = _textStorage[selectedLanguage];
-        selectedStorage.Remove(key);
-        ValueChanged?.Invoke();
+        
+        var value = selectedStorage[key];
+        UndoRedo.CreateAction("Remove row");
+        UndoRedo.AddDoMethod(() =>
+        {
+            _root.RemoveChild(row);
+            selectedStorage.Remove(key);
+            ValueChanged?.Invoke();
+        });
+        UndoRedo.AddUndoMethod(() =>
+        {
+            _root.AddChild(row);
+            selectedStorage.Add(key, value);
+            ValueChanged?.Invoke();
+        });
+        UndoRedo.CommitAction();
     }
 
     private void UpdateRowInTable()
@@ -194,10 +218,22 @@ public partial class PoEditor : Editor
         
         var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
         var selectedStorage = _textStorage[selectedLanguage];
-        if (selectedStorage.ContainsKey(key))
+        if (!selectedStorage.TryGetValue(key, out string oldMessage))
+        {
+            return;
+        }
+
+        UndoRedo.CreateAction("Update row");
+        UndoRedo.AddDoMethod(() =>
         {
             selectedStorage[key] = message;
             ValueChanged?.Invoke();
-        }
+        });
+        UndoRedo.AddUndoMethod(() =>
+        {
+            selectedStorage[key] = oldMessage;
+            ValueChanged?.Invoke();
+        });
+        UndoRedo.CommitAction();
     }
 }
