@@ -21,7 +21,7 @@ internal static class ConversionExtensions
     {
         if (geometry.Vertices.Length < 1)
         {
-            return new Mesh();
+            return null;
         }
 
         var geometryPrimitiveType = geometry.PrimitiveType.ToGodot();
