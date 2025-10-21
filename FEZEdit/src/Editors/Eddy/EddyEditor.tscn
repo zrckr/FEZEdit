@@ -1,0 +1,82 @@
+[gd_scene load_steps=8 format=3 uid="uid://dt2e61nac1bga"]
+
+[ext_resource type="Theme" uid="uid://bvigxeq8g32pu" path="res://assets/themes/DarkTheme.tres" id="1_daybi"]
+[ext_resource type="Script" uid="uid://d3w2h4cg2d4us" path="res://src/Editors/Eddy/EddyEditor.cs" id="2_pnn7i"]
+[ext_resource type="PackedScene" uid="uid://82h1lp26dff0" path="res://src/Editors/Eddy/LevelScene.tscn" id="3_ctw11"]
+[ext_resource type="PackedScene" uid="uid://dnfjeplgb1kkk" path="res://src/Editors/Eddy/LevelInstances.tscn" id="5_daybi"]
+[ext_resource type="PackedScene" uid="uid://bmj4d2y0ijkef" path="res://src/Main/Inspector.tscn" id="6_ctw11"]
+[ext_resource type="PackedScene" uid="uid://dgla8mpv4e4gs" path="res://src/Editors/Eddy/InstanceTable.tscn" id="6_daybi"]
+[ext_resource type="PackedScene" uid="uid://brrarqjnqr2n7" path="res://src/Editors/Eddy/AssetBrowser.tscn" id="8_ulu3j"]
+
+[node name="EddyEditor" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_daybi")
+script = ExtResource("2_pnn7i")
+
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 2
+
+[node name="LayoutContainer" type="VBoxContainer" parent="HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Control" type="Control" parent="HSplitContainer/LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LevelScene" parent="HSplitContainer/LayoutContainer/Control" instance=ExtResource("3_ctw11")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="VSplitContainer" type="VSplitContainer" parent="HSplitContainer/LayoutContainer/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Control" type="Control" parent="HSplitContainer/LayoutContainer/Control/VSplitContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="InstanceTable" parent="HSplitContainer/LayoutContainer/Control/VSplitContainer" instance=ExtResource("6_daybi")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FooterContainer" type="PanelContainer" parent="HSplitContainer/LayoutContainer"]
+layout_mode = 2
+
+[node name="LevelInstances" parent="HSplitContainer/LayoutContainer/FooterContainer" instance=ExtResource("5_daybi")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SideContainer" type="MarginContainer" parent="HSplitContainer"]
+custom_minimum_size = Vector2(270, 0)
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="HSplitContainer/SideContainer"]
+layout_mode = 2
+
+[node name="TabContainer" type="TabContainer" parent="HSplitContainer/SideContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+current_tab = 0
+
+[node name="Asset Browser" parent="HSplitContainer/SideContainer/TabContainer" instance=ExtResource("8_ulu3j")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Inspector" parent="HSplitContainer/SideContainer/TabContainer" instance=ExtResource("6_ctw11")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1

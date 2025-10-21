@@ -1,5 +1,9 @@
 [gd_resource type="Theme" load_steps=43 format=3 uid="uid://bvigxeq8g32pu"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2tncf"]
+content_margin_left = 4.0
+content_margin_right = 4.0
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7ek4o"]
 content_margin_left = 4.0
 content_margin_right = 4.0
@@ -86,6 +90,8 @@ content_margin_right = 4.0
 bg_color = Color(0.29411766, 0.43137255, 0.6862745, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqmar"]
+content_margin_left = 4.0
+content_margin_right = 4.0
 bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2tncf"]
@@ -191,8 +197,6 @@ bg_color = Color(0.41, 0.41, 0.41, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ijvli"]
 bg_color = Color(0.41, 0.41, 0.41, 1)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exgjk"]
-
 [sub_resource type="SystemFont" id="SystemFont_i4n7a"]
 font_names = PackedStringArray("Segoe UI", "Sans-Serif")
 
@@ -200,6 +204,7 @@ font_names = PackedStringArray("Segoe UI", "Sans-Serif")
 default_font = SubResource("SystemFont_i4n7a")
 default_font_size = 16
 Button/constants/icon_max_width = 16
+Button/styles/disabled = SubResource("StyleBoxEmpty_2tncf")
 Button/styles/focus = SubResource("StyleBoxEmpty_7ek4o")
 Button/styles/hover = SubResource("StyleBoxFlat_i4n7a")
 Button/styles/normal = SubResource("StyleBoxEmpty_1usol")
@@ -257,4 +262,3 @@ VBoxContainer/constants/separation = 8
 VScrollBar/styles/grabber = SubResource("StyleBoxFlat_5kpe3")
 VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_o61jr")
 VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_ijvli")
-VSeparator/styles/separator = SubResource("StyleBoxEmpty_exgjk")

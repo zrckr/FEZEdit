@@ -1,0 +1,131 @@
+[gd_scene load_steps=8 format=3 uid="uid://brrarqjnqr2n7"]
+
+[ext_resource type="Texture2D" uid="uid://ca63twopc5sbn" path="res://assets/icons/Search.png" id="1_6g85n"]
+[ext_resource type="Script" uid="uid://dag1g1gr5drjt" path="res://src/Editors/Eddy/AssetBrowser.cs" id="1_uy50o"]
+[ext_resource type="Texture2D" uid="uid://pktd1wo8ibd1" path="res://assets/icons/MeshItem.png" id="3_3vny7"]
+[ext_resource type="Texture2D" uid="uid://baim82l7pguaj" path="res://assets/icons/PlayStartBackwards.png" id="4_3274j"]
+[ext_resource type="Texture2D" uid="uid://dga7i5uliu2y8" path="res://assets/icons/ArrowLeft.png" id="4_txbje"]
+[ext_resource type="Texture2D" uid="uid://b7g22l26prsl0" path="res://assets/icons/ArrowRight.png" id="5_3274j"]
+[ext_resource type="Texture2D" uid="uid://blcxp7u55jka7" path="res://assets/icons/PlayStart.png" id="7_apvy3"]
+
+[node name="AssetBrowser" type="MarginContainer"]
+custom_minimum_size = Vector2(360, 0)
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 330.0
+grow_vertical = 2
+script = ExtResource("1_uy50o")
+metadata/_tab_index = 0
+
+[node name="LayoutContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="PanelContainer1" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="TypeContainer" type="HBoxContainer" parent="LayoutContainer/PanelContainer1"]
+layout_mode = 2
+
+[node name="DummyButton" type="Button" parent="LayoutContainer/PanelContainer1/TypeContainer"]
+layout_mode = 2
+disabled = true
+icon = ExtResource("3_3vny7")
+flat = true
+
+[node name="AssetsOption" type="OptionButton" parent="LayoutContainer/PanelContainer1/TypeContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+selected = 0
+item_count = 4
+popup/item_0/text = "Current Trile Set"
+popup/item_0/id = 0
+popup/item_1/text = "Art Objects"
+popup/item_1/id = 1
+popup/item_2/text = "Background Planes"
+popup/item_2/id = 2
+popup/item_3/text = "NPCs"
+popup/item_3/id = 3
+
+[node name="PanelContainer2" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="SearchContainer" type="HBoxContainer" parent="LayoutContainer/PanelContainer2"]
+layout_mode = 2
+
+[node name="DummyButton" type="Button" parent="LayoutContainer/PanelContainer2/SearchContainer"]
+layout_mode = 2
+disabled = true
+icon = ExtResource("1_6g85n")
+flat = true
+
+[node name="SearchLine" type="LineEdit" parent="LayoutContainer/PanelContainer2/SearchContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Filter Assets"
+emoji_menu_enabled = false
+clear_button_enabled = true
+
+[node name="PanelContainer3" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="LayoutContainer/PanelContainer3"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="AssetsContainer" type="VBoxContainer" parent="LayoutContainer/PanelContainer3/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PanelContainer4" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="PaginationContainer" type="HBoxContainer" parent="LayoutContainer/PanelContainer4"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="StartPageButton" type="Button" parent="LayoutContainer/PanelContainer4/PaginationContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("4_3274j")
+
+[node name="PreviousPageButton" type="Button" parent="LayoutContainer/PanelContainer4/PaginationContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("4_txbje")
+
+[node name="CurrentPageBox" type="SpinBox" parent="LayoutContainer/PanelContainer4/PaginationContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="NextPageButton" type="Button" parent="LayoutContainer/PanelContainer4/PaginationContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("5_3274j")
+icon_alignment = 2
+
+[node name="EndPageButton" type="Button" parent="LayoutContainer/PanelContainer4/PaginationContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("7_apvy3")
+icon_alignment = 2
+
+[node name="LoadingLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Loading assets..."
+horizontal_alignment = 1
+vertical_alignment = 1

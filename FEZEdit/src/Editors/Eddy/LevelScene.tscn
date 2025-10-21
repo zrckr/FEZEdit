@@ -1,0 +1,188 @@
+[gd_scene load_steps=17 format=3 uid="uid://82h1lp26dff0"]
+
+[ext_resource type="Texture2D" uid="uid://5hir4iq2tjwo" path="res://assets/icons/ToolSelect.png" id="1_4sefk"]
+[ext_resource type="Script" uid="uid://be3hsmwut3kph" path="res://src/Editors/Eddy/LevelScene.cs" id="1_ku8et"]
+[ext_resource type="Texture2D" uid="uid://dr5f6ekv2rs1q" path="res://assets/icons/ToolMove.png" id="2_roa1l"]
+[ext_resource type="Texture2D" uid="uid://dgdde2gttrafk" path="res://assets/icons/ToolRotate.png" id="3_btiug"]
+[ext_resource type="Texture2D" uid="uid://b1pqviao1tlj2" path="res://assets/icons/ToolScale.png" id="4_ku8et"]
+[ext_resource type="Script" uid="uid://cjnmhxc885byn" path="res://src/Gizmos/Gizmo3D.cs" id="5_roa1l"]
+[ext_resource type="Texture2D" uid="uid://0wduqfn2vbp4" path="res://assets/Faces.png" id="5_wxy05"]
+[ext_resource type="Script" uid="uid://d3u72od2enhbq" path="res://src/Gizmos/Grid3D.cs" id="6_btiug"]
+[ext_resource type="Script" uid="uid://dbcu7cvxjckxb" path="res://src/Editors/Eddy/LevelCamera.cs" id="9_qbolo"]
+[ext_resource type="Script" uid="uid://m1rmp04dlsie" path="res://src/Editors/MaterializerProxy.cs" id="9_tpmnr"]
+[ext_resource type="Script" uid="uid://cxxri1s004b5o" path="res://src/Editors/Eddy/TimeNode.cs" id="9_wxy05"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_4sefk"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ctw11"]
+albedo_texture = ExtResource("5_wxy05")
+texture_filter = 0
+
+[sub_resource type="BoxMesh" id="BoxMesh_daybi"]
+material = SubResource("StandardMaterial3D_ctw11")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qbolo"]
+
+[sub_resource type="Environment" id="Environment_ku8et"]
+
+[node name="LevelScene" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ku8et")
+
+[node name="LayoutContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderContainer" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="LayoutContainer/HeaderContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="ToolModesContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SelectButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_4sefk")
+icon = ExtResource("1_4sefk")
+
+[node name="VSeparator1" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+layout_mode = 2
+
+[node name="TranslateButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_4sefk")
+icon = ExtResource("2_roa1l")
+
+[node name="RotateButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_4sefk")
+icon = ExtResource("3_btiug")
+
+[node name="ScaleButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_4sefk")
+icon = ExtResource("4_ku8et")
+
+[node name="VSeparator2" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+layout_mode = 2
+
+[node name="Separator" type="Control" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VSeparator3" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+layout_mode = 2
+
+[node name="ViewOptionButton" type="OptionButton" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 5
+popup/item_0/text = "Perspective"
+popup/item_0/id = 0
+popup/item_1/text = "Front"
+popup/item_1/id = 1
+popup/item_2/text = "Right"
+popup/item_2/id = 2
+popup/item_3/text = "Back"
+popup/item_3/id = 3
+popup/item_4/text = "Left"
+popup/item_4/id = 4
+
+[node name="VSeparator4" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+layout_mode = 2
+
+[node name="TimeCycle" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer/TimeCycle"]
+layout_mode = 2
+text = "Time:"
+
+[node name="TimeEdit" type="LineEdit" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer/TimeCycle"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "00:00"
+alignment = 1
+context_menu_enabled = false
+emoji_menu_enabled = false
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="LayoutContainer/SubViewportContainer"]
+own_world_3d = true
+handle_input_locally = false
+physics_object_picking = true
+physics_object_picking_sort = true
+size = Vector2i(1280, 654)
+render_target_update_mode = 4
+
+[node name="RootNode" type="Node3D" parent="LayoutContainer/SubViewportContainer/SubViewport"]
+unique_name_in_owner = true
+
+[node name="DirectionalLight1" type="DirectionalLight3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+transform = Transform3D(0.7071068, 0.5, -0.5, 0, -0.7071068, -0.7071068, -0.7071068, 0.5, -0.5, 0, 0, 0)
+
+[node name="DirectionalLight2" type="DirectionalLight3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+transform = Transform3D(0.7071068, -0.5, 0.5, 0, 0.7071068, 0.7071068, -0.7071068, -0.5, 0.5, 0, 0, 0)
+
+[node name="Gizmo" type="Node3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("5_roa1l")
+
+[node name="Grid" type="Node3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("6_btiug")
+
+[node name="Node3D" type="MeshInstance3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+mesh = SubResource("BoxMesh_daybi")
+
+[node name="MaterializerProxy" type="StaticBody3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode/Node3D"]
+script = ExtResource("9_tpmnr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode/Node3D/MaterializerProxy"]
+shape = SubResource("BoxShape3D_qbolo")
+
+[node name="Camera" type="Camera3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+environment = SubResource("Environment_ku8et")
+script = ExtResource("9_qbolo")
+_moveSpeed = 4.0
+_speedChange = 0.2
+_mouseSensitivity = 0.25
+_maxDistance = 500.0
+_panSensitivity = 0.1
+_zoomChange = 0.5
+_minimumOrthogonalSize = 1.0
+_maximumOrthogonalSize = 100.0
+
+[node name="Time" type="Node" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("9_wxy05")
+_timeFactor = 260.0
+_initialHour = 12

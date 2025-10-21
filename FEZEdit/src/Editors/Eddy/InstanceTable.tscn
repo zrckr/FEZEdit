@@ -1,0 +1,76 @@
+[gd_scene load_steps=6 format=3 uid="uid://dgla8mpv4e4gs"]
+
+[ext_resource type="Texture2D" uid="uid://cg332lrrmho5f" path="res://assets/icons/Add.png" id="1_07371"]
+[ext_resource type="Texture2D" uid="uid://dhbda5suvsb5u" path="res://assets/icons/ActionCopy.png" id="3_f85l2"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="4_vk4xd"]
+[ext_resource type="Script" uid="uid://d0grcxf3l0ysv" path="res://src/Editors/Eddy/InstanceTable.cs" id="5_g64ti"]
+[ext_resource type="Texture2D" uid="uid://xk606nn51vos" path="res://assets/icons/Close.png" id="6_8h5d8"]
+
+[node name="InstanceTable" type="MarginContainer"]
+custom_minimum_size = Vector2(0, 360)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_g64ti")
+
+[node name="LayoutContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderContainer" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="LayoutContainer/HeaderContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+
+[node name="ActionsContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="LayoutContainer/HeaderContainer/MarginContainer/ActionsContainer"]
+layout_mode = 2
+text = "Instances:"
+
+[node name="AddButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ActionsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add"
+icon = ExtResource("1_07371")
+
+[node name="CloneButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ActionsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Clone"
+icon = ExtResource("3_f85l2")
+
+[node name="DeleteButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ActionsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+icon = ExtResource("4_vk4xd")
+
+[node name="Control" type="Control" parent="LayoutContainer/HeaderContainer/MarginContainer/ActionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Close"
+
+[node name="CloseButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ActionsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("6_8h5d8")
+
+[node name="PanelContainer" type="PanelContainer" parent="LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InstanceTree" type="Tree" parent="LayoutContainer/PanelContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/draw_guides = 1
+column_titles_visible = true
+hide_root = true
+select_mode = 1
+scroll_horizontal_enabled = false

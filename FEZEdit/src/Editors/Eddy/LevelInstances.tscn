@@ -1,0 +1,66 @@
+[gd_scene load_steps=3 format=3 uid="uid://dnfjeplgb1kkk"]
+
+[ext_resource type="Script" uid="uid://d1uia7a6754rq" path="res://src/Editors/Eddy/LevelInstances.cs" id="1_w315j"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_w315j"]
+allow_unpress = true
+
+[node name="LevelInstances" type="MarginContainer"]
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+script = ExtResource("1_w315j")
+
+[node name="LayoutContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ArtObjectsButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "Art Objects"
+
+[node name="BackgroundPlanesButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "Background Planes"
+
+[node name="GroupsButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "Groups"
+
+[node name="NpcsButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "NPCs"
+
+[node name="PathsButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "Paths"
+
+[node name="VolumesButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "Volumes"
+
+[node name="ScriptsButton" type="Button" parent="LayoutContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_w315j")
+text = "Scripts"
