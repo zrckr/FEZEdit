@@ -5,12 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://drfdrgrkbo5l0" path="res://src/Main/TreeFilter.tscn" id="3_2nus5"]
 
 [node name="FileBrowser" type="MarginContainer"]
-offset_right = 360.0
-offset_bottom = 289.0
+offset_right = 270.0
+offset_bottom = 133.0
 script = ExtResource("1_x4xo7")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-custom_minimum_size = Vector2(360, 0)
+custom_minimum_size = Vector2(270, 0)
 layout_mode = 2
 theme_override_constants/separation = 0
 
