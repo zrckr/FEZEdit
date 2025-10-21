@@ -6,7 +6,7 @@ using Godot;
 using Vector3 = Godot.Vector3;
 using static Godot.RenderingServer;
 
-namespace FEZEdit.Editors.Level;
+namespace FEZEdit.Editors.Beret;
 
 [Tool]
 public partial class TrileMap : Node3D

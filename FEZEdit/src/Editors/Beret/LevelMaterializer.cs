@@ -8,7 +8,7 @@ using FEZRepacker.Core.Definitions.Game.Level;
 using Godot;
 using Mesh = Godot.Mesh;
 
-namespace FEZEdit.Editors.Level;
+namespace FEZEdit.Editors.Beret;
 
 using Level = FEZRepacker.Core.Definitions.Game.Level.Level;
 

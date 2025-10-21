@@ -1,7 +1,7 @@
 using FEZEdit.Core;
 using Godot;
 
-namespace FEZEdit.Editors.Level;
+namespace FEZEdit.Editors.Beret;
 
 public partial class FreelookCamera3D : Camera3D
 {
