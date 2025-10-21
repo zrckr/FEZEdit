@@ -1,6 +1,6 @@
 # <img src="FEZEdit/assets/Icon.png" alt="icon" width="42"/> FEZEdit
 
-## Modding tool for FEZ
+## A Modding Tool for FEZ
 
 <table>
   <tr>
@@ -37,7 +37,7 @@ FEZEdit is a GUI tool created for managing and modding FEZ's assets.
 > git submodule update
 > ```
 
-FEZEdit uses [Godot 4.5 with C# support](https://godotengine.org/download). Older versions will not work.
+FEZEdit uses [Godot 4.5.1 with C# support](https://godotengine.org/download). Older versions will not work.
 Before opening the `FEZEdit.sln` solution in your IDE of choice, open the `FEZEdit/project.godot` in Godot
 first to import all files.
 
@@ -61,9 +61,10 @@ It's still a work in progress so there are some pages missing.
 * World Map
 * Tracked Songs
 * Static text (localization files)
+* Save files (PC and iOS formats)
 
 ## Special thanks to
 
 * [Godot contributors](https://github.com/godotengine/godot) for saving hours of headaches when creating a GUI with 3D support.
 * [Krzyhau's FEZRepacker](https://github.com/FEZModding/FEZRepacker) for taking on the heavy lifting of reading and converting assets.
-* [Jenna1337's FEZTools](https://github.com/Jenna1337/FezTools) for making a custom world map possible.
+* [Jenna1337's FEZTools](https://github.com/Jenna1337/FezTools) for making a custom world map and save editing possible.
