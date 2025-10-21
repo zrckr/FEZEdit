@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="FEZEdit"
-config/version="1.0.0-dev.2"
+config/version="1.0.0-dev.3"
 run/main_scene="uid://54v01g8k5xqy"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="FEZEdit"
