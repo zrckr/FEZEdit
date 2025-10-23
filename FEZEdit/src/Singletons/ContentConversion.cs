@@ -39,7 +39,7 @@ public static class ContentConversion
         var texture = ConvertToTexture(artObject.Cubemap);
         var material = CreateTrixelMaterial(texture);
         var mesh = CreateArrayMesh(artObject.Geometry, material);
-        mesh.ResourceName = artObject.Name;
+        if (mesh != null) mesh.ResourceName = artObject.Name;
         return mesh;
     }
 
