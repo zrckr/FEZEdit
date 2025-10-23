@@ -94,6 +94,11 @@ public static class ContentLoader
         };
     }
     
+    public static IEnumerable<string> GetFiles(string folder)
+    {
+        return Files.Where(f => f.StartsWith(folder, StringComparison.InvariantCultureIgnoreCase));
+    }
+    
     public static ArtObject LoadArtObject(string assetName)
     {
         return Load<ArtObject>(Path.Combine("art objects", assetName));

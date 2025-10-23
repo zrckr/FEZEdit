@@ -108,11 +108,7 @@ public partial class Main : Control
                         throw new ArgumentOutOfRangeException(nameof(workingTarget));
                 }
 
-                Callable.From(() =>
-                {
-                    PopulateFileBrowser();
-                    EventBus.Success("Loaded: {0}", ContentLoader.Root);
-                }).CallDeferred();
+                Callable.From(PopulateFileBrowser).CallDeferred();
             }
             catch (Exception exception)
             {
@@ -359,6 +355,7 @@ public partial class Main : Control
                 }
 
                 RefreshFileBrowser();
+                ContentPreviewer.InvalidatePreview(path);
             }).CallDeferred();
         }).Start();
     }
