@@ -105,7 +105,7 @@ public partial class JennaNode : MeshInstance3D
         var mapNodeTexture = ContentLoader.LoadOtherTexture(mapNodeTexturePath);
         if (mapNodeTexture != null)
         {
-            var imageTexture = mapNodeTexture.ToImageTexture();
+            var imageTexture = ContentConversion.ConvertToTexture(mapNodeTexture);
             jennaNode._mapNodeMaterial.SetShaderParameter("texture_albedo", imageTexture);
         }
         else

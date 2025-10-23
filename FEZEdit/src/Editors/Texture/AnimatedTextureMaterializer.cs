@@ -1,9 +1,10 @@
 ﻿using FEZEdit.Core;
-using FEZEdit.Extensions;
+using FEZEdit.Singletons;
 using Godot;
-using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 
 namespace FEZEdit.Editors.Texture;
+
+using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 
 public partial class AnimatedTextureMaterializer : Node3D
 {
@@ -15,7 +16,7 @@ public partial class AnimatedTextureMaterializer : Node3D
         {
             Animation = DefaultAnimation,
             Autoplay = DefaultAnimation,
-            SpriteFrames = animatedTexture.ToSpriteFrames(),
+            SpriteFrames = ContentConversion.ConvertToSpriteFrames(animatedTexture),
             PixelSize = Mathz.PixelSize,
             Shaded = true,
             AlphaCut = SpriteBase3D.AlphaCutMode.Discard,

@@ -1,5 +1,5 @@
 ﻿using FEZEdit.Core;
-using FEZEdit.Extensions;
+using FEZEdit.Singletons;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using Godot;
 
@@ -16,13 +16,13 @@ public partial class TrileSetMaterializer : Node3D
     public void Initialize(TrileSet trileSet)
     {
         Name = trileSet.Name;
-        var material = trileSet.TextureAtlas.ToGodotMaterial();
+        var meshes = ContentConversion.ConvertToMesh(trileSet);
         var translation = Vector3.Zero;
         var steps = 0;
         
         foreach (var trile in trileSet.Triles.Values)
         {
-            var mesh = trile.Geometry.ToGodotMesh(material);
+            var mesh = meshes[trile.Name];
             var meshInstance = new MeshInstance3D { Name = trile.Name, Mesh = mesh };
             meshInstance.AddChild(MaterializerProxy.CreateFromBox(trile, trile.Size.ToGodot()));
             AddChild(meshInstance);

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
-using FEZEdit.Extensions;
 using FEZEdit.Singletons;
 using FEZRepacker.Core.Definitions.Game.Level;
 using Godot;
@@ -39,13 +38,13 @@ public partial class LevelMaterializer : Node3D
     {
         var trileSet = ContentLoader.LoadTrileSet(level.TrileSetName);
         var meshLibrary = new MeshLibrary { ResourceName = level.TrileSetName };
-        var material = trileSet.TextureAtlas.ToGodotMaterial();
+        var meshes = ContentConversion.ConvertToMesh(trileSet);
 
         foreach ((int trileId, var trile) in trileSet.Triles)
         {
             meshLibrary.CreateItem(trileId);
             meshLibrary.SetItemName(trileId, trile.Name);
-            meshLibrary.SetItemMesh(trileId, trile.Geometry.ToGodotMesh(material));
+            meshLibrary.SetItemMesh(trileId, meshes[trile.Name]);
         }
 
         var gridMap = new TrileMap { Name = "Triles", MeshLibrary = meshLibrary, CellSize = Vector3.One };
@@ -74,8 +73,7 @@ public partial class LevelMaterializer : Node3D
         foreach (var name in levelArtObjects)
         {
             var artObject = ContentLoader.LoadArtObject(name);
-            var material = artObject.Cubemap.ToGodotMaterial();
-            var mesh = artObject.Geometry.ToGodotMesh(material);
+            var mesh = ContentConversion.ConvertToMesh(artObject);
             meshes.Add(name, mesh);
         }
 
@@ -107,12 +105,14 @@ public partial class LevelMaterializer : Node3D
             try
             {
                 var animatedTexture = ContentLoader.LoadBackgroundPlaneAnimated(name);
-                spriteFrames.Add(name, animatedTexture.ToSpriteFrames());
+                var frames = ContentConversion.ConvertToSpriteFrames(animatedTexture); 
+                spriteFrames.Add(name, frames);
             }
             catch (Exception)
             {
                 var texture2D = ContentLoader.LoadBackgroundPlane(name);
-                imageTextures.Add(name, texture2D.ToImageTexture());
+                var imageTexture = ContentConversion.ConvertToTexture(texture2D);
+                imageTextures.Add(name, imageTexture);
             }
         }
 
@@ -177,7 +177,8 @@ public partial class LevelMaterializer : Node3D
         foreach (var name in levelCharacters)
         {
             var animations = ContentLoader.LoadCharacterAnimations(name);
-            spriteFrames.Add(name, animations.ToSpriteFrames());
+            var frames = ContentConversion.ConvertToSpriteFrames(animations);
+            spriteFrames.Add(name, frames);
         }
 
         var characters = new Node3D { Name = "Characters" };
