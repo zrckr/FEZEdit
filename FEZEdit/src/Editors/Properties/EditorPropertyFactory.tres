@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=20 format=3 uid="uid://bwvj2k1utwp0y"]
+[gd_resource type="Resource" load_steps=21 format=3 uid="uid://bwvj2k1utwp0y"]
 
 [ext_resource type="PackedScene" uid="uid://c67kuxugbjfbl" path="res://src/Editors/Properties/EditorPropertyColor.tscn" id="1_2oumw"]
 [ext_resource type="Script" uid="uid://d0d4t0pqadqkq" path="res://src/Editors/Properties/EditorPropertyFactory.cs" id="1_to8os"]
@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://c6abv4xm4530" path="res://src/Editors/Properties/EditorPropertyRectangle.tscn" id="15_uwams"]
 [ext_resource type="PackedScene" uid="uid://dvomeuejo2yn4" path="res://src/Editors/Properties/EditorPropertyDateTime.tscn" id="16_wkyy0"]
 [ext_resource type="PackedScene" uid="uid://c8a8ifga3xps1" path="res://src/Editors/Properties/EditorPropertyNullable.tscn" id="17_sju0v"]
+[ext_resource type="PackedScene" uid="uid://001nmkqtr2vt" path="res://src/Editors/Properties/EditorPropertyObject.tscn" id="19_tiobj"]
 
 [resource]
 script = ExtResource("1_to8os")
@@ -43,3 +44,4 @@ _defaultEditorProperty = ExtResource("13_hapks")
 _enumEditorProperty = ExtResource("10_prfnp")
 _nullableEditorProperty = ExtResource("17_sju0v")
 _arrayEditorProperty = ExtResource("6_wyfuv")
+_objectEditorProperty = ExtResource("19_tiobj")

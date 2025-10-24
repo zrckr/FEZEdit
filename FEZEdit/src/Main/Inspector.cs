@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using FEZEdit.Editors.Properties;
 using Godot;
+using EditorProperty = FEZEdit.Editors.Properties.EditorProperty;
 
 namespace FEZEdit.Main;
 
@@ -27,8 +28,8 @@ public partial class Inspector : Control
 
     public override void _Ready()
     {
-        _headerIcon = GetNode<TextureRect>("%HeaderIcon");
-        _headerLabel = GetNode<Label>("%HeaderLabel");
+        _headerIcon = GetNodeOrNull<TextureRect>("%HeaderIcon");
+        _headerLabel = GetNodeOrNull<Label>("%HeaderLabel");
         _properties = GetNode<VBoxContainer>("%Properties");
         SetHeaderText(_initialHeaderText);
         ClearProperties();
@@ -72,6 +73,11 @@ public partial class Inspector : Control
         {
             _headerLabel.Text = Tr(text);
         }
+    }
+
+    public void SetFactory(EditorPropertyFactory factory)
+    {
+        _factory = factory;
     }
 
     public void ClearProperties()

@@ -20,6 +20,8 @@ public partial class EditorPropertyFactory: Resource
     [Export] private PackedScene _nullableEditorProperty;
 
     [Export] private PackedScene _arrayEditorProperty;
+    
+    [Export] private PackedScene _objectEditorProperty;
 
     public EditorProperty GetEditorProperty(Type type)
     {
@@ -37,6 +39,10 @@ public partial class EditorPropertyFactory: Resource
         else if (type.IsArray)
         {
             scene = _arrayEditorProperty;
+        }
+        else if (IsCustomClass(type))
+        {
+            scene = _objectEditorProperty;
         }
         else if (_editorProperties.TryGetValue(typeName, out var typeScene))
         {
@@ -60,5 +66,16 @@ public partial class EditorPropertyFactory: Resource
         editorProperty.Target = target;
         editorProperty.PropertyInfo = info;
         return editorProperty;
+    }
+
+    private static bool IsCustomClass(Type type)
+    {
+        if (type.IsClass)
+        {
+            return !type.Namespace?.StartsWith("System.") == true &&
+                   !type.Namespace?.StartsWith("Microsoft.") == true;
+        }
+
+        return false;
     }
 }
