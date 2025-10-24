@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Content;
 using FEZEdit.Core;
+using FEZEdit.Extensions;
 using Godot;
 using Environment = System.Environment;
 
