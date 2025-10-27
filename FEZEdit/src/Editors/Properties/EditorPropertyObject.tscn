@@ -3,9 +3,9 @@
 [ext_resource type="Script" uid="uid://0clq6j30dx5" path="res://src/Editors/Properties/EditorPropertyObject.cs" id="1_okqa1"]
 [ext_resource type="Script" uid="uid://bsy8fby00kvmy" path="res://src/Main/Inspector.cs" id="2_okqa1"]
 
-[node name="EditorPropertyObject" type="HBoxContainer"]
+[node name="EditorPropertyObject" type="VBoxContainer"]
 offset_right = 192.0
-offset_bottom = 32.0
+offset_bottom = 59.0
 size_flags_horizontal = 3
 script = ExtResource("1_okqa1")
 
@@ -26,12 +26,9 @@ unique_name_in_owner = true
 layout_mode = 2
 script = ExtResource("2_okqa1")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="InspectorContainer/Inspector"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Properties" type="VBoxContainer" parent="InspectorContainer/Inspector/ScrollContainer"]
+[node name="Properties" type="VBoxContainer" parent="InspectorContainer/Inspector"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 8

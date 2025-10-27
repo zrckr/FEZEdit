@@ -70,12 +70,10 @@ public partial class EditorPropertyFactory: Resource
 
     private static bool IsCustomClass(Type type)
     {
-        if (type.IsClass)
-        {
-            return !type.Namespace?.StartsWith("System.") == true &&
-                   !type.Namespace?.StartsWith("Microsoft.") == true;
-        }
-
-        return false;
+        return type.IsClass && 
+               type != typeof(string) && 
+               !type.IsArray &&
+               !type.Namespace?.StartsWith("System.") == true &&
+               !type.Namespace?.StartsWith("Microsoft.") == true;
     }
 }

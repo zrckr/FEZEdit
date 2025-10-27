@@ -41,11 +41,10 @@ public partial class EditorPropertyObject : EditorProperty
         base._Ready();
         _inspectorContainer = GetNode<FoldableContainer>("%InspectorContainer");
         _inspectorContainer.Folded = true;
-        _inspectorContainer.Title = PropertyInfo?.Name;
+        _inspectorContainer.Title = Type?.Name ?? "Object";
         
         _inspector = GetNode<Inspector>("%Inspector");
         _inspector.SetFactory(PropertyFactory);
-        _inspector.UndoRedo = UndoRedo;
         _inspector.TargetChanged += obj =>
         {
             _object = obj;

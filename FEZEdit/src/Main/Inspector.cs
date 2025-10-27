@@ -39,7 +39,7 @@ public partial class Inspector : Control
     {
         if (target != null)
         {
-            UndoRedo.ClearHistoryForTag(target);
+            UndoRedo?.ClearHistoryForTag(target);
         }
         Callable.From(() => AddEditorProperties(target)).CallDeferred();
     }
@@ -126,7 +126,7 @@ public partial class Inspector : Control
     private void AddPropertyTooltipInternal(string propertyName, string tooltip)
     {
         var editorProperty = _properties.GetChildren()
-            .OfType<Editors.Properties.EditorProperty>()
+            .OfType<EditorProperty>()
             .FirstOrDefault(ed => ed.Name == propertyName);
 
         if (editorProperty != null)
