@@ -3,6 +3,11 @@ using Godot.Collections;
 
 namespace FEZEdit.Gizmos;
 
+/// <summary>
+/// Translated from C++ to C# with alterations, from
+/// - https://github.com/godotengine/godot/blob/master/editor/plugins/node_3d_editor_plugin.h
+/// - https://github.com/godotengine/godot/blob/master/editor/plugins/node_3d_editor_plugin.cpp
+/// </summary>
 public partial class Grid3D : Node3D
 {
     private const string GridShader = "res://src/Shaders/EditorGrid.gdshader";
@@ -56,10 +61,6 @@ public partial class Grid3D : Node3D
 
     [Export] public Color AxisWColor { get; set; } = new(0.55f, 0.55f, 0.55f);
 
-    private readonly bool[] _gridEnable = [false, false, true];
-
-    private readonly bool[] _gridVisible = [false, false, true];
-
     private readonly MeshInstance3D[] _gridInstances = new MeshInstance3D[3];
 
     private readonly ShaderMaterial[] _gridMaterials = new ShaderMaterial[3];
@@ -85,10 +86,16 @@ public partial class Grid3D : Node3D
         InitGrid();
     }
 
-    /// <summary>
-    /// https://github.com/godotengine/godot/blob/master/editor/scene/3d/node_3d_editor_plugin.cpp
-    /// </summary>
-    public void InitIndicators()
+    public void SetPlane(Vector3.Axis axis)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            var gridInstance = _gridInstances[i];
+            gridInstance.Visible = i == (int)axis;
+        }
+    }
+        
+    private void InitIndicators()
     {
         _originMaterial = new ShaderMaterial { Shader = ResourceLoader.Load<Shader>(OriginShader) };
 
@@ -150,7 +157,7 @@ public partial class Grid3D : Node3D
         AddChild(_originInstance);
     }
 
-    public void InitGrid()
+    private void InitGrid()
     {
         if (!GridEnabled)
         {
@@ -168,8 +175,6 @@ public partial class Grid3D : Node3D
 
         for (int a = 0; a < 3; a++)
         {
-            if (!_gridEnable[a]) continue;
-
             int b = (a + 1) % 3;
             int c = (a + 2) % 3;
 
@@ -311,7 +316,7 @@ public partial class Grid3D : Node3D
             gridMesh.SurfaceSetMaterial(0, _gridMaterials[c]);
 
             _gridInstances[c].Mesh = gridMesh;
-            _gridInstances[c].Visible = _gridVisible[a];
+            _gridInstances[c].Visible = a == 2;
         }
     }
 }
