@@ -4,6 +4,7 @@
     <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>disable</Nullable>
+    <AssemblyVersion>1.0.0-dev.4</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\FEZRepacker\Core\FEZRepacker.Core.csproj" />
