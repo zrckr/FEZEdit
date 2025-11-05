@@ -1,774 +1,656 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using FEZEdit.Content;
 using FEZEdit.Core;
 using Godot;
-using Vector3 = Godot.Vector3;
-using static Godot.RenderingServer;
 
 namespace FEZEdit.Editors.Eddy;
 
-[Tool]
+using FEZRepacker.Core.Definitions.Game.Level;
+using FEZRepacker.Core.Definitions.Game.TrileSet;
+
 public partial class TrileMap : Node3D
 {
-    #region Constants
+    private const int ChunkSize = 16;
 
-    private const int InvalidCellItem = -1;
+    private const float CollisionAlpha = 0.5f;
 
-    #endregion
+    private const float CollisionOversize = 1.001f;
 
-    #region Properties
+    private readonly Dictionary<TrileEmplacement, TrileInstance> _triles = new();
 
-    [Export] public Vector3 CellSize { get; set; } = new(1, 1, 1);
+    private readonly Dictionary<Vector3I, Chunk> _chunks = new();
 
-    [Export] public int OctantSize { get; set; } = 8;
+    private readonly Dictionary<TrileEmplacement, CullingMode> _culling = new();
 
-    [Export] public bool CenterX { get; set; } = true;
+    private readonly HashSet<TrileEmplacement> _collisionMap = [];
 
-    [Export] public bool CenterY { get; set; } = true;
+    private readonly Dictionary<int, TrileMesh> _meshes = new();
 
-    [Export] public bool CenterZ { get; set; } = true;
+    private readonly Node _instances = new();
 
-    [Export] public float CellScale { get; set; } = 1.0f;
+    private readonly Node _collisions = new();
 
-    [Export]
-    public MeshLibrary MeshLibrary
+    private readonly Node _proxies = new();
+
+    private CullingMode _cullingMode;
+
+    private TrileSet _trileSet;
+
+    private bool _showCollisionMap;
+
+    private int _updateQueued;
+
+    #region Public
+
+    public CullingMode Culling
     {
-        get => _meshLibrary;
+        get => _cullingMode;
         set
         {
-            if (_meshLibrary != null)
-                _meshLibrary.Changed -= OnMeshLibraryChanged;
+            _cullingMode = value;
+            foreach (var chunk in _chunks.Values)
+            {
+                chunk.Dirty = true;
+            }
 
-            _meshLibrary = value;
-
-            if (_meshLibrary != null)
-                _meshLibrary.Changed += OnMeshLibraryChanged;
-
-            RecreateOctantData();
-            EmitSignal(SignalName.Changed);
+            Callable.From(ChunksUpdate).CallDeferred();
         }
     }
 
-    [Export]
-    private byte[] CellData
+    public TrileSet TrileSet
     {
-        get
-        {
-            using var stream = new MemoryStream();
-            using var writer = new BinaryWriter(stream);
-
-            writer.Write(_cellMap.Count);
-            foreach (var pair in _cellMap)
-            {
-                writer.Write(pair.Key.X);
-                writer.Write(pair.Key.Y);
-                writer.Write(pair.Key.Z);
-                writer.Write(pair.Value.Item);
-                writer.Write((byte)pair.Value.Rotation);
-                writer.Write(pair.Value.Offset.X);
-                writer.Write(pair.Value.Offset.Y);
-                writer.Write(pair.Value.Offset.Z);
-            }
-
-            return stream.ToArray();
-        }
-
+        get => _trileSet;
         set
         {
-            if (value == null || value.Length == 0)
-                return;
-
-            using var stream = new MemoryStream(value.ToArray());
-            using var reader = new BinaryReader(stream);
-
-            ClearInternal();
-            int cellCount = reader.ReadInt32();
-
-            for (int i = 0; i < cellCount; i++)
-            {
-                var position = new Vector3I(
-                    reader.ReadInt16(),
-                    reader.ReadInt16(),
-                    reader.ReadInt16()
-                );
-                var item = reader.ReadUInt16();
-                var rotation = (Orthogonal)reader.ReadByte();
-                var offset = new Vector3(
-                    reader.ReadSingle(),
-                    reader.ReadSingle(),
-                    reader.ReadSingle()
-                );
-
-                SetCellItemInternal(position, item, rotation, offset);
-            }
-
-            RecreateOctantData();
+            _trileSet = value;
+            Callable.From(CreateTrileMeshes).CallDeferred();
+            Callable.From(ChunksRecreate).CallDeferred();
         }
     }
 
-    [Signal]
-    public delegate void CellSizeChangedEventHandler(Vector3 cellSize);
-
-    [Signal]
-    public delegate void ChangedEventHandler();
-
-    #endregion
-
-    private MeshLibrary _meshLibrary;
-
-    private bool _recreatingOctants;
-
-    private bool _awaitingUpdate;
-
-    private readonly Dictionary<OctantKey, Octant> _octantMap = new();
-
-    private readonly Dictionary<IndexKey, Cell> _cellMap = new();
-
-    private Transform3D _lastTransform = Transform3D.Identity;
-
-    private Aabb _cachedAabb;
-
-    private bool _aabbDirty = true;
-
-    public override void _Ready()
+    public bool ShowCollisionMap
     {
-        _lastTransform = GlobalTransform;
-        UpdateVisibility();
-    }
-
-    public override void _EnterTree()
-    {
-        UpdateVisibility();
-    }
-
-    public override void _Process(double delta)
-    {
-        if (_awaitingUpdate)
+        get => _showCollisionMap;
+        set
         {
-            UpdateOctantsCallback();
+            _showCollisionMap = value;
+            Callable.From(CollisionMapUpdate).CallDeferred();
         }
     }
+
+    public Aabb Bounds { get; set; }
 
     public override void _Notification(int what)
     {
         switch ((long)what)
         {
             case NotificationEnterWorld:
-                _lastTransform = GlobalTransform;
-                foreach (var pair in _octantMap)
                 {
-                    OctantEnterWorld(pair.Key);
+                    ChunksEnterWorld();
+                    break;
                 }
-
-                break;
 
             case NotificationEnterTree:
-                UpdateVisibility();
-                break;
-
-            case NotificationTransformChanged:
-                Transform3D newTransform = GlobalTransform;
-                if (newTransform == _lastTransform)
-                    break;
-
-                foreach (var pair in _octantMap)
                 {
-                    OctantTransform(pair.Key);
+                    AddChild(_instances, true);
+                    AddChild(_collisions, true);
+                    AddChild(_proxies, true);
+                    ChunksUpdateVisibility();
+                    break;
                 }
 
-                _lastTransform = newTransform;
-                break;
+            case NotificationReady:
+            case NotificationVisibilityChanged:
+                {
+                    ChunksUpdateVisibility();
+                    break;
+                }
 
             case NotificationExitWorld:
-                foreach (var pair in _octantMap)
                 {
-                    OctantExitWorld(pair.Key);
+                    ChunksExitWorld();
+                    RemoveChild(_proxies);
+                    RemoveChild(_collisions);
+                    RemoveChild(_instances);
+                    break;
                 }
-
-                break;
-
-            case NotificationVisibilityChanged:
-                UpdateVisibility();
-                break;
         }
     }
 
+    #endregion
 
-    public override void _ValidateProperty(Godot.Collections.Dictionary property)
+    #region Emplacements
+
+    public void SetTrile(TrileEmplacement emplacement, TrileInstance instance)
     {
-        if (property["name"].AsStringName() == nameof(CellData))
+        var chunkKey = new Vector3I(emplacement.X, emplacement.Y, emplacement.Z) / ChunkSize;
+        Chunk chunk;
+
+        if (instance == null)
         {
-            property["usage"] = (int)(PropertyUsageFlags.Storage | PropertyUsageFlags.NoEditor);
-        }
-    }
-
-    private void OnMeshLibraryChanged()
-    {
-        RecreateOctantData();
-    }
-
-    public void SetCellItem(Vector3I position, int item, Orthogonal orientation = Orthogonal.FrontUp,
-        Vector3? offset = null)
-    {
-        if (Mathf.Abs(position.X) >= (1 << 20) || Mathf.Abs(position.Y) >= (1 << 20) ||
-            Mathf.Abs(position.Z) >= (1 << 20))
-        {
-            GD.PushError("GridMap cell position out of bounds");
-            return;
-        }
-
-        var key = new IndexKey(position);
-        var hadOldCell = _cellMap.ContainsKey(key);
-
-        if (item < 0)
-        {
-            if (!hadOldCell)
+            if (_chunks.TryGetValue(chunkKey, out chunk))
             {
-                return;
+                chunk.Emplacements.Remove(emplacement);
+                chunk.Dirty = true;
             }
 
-            RemoveCell(key);
-            _aabbDirty = true;
+            _triles.Remove(emplacement);
             return;
         }
 
-        var newCell = new Cell((ushort)item, orientation, offset ?? Vector3.Zero);
-        if (hadOldCell && !_aabbDirty)
+        if (!_chunks.TryGetValue(chunkKey, out chunk))
         {
-            var oldCell = _cellMap[key];
-            UpdateAabbForCellChange(key, oldCell, newCell);
+            chunk = new Chunk();
+            _chunks[chunkKey] = chunk;
+        }
+
+        chunk.Emplacements.Add(emplacement);
+        chunk.Dirty = true;
+
+        _triles[emplacement] = instance;
+        _updateQueued += 1;
+
+        if (_updateQueued == 1)
+        {
+            Callable.From(() =>
+            {
+                CullingUpdate();
+                ChunksUpdate();
+                _updateQueued = 0;
+            }).CallDeferred();
+        }
+    }
+
+    #endregion
+
+    #region Chunks
+
+    private bool ChunkUpdate(Vector3I chunkKey)
+    {
+        if (!_chunks.TryGetValue(chunkKey, out Chunk chunk) || !chunk.Dirty)
+        {
+            return false;
+        }
+
+        // Clear existing data in the chunk
+        foreach (var instance in chunk.Instances)
+        {
+            instance.QueueFree();
+        }
+
+        chunk.Instances.Clear();
+
+        foreach (var proxy in chunk.Proxies)
+        {
+            proxy.QueueFree();
+        }
+
+        chunk.Proxies.Clear();
+
+        if (chunk.Emplacements.Count == 0)
+        {
+            // Chunk no longer needed
+            return true;
+        }
+
+        // Apply culling data on the chunk
+        var culledChunks = new HashSet<TrileEmplacement>();
+        if (Culling == CullingMode.None)
+        {
+            culledChunks = chunk.Emplacements;
         }
         else
         {
-            _aabbDirty = true;
-        }
-
-        SetCellItemInternal(position, item, orientation, offset ?? Vector3.Zero);
-        QueueOctantsDirty();
-    }
-
-    public int GetCellItem(Vector3I position)
-    {
-        if (Mathf.Abs(position.X) >= (1 << 20) || Mathf.Abs(position.Y) >= (1 << 20) ||
-            Mathf.Abs(position.Z) >= (1 << 20))
-            return InvalidCellItem;
-
-        var key = new IndexKey(position);
-        return _cellMap.TryGetValue(key, out Cell cell) ? cell.Item : InvalidCellItem;
-    }
-
-    public Orthogonal GetCellItemOrientation(Vector3I position)
-    {
-        if (Mathf.Abs(position.X) >= (1 << 20) || Mathf.Abs(position.Y) >= (1 << 20) ||
-            Mathf.Abs(position.Z) >= (1 << 20))
-            return Orthogonal.Invalid;
-
-        var key = new IndexKey(position);
-        return _cellMap.TryGetValue(key, out Cell cell) ? cell.Rotation : Orthogonal.Invalid;
-    }
-
-    public Basis GetCellItemBasis(Vector3I position)
-    {
-        var orientation = GetCellItemOrientation(position);
-        return orientation == Orthogonal.Invalid ? new Basis() : orientation.GetBasis();
-    }
-
-    public Vector3I LocalToMap(Vector3 localPosition)
-    {
-        Vector3 mapPosition = (localPosition / CellSize).Floor();
-        return new Vector3I((int)mapPosition.X, (int)mapPosition.Y, (int)mapPosition.Z);
-    }
-
-    public Vector3 MapToLocal(Vector3I mapPosition)
-    {
-        Vector3 offset = GetOffset();
-        return new Vector3(
-            mapPosition.X * CellSize.X + offset.X,
-            mapPosition.Y * CellSize.Y + offset.Y,
-            mapPosition.Z * CellSize.Z + offset.Z
-        );
-    }
-
-    public Godot.Collections.Array<Vector3I> GetUsedCells()
-    {
-        var cells = new Godot.Collections.Array<Vector3I>();
-        foreach (var pair in _cellMap)
-        {
-            cells.Add(pair.Key.ToVector3I());
-        }
-
-        return cells;
-    }
-
-    public Godot.Collections.Array<Vector3I> GetUsedCellsByItem(int item)
-    {
-        var cells = new Godot.Collections.Array<Vector3I>();
-        foreach (var pair in _cellMap)
-        {
-            if (pair.Value.Item == item)
+            foreach (var emplacement in chunk.Emplacements)
             {
-                cells.Add(pair.Key.ToVector3I());
-            }
-        }
-
-        return cells;
-    }
-
-    public Godot.Collections.Array GetMeshes()
-    {
-        if (MeshLibrary == null)
-            return new Godot.Collections.Array();
-
-        var meshes = new Godot.Collections.Array();
-        var offset = GetOffset();
-
-        foreach (var pair in _cellMap)
-        {
-            int id = pair.Value.Item;
-            if (!MeshLibrary.GetItemList().Contains(id))
-                continue;
-
-            var mesh = MeshLibrary.GetItemMesh(id);
-            if (mesh == null)
-                continue;
-
-            var key = pair.Key;
-            var cellPos = new Vector3(key.X, key.Y, key.Z);
-
-            var xform = new Transform3D
-            {
-                Basis = pair.Value.Rotation.GetBasis().Scaled(Vector3.One * CellScale),
-                Origin = cellPos * CellSize + offset + pair.Value.Offset
-            };
-
-            meshes.Add(xform * MeshLibrary.GetItemMeshTransform(id));
-            meshes.Add(mesh);
-        }
-
-        return meshes;
-    }
-
-    public Aabb GetAabb()
-    {
-        if (_aabbDirty)
-        {
-            RecalculateAabb();
-        }
-
-        return _cachedAabb;
-    }
-
-    public void ForceAabbRecalculation()
-    {
-        _aabbDirty = true;
-    }
-
-    public void Clear()
-    {
-        ClearInternal();
-        _cachedAabb = new Aabb();
-        _aabbDirty = true;
-    }
-
-    private void SetCellItemInternal(Vector3I position, int item, Orthogonal rotation, Vector3 offset)
-    {
-        if (item < 0)
-            return;
-
-        var key = new IndexKey(position);
-        var octantKey = new OctantKey(
-            (short)(position.X / OctantSize),
-            (short)(position.Y / OctantSize),
-            (short)(position.Z / OctantSize)
-        );
-
-        // Create octant if it doesn't exist
-        if (!_octantMap.ContainsKey(octantKey))
-        {
-            _octantMap[octantKey] = new Octant { Dirty = true };
-        }
-
-        var octantRef = _octantMap[octantKey];
-        octantRef.Cells.Add(key);
-        octantRef.Dirty = true;
-
-        _cellMap[key] = new Cell((ushort)item, rotation, offset);
-    }
-
-    private void RemoveCell(IndexKey key)
-    {
-        var octantKey = new OctantKey(
-            (short)(key.X / OctantSize),
-            (short)(key.Y / OctantSize),
-            (short)(key.Z / OctantSize)
-        );
-
-        if (_octantMap.TryGetValue(octantKey, out Octant octant))
-        {
-            octant.Cells.Remove(key);
-            octant.Dirty = true;
-        }
-
-        _cellMap.Remove(key);
-    }
-
-    private Vector3 GetOffset()
-    {
-        return new Vector3(
-            CellSize.X * 0.5f * (CenterX ? 1 : 0),
-            CellSize.Y * 0.5f * (CenterY ? 1 : 0),
-            CellSize.Z * 0.5f * (CenterZ ? 1 : 0)
-        );
-    }
-
-    private void QueueOctantsDirty()
-    {
-        if (_awaitingUpdate)
-            return;
-
-        _awaitingUpdate = true;
-    }
-
-    private void UpdateOctantsCallback()
-    {
-        if (!_awaitingUpdate)
-            return;
-
-        var toDelete = new List<OctantKey>();
-        foreach (var pair in _octantMap)
-        {
-            if (OctantUpdate(pair.Key))
-            {
-                toDelete.Add(pair.Key);
-            }
-        }
-
-        foreach (var key in toDelete)
-        {
-            OctantCleanUp(key);
-            _octantMap.Remove(key);
-        }
-
-        UpdateVisibility();
-        _awaitingUpdate = false;
-    }
-
-    private bool OctantUpdate(OctantKey key)
-    {
-        if (!_octantMap.TryGetValue(key, out Octant octant))
-            return false;
-
-        if (!octant.Dirty)
-            return false;
-
-        // Clear existing multimeshes
-        foreach (var instance in octant.MultimeshInstances)
-        {
-            FreeRid(instance.Instance);
-            FreeRid(instance.MultiMesh);
-        }
-
-        octant.MultimeshInstances.Clear();
-
-        if (octant.Cells.Count == 0)
-        {
-            return true; // Octant no longer needed
-        }
-
-        // Group cells by item for multimesh instances
-        var multimeshItems = new Dictionary<int, List<(Transform3D, IndexKey)>>();
-
-        foreach (IndexKey cellKey in octant.Cells)
-        {
-            if (!_cellMap.TryGetValue(cellKey, out Cell cell))
-                continue;
-
-            if (MeshLibrary == null || !MeshLibrary.GetItemList().Contains(cell.Item))
-                continue;
-
-            var cellPos = new Vector3(cellKey.X, cellKey.Y, cellKey.Z);
-            var offset = GetOffset();
-
-            var xform = new Transform3D
-            {
-                Basis = cell.Rotation.GetBasis().Scaled(Vector3.One * CellScale),
-                Origin = cellPos * CellSize + offset + cell.Offset
-            };
-
-            if (MeshLibrary.GetItemMesh(cell.Item) == null)
-                continue;
-
-            if (!multimeshItems.ContainsKey(cell.Item))
-                multimeshItems[cell.Item] = [];
-
-            multimeshItems[cell.Item].Add((xform * MeshLibrary.GetItemMeshTransform(cell.Item), cellKey));
-        }
-
-        // Create multimesh instances
-        foreach (var pair in multimeshItems)
-        {
-            var mm = MultimeshCreate();
-            MultimeshAllocateData(mm, pair.Value.Count, MultimeshTransformFormat.Transform3D);
-            MultimeshSetMesh(mm, MeshLibrary!.GetItemMesh(pair.Key).GetRid());
-
-            int idx = 0;
-            foreach (var item in pair.Value)
-            {
-                MultimeshInstanceSetTransform(mm, idx, item.Item1);
-                idx++;
-            }
-
-            var instance = InstanceCreate();
-            InstanceSetBase(instance, mm);
-            if (IsInsideTree())
-            {
-                InstanceSetScenario(instance, GetWorld3D().Scenario);
-                InstanceSetTransform(instance, GlobalTransform);
-            }
-
-            var mmi = new Octant.MultimeshInstance { MultiMesh = mm, Instance = instance };
-            octant.MultimeshInstances.Add(mmi);
-        }
-
-        octant.Dirty = false;
-        return false;
-    }
-
-    private void OctantEnterWorld(OctantKey key)
-    {
-        if (!_octantMap.TryGetValue(key, out Octant octant))
-            return;
-
-        foreach (var instance in octant.MultimeshInstances)
-        {
-            InstanceSetScenario(instance.Instance, GetWorld3D().Scenario);
-            InstanceSetTransform(instance.Instance, GlobalTransform);
-        }
-    }
-
-    private void OctantExitWorld(OctantKey key)
-    {
-        if (!_octantMap.TryGetValue(key, out Octant octant))
-            return;
-
-        foreach (var instance in octant.MultimeshInstances)
-        {
-            InstanceSetScenario(instance.Instance, new Rid());
-        }
-    }
-
-    private void OctantTransform(OctantKey key)
-    {
-        if (!_octantMap.TryGetValue(key, out Octant octant))
-            return;
-
-        foreach (var instance in octant.MultimeshInstances)
-        {
-            InstanceSetTransform(instance.Instance, GlobalTransform);
-        }
-    }
-
-    private void OctantCleanUp(OctantKey key)
-    {
-        if (!_octantMap.TryGetValue(key, out Octant octant))
-            return;
-
-        foreach (var instance in octant.MultimeshInstances)
-        {
-            FreeRid(instance.Instance);
-            FreeRid(instance.MultiMesh);
-        }
-
-        octant.MultimeshInstances.Clear();
-    }
-
-    private void UpdateVisibility()
-    {
-        if (!IsInsideTree())
-            return;
-
-        foreach (var instance in _octantMap.Values.SelectMany(octant => octant.MultimeshInstances))
-        {
-            InstanceSetVisible(instance.Instance, IsVisibleInTree());
-        }
-    }
-
-    private void RecreateOctantData()
-    {
-        _recreatingOctants = true;
-        var cellCopy = new Dictionary<IndexKey, Cell>(_cellMap);
-        ClearInternal();
-        foreach (var pair in cellCopy)
-        {
-            SetCellItem(pair.Key.ToVector3I(), pair.Value.Item, pair.Value.Rotation, pair.Value.Offset);
-        }
-
-        _recreatingOctants = false;
-    }
-
-    private void ClearInternal()
-    {
-        foreach (var pair in _octantMap)
-        {
-            if (IsInsideTree())
-            {
-                OctantExitWorld(pair.Key);
-            }
-
-            OctantCleanUp(pair.Key);
-        }
-
-        _octantMap.Clear();
-        _cellMap.Clear();
-        _aabbDirty = true;
-    }
-
-    private void UpdateAabbForCellChange(IndexKey key, Cell oldCell, Cell newCell)
-    {
-        if (MeshLibrary == null || !_cachedAabb.HasVolume())
-        {
-            _aabbDirty = true;
-            return;
-        }
-
-        var itemList = new HashSet<int>(MeshLibrary.GetItemList());
-
-        // Remove the old cell's contribution
-        if (itemList.Contains(oldCell.Item))
-        {
-            Mesh oldMesh = MeshLibrary.GetItemMesh(oldCell.Item);
-            if (oldMesh != null)
-            {
-                Aabb oldMeshAabb = oldMesh.GetAabb();
-                if (oldMeshAabb.HasVolume())
+                if (_culling.TryGetValue(emplacement, out CullingMode culling) && (culling & Culling) != 0)
                 {
-                    Aabb oldCellAabb = GetTransformedCellAabb(key, oldCell, oldMeshAabb);
-                    _cachedAabb = RemoveAabbFromUnion(_cachedAabb, oldCellAabb);
+                    culledChunks.Add(emplacement);
                 }
             }
         }
 
-        // Add the new cell's contribution
-        if (!itemList.Contains(newCell.Item))
+        // Group triles by id for multimesh instances
+        var multiMeshIds = new Dictionary<int, List<Transform3D>>();
+        foreach (TrileInstance trile in culledChunks.Select(emplacement => _triles[emplacement]))
         {
-            return;
-        }
-
-        Mesh newMesh = MeshLibrary.GetItemMesh(newCell.Item);
-        if (newMesh == null)
-        {
-            return;
-        }
-
-        Aabb newMeshAabb = newMesh.GetAabb();
-        if (!newMeshAabb.HasVolume())
-        {
-            return;
-        }
-
-        Aabb newCellAabb = GetTransformedCellAabb(key, newCell, newMeshAabb);
-        _cachedAabb = _cachedAabb.Merge(newCellAabb);
-    }
-
-    private Aabb GetTransformedCellAabb(IndexKey key, Cell cell, Aabb meshAabb)
-    {
-        var offset = GetOffset();
-        var cellPos = new Vector3(key.X, key.Y, key.Z);
-
-        var xform = new Transform3D(
-            cell.Rotation.GetBasis().Scaled(Vector3.One * CellScale),
-            cellPos * CellSize + offset + cell.Offset
-        );
-
-        var meshTransform = MeshLibrary.GetItemMeshTransform(cell.Item);
-        var finalTransform = xform * meshTransform;
-
-        return meshAabb * finalTransform;
-    }
-
-    private Aabb RemoveAabbFromUnion(Aabb union, Aabb toRemove)
-    {
-        // This is an approximation - if the removed AABB was contributing to the union's bounds,
-        // we need to recalculate from scratch
-        if (union.Position.IsEqualApprox(toRemove.Position) ||
-            (union.Position + union.Size).IsEqualApprox(toRemove.Position + toRemove.Size))
-        {
-            _aabbDirty = true;
-        }
-
-        return union;
-    }
-
-    private void RecalculateAabb()
-    {
-        if (MeshLibrary == null || _cellMap.Count == 0)
-        {
-            _cachedAabb = new Aabb(Vector3.Zero, Vector3.Zero);
-            _aabbDirty = false;
-            return;
-        }
-
-        var aabb = new Aabb();
-        var first = true;
-
-        var itemList = new HashSet<int>(MeshLibrary.GetItemList());
-        foreach (var pair in _cellMap)
-        {
-            int itemId = pair.Value.Item;
-            if (!itemList.Contains(itemId))
-                continue;
-
-            Mesh mesh = MeshLibrary.GetItemMesh(itemId);
-            if (mesh == null)
-                continue;
-
-            Aabb meshAabb = mesh.GetAabb();
-            if (!meshAabb.HasVolume())
-                continue;
-
-            Aabb transformedAabb = GetTransformedCellAabb(pair.Key, pair.Value, meshAabb);
-
-            if (first)
+            if (!multiMeshIds.TryGetValue(trile.TrileId, out List<Transform3D> xforms))
             {
-                aabb = transformedAabb;
-                first = false;
+                xforms = [];
+                multiMeshIds[trile.TrileId] = xforms;
             }
-            else
+
+            var xform = Transform3D.Identity;
+            xform.Basis = BasisLookup[trile.PhiLight];
+            xform.Origin = trile.Position.ToGodot();
+            xforms.Add(xform);
+        }
+
+        // Create multimesh instances
+        foreach ((int trileId, var xforms) in multiMeshIds)
+        {
+            var mm = new MultiMesh();
+            mm.TransformFormat = MultiMesh.TransformFormatEnum.Transform3D;
+            mm.InstanceCount = xforms.Count;
+            mm.Mesh = _meshes[trileId].Visual;
+            for (int i = 0; i < xforms.Count; i++)
             {
-                aabb = aabb.Merge(transformedAabb);
+                mm.SetInstanceTransform(i, xforms[i]);
+            }
+
+            var mmi = new MultiMeshInstance3D();
+            mmi.Name = $"{trileId}";
+            mmi.Multimesh = mm;
+
+            if (IsInsideTree())
+            {
+                _instances.AddChild(mmi, true);
+                mmi.GlobalTransform = GlobalTransform;
+            }
+
+            chunk.Instances.Add(mmi);
+        }
+
+        // Compute bounds
+        foreach (var trileId in multiMeshIds.Keys)
+        {
+            var size = TrileSet.Triles[trileId].Size.ToGodot();
+            var offset = TrileSet.Triles[trileId].Offset.ToGodot();
+            var aabb = new Aabb(offset, size);
+
+            foreach (var xform in multiMeshIds[trileId])
+            {
+                Bounds.Merge(aabb * xform);
             }
         }
 
-        _cachedAabb = aabb;
-        _aabbDirty = false;
-    }
-
-    #region Internal classes
-
-    private readonly record struct IndexKey(short X, short Y, short Z)
-    {
-        public IndexKey(Vector3I vector) : this((short)vector.X, (short)vector.Y, (short)vector.Z) { }
-
-        public Vector3I ToVector3I() => new(X, Y, Z);
-    }
-
-    private record struct Cell(ushort Item, Orthogonal Rotation, Vector3 Offset);
-
-    private class Octant
-    {
-        public class MultimeshInstance
+        // Place proxies
+        foreach (var emplacement in culledChunks)
         {
-            public Rid Instance;
-            public Rid MultiMesh;
+            var instance = _triles[emplacement];
+            if (instance.ActorSettings == null)
+            {
+                continue;
+            }
+
+            var size = TrileSet.Triles[instance.TrileId].Size.ToGodot();
+            var offset = TrileSet.Triles[instance.TrileId].Offset.ToGodot();
+
+            var proxy = MaterializerProxy.CreateFromBox(instance.ActorSettings, size);
+            _proxies.AddChild(proxy, true);
+            proxy.Offset = offset;
+            proxy.GlobalPosition = instance.Position.ToGodot();
+
+            chunk.Proxies.Add(proxy);
         }
 
-        public readonly List<MultimeshInstance> MultimeshInstances = [];
-        public readonly HashSet<IndexKey> Cells = [];
-        public bool Dirty;
+        chunk.Dirty = false;
+        return false;
     }
 
-    private record struct OctantKey(short X, short Y, short Z);
+    private void ChunkCleanUp(Vector3I chunkKey)
+    {
+        if (_chunks.TryGetValue(chunkKey, out Chunk chunk))
+        {
+            foreach (var instance in chunk.Instances)
+            {
+                instance.QueueFree();
+            }
+
+            chunk.Instances.Clear();
+        }
+    }
+
+    private void ChunksEnterWorld()
+    {
+        foreach (var instance in _chunks.Values.SelectMany(chunk => chunk.Instances))
+        {
+            _instances.AddChild(instance, true);
+            instance.GlobalTransform = GlobalTransform;
+        }
+    }
+
+    private void ChunksUpdate()
+    {
+        var toDelete = new HashSet<Vector3I>();
+        foreach (var chunkKey in _chunks.Keys.Where(ChunkUpdate))
+        {
+            toDelete.Add(chunkKey);
+        }
+
+        foreach (var chunkKey in toDelete)
+        {
+            ChunkCleanUp(chunkKey);
+            _chunks.Remove(chunkKey);
+        }
+
+        ChunksUpdateVisibility();
+    }
+
+    private void ChunksUpdateVisibility()
+    {
+        foreach (var instance in _chunks.Values.SelectMany(chunk => chunk.Instances))
+        {
+            instance.Visible = IsVisibleInTree();
+        }
+    }
+
+    private void ChunksExitWorld()
+    {
+        foreach (var instance in _chunks.Values.SelectMany(chunk => chunk.Instances))
+        {
+            _instances.RemoveChild(instance);
+        }
+    }
+
+    private void ChunksRecreate()
+    {
+        var triles = new Dictionary<TrileEmplacement, TrileInstance>(_triles);
+        if (IsInsideTree())
+        {
+            ChunksExitWorld();
+        }
+
+        foreach (var chunkKey in _chunks.Keys)
+        {
+            ChunkCleanUp(chunkKey);
+        }
+
+        _chunks.Clear();
+        _triles.Clear();
+
+        foreach ((TrileEmplacement emplacement, var instance) in triles)
+        {
+            SetTrile(emplacement, instance);
+        }
+    }
+
+    #endregion
+
+    #region Culling Map
+
+    private void CullingUpdate()
+    {
+        // Invalidate existing culling data
+        _culling.Clear();
+        _collisionMap.Clear();
+
+        // Compute culling bounds
+        var start = new TrileEmplacement(int.MaxValue, int.MaxValue, int.MaxValue);
+        var end = new TrileEmplacement(int.MinValue, int.MinValue, int.MinValue);
+        foreach (var emplacement in _triles.Keys)
+        {
+            start = new TrileEmplacement
+            {
+                X = Mathf.Min(emplacement.X, start.X),
+                Y = Mathf.Min(emplacement.Y, start.Y),
+                Z = Mathf.Min(emplacement.Z, start.Z)
+            };
+            end = new TrileEmplacement
+            {
+                X = Mathf.Max(emplacement.X, end.X),
+                Y = Mathf.Max(emplacement.Y, end.Y),
+                Z = Mathf.Max(emplacement.Z, end.Z)
+            };
+        }
+
+        // Process each orthogonal view direction
+        foreach (var cullingMode in Enum.GetValues<CullingMode>())
+        {
+            if (cullingMode == CullingMode.None)
+            {
+                continue;
+            }
+
+            // Determine iteration ranges based on view direction
+            var horizontalRange = GetRange(cullingMode.GetSide());
+            var verticalRange = GetRange(Vector3I.Up);
+            var depthRange = GetRange(cullingMode.GetDepth());
+
+            // Iterate through the view plane
+            for (int y = verticalRange.A; y <= verticalRange.B; y++)
+            {
+                for (int x = horizontalRange.A; x <= horizontalRange.B; x++)
+                {
+                    var emplacements = new List<TrileEmplacement>();
+                    var seeThroughBits = new BitArray(depthRange.B - depthRange.A + 1);
+
+                    // Collect triles along the depth axis for culling
+                    int i = 0;
+                    for (int z = depthRange.A; z <= depthRange.B; z++)
+                    {
+                        var vector = Vector3I.Up * y + cullingMode.GetSide() * x + cullingMode.GetDepth() * z;
+                        var emplacement = new TrileEmplacement { X = vector.X, Y = vector.Y, Z = vector.Z };
+
+                        if (!_triles.TryGetValue(emplacement, out TrileInstance trileInstance))
+                        {
+                            continue;
+                        }
+
+                        if (!TrileSet.Triles.TryGetValue(trileInstance.TrileId, out var trile))
+                        {
+                            continue;
+                        }
+
+                        seeThroughBits[i++] = trile.SeeThrough;
+                        _culling.TryAdd(emplacement, CullingMode.None);
+                        emplacements.Add(emplacement);
+                    }
+
+                    // No culling - skip the current depth iteration
+                    if (emplacements.Count < 1)
+                    {
+                        continue;
+                    }
+
+                    var seeThrough = GetInteger(seeThroughBits);
+                    var seeThroughAll = (ulong)(Mathf.Pow(2, emplacements.Count) - 1);
+
+                    // If all emplacements are solid, then cull only the front one
+                    if (seeThrough == 0)
+                    {
+                        _culling[emplacements[0]] |= cullingMode;
+                        _collisionMap.Add(emplacements[0]);
+                        continue;
+                    }
+
+                    // If all emplacements are see-through, then cull them all
+                    if (seeThrough == seeThroughAll)
+                    {
+                        foreach (var emplacement in emplacements)
+                        {
+                            _culling[emplacement] |= cullingMode;
+                        }
+
+                        _collisionMap.Add(emplacements[0]);
+                        continue;
+                    }
+
+                    // Cull emplacements until the solid one was hit
+                    for (i = 0; i < emplacements.Count; i++)
+                    {
+                        _culling[emplacements[i]] |= cullingMode;
+                        if (i == 0)
+                        {
+                            _collisionMap.Add(emplacements[i]);
+                        }
+
+                        var isSolid = (seeThrough & (1u << i)) == 0;
+                        if (isSolid)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return;
+
+        (int A, int B) GetRange(Vector3I axis)
+        {
+            var startValue = start.X * axis.X + start.Y * axis.Y + start.Z * axis.Z;
+            var endValue = end.X * axis.X + end.Y * axis.Y + end.Z * axis.Z;
+            return endValue < startValue
+                ? (endValue, startValue)
+                : (startValue, endValue);
+        }
+
+        ulong GetInteger(BitArray bits)
+        {
+            var array = new ulong[1];
+            bits.CopyTo(array, 0);
+            return array[0];
+        }
+    }
+
+    #endregion
+
+    #region Collision Map
+
+    private void CreateTrileMeshes()
+    {
+        _meshes.Clear();
+
+        var meshes = ContentConversion.ConvertToMesh(TrileSet);
+        var lookup = TrileSet.Triles.ToDictionary(t => t.Value.Name, t => (t.Key, t.Value));
+
+        foreach ((string name, var mesh) in meshes)
+        {
+            (int id, var instance) = lookup[name];
+            var size = instance.Size.ToGodot() * CollisionOversize;
+            _meshes[id] = new TrileMesh
+            {
+                Visual = mesh,
+                Collision = ContentConversion.CreateCollisionMesh(instance.Faces, size, CollisionAlpha)
+            };
+        }
+    }
+
+    private void CollisionMapUpdate()
+    {
+        foreach (var mmi in _collisions.GetChildren())
+        {
+            mmi.QueueFree();
+        }
+
+        if (!IsInsideTree() || !ShowCollisionMap)
+        {
+            return;
+        }
+
+        // Group triles by id for multimesh instances
+        var multiMeshIds = new Dictionary<int, List<Transform3D>>();
+        foreach (TrileInstance instance in _collisionMap.Select(emplacement => _triles[emplacement]))
+        {
+            if (!multiMeshIds.TryGetValue(instance.TrileId, out var xforms))
+            {
+                xforms = [];
+                multiMeshIds[instance.TrileId] = xforms;
+            }
+
+            var xform = Transform3D.Identity;
+            xform.Basis = BasisLookup[instance.PhiLight];
+            xform.Origin = instance.Position.ToGodot();
+            xforms.Add(xform);
+        }
+
+        // Create multimesh instances
+        foreach ((int trileId, var xforms) in multiMeshIds)
+        {
+            var mm = new MultiMesh();
+            mm.TransformFormat = MultiMesh.TransformFormatEnum.Transform3D;
+            mm.InstanceCount = xforms.Count;
+            mm.Mesh = _meshes[trileId].Collision;
+
+            for (int i = 0; i < xforms.Count; i++)
+            {
+                mm.SetInstanceTransform(i, xforms[i]);
+            }
+
+            var mmi = new MultiMeshInstance3D();
+            mmi.Name = $"{trileId}";
+            mmi.Multimesh = mm;
+
+            if (IsInsideTree())
+            {
+                _collisions.AddChild(mmi, true);
+                mmi.GlobalTransform = GlobalTransform;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Phi lookup
+
+    private static readonly Basis[] BasisLookup =
+    [
+        Basis.Identity.Rotated(Vector3.Up, -Mathf.Pi),
+        Basis.Identity.Rotated(Vector3.Up, -Mathf.Pi / 2f),
+        Basis.Identity.Rotated(Vector3.Up, 0),
+        Basis.Identity.Rotated(Vector3.Up, +Mathf.Pi / 2f)
+    ];
+
+    private const int DefaultPhi = 0;
+
+    public static byte FindPhi(Basis basis)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            var axis = basis[i];
+            for (int j = 0; j < 3; j++)
+            {
+                axis[j] = axis[j] switch
+                {
+                    > 0.5f => 1.0f,
+                    < -0.5f => -1.0f,
+                    _ => 0.0f
+                };
+            }
+
+            basis[i] = axis;
+        }
+
+        for (byte i = 0; i < BasisLookup.Length; i++)
+        {
+            if (basis.IsEqualApprox(BasisLookup[i]))
+            {
+                return i;
+            }
+        }
+
+        return DefaultPhi;
+    }
+
+    public static byte RotatePhi(byte phi, Vector3 axis, float angle)
+    {
+        Debug.Assert(phi <= BasisLookup.Length);
+        var rotatedBasis = BasisLookup[phi].Rotated(axis, angle);
+        return FindPhi(rotatedBasis);
+    }
+
+    #endregion
+
+    #region Internal types
+
+    private record Chunk
+    {
+        public List<MultiMeshInstance3D> Instances { get; } = [];
+        public List<MaterializerProxy> Proxies { get; } = [];
+        public HashSet<TrileEmplacement> Emplacements { get; } = [];
+        public bool Dirty { get; set; }
+    }
+
+    private record TrileMesh
+    {
+        public Mesh Visual { get; init; }
+        public Mesh Collision { get; init; }
+    }
 
     #endregion
 }

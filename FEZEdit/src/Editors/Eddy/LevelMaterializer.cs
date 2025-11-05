@@ -17,14 +17,6 @@ public partial class LevelMaterializer : Node3D
 
     private const string DefaultAnimation = "default";
 
-    private static readonly Orthogonal[] RotationIndices =
-    [
-        Orthogonal.BackUp,
-        Orthogonal.LeftUp,
-        Orthogonal.FrontUp,
-        Orthogonal.RightUp
-    ];
-
     public void Initialize(Level level)
     {
         Name = level.Name;
@@ -37,30 +29,14 @@ public partial class LevelMaterializer : Node3D
     private void MaterializeTriles(Level level)
     {
         var trileSet = ContentLoader.LoadTrileSet(level.TrileSetName);
-        var meshLibrary = new MeshLibrary { ResourceName = level.TrileSetName };
-        var meshes = ContentConversion.ConvertToMesh(trileSet);
-
-        foreach ((int trileId, var trile) in trileSet.Triles)
-        {
-            meshLibrary.CreateItem(trileId);
-            meshLibrary.SetItemName(trileId, trile.Name);
-            meshLibrary.SetItemMesh(trileId, meshes[trile.Name]);
-        }
-
-        var gridMap = new TrileMap { Name = "Triles", MeshLibrary = meshLibrary, CellSize = Vector3.One };
-        var triles = new Dictionary<Vector3I, TrileInstance>();
-
+        var trileMap = new TrileMap { Name = "Triles", TrileSet = trileSet };
+        
         foreach ((TrileEmplacement emplacement, var instance) in level.Triles)
         {
-            var position = new Vector3I(emplacement.X, emplacement.Y, emplacement.Z);
-            var offset = instance.Position.ToGodot() - new Vector3(emplacement.X, emplacement.Y, emplacement.Z);
-            var orientation = RotationIndices[instance.PhiLight];
-            gridMap.SetCellItem(position, instance.TrileId, orientation, offset);
-            triles.Add(position, instance);
+            trileMap.SetTrile(emplacement, instance);
         }
-
-        gridMap.AddChild(MaterializerProxy.CreateEmpty(triles));
-        AddChild(gridMap);
+        
+        AddChild(trileMap);
     }
 
     private void MaterializeArtObjects(Level level)

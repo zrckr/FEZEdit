@@ -6,6 +6,12 @@ public partial class MaterializerProxy : StaticBody3D
 {
     public object Object { get; set; }
 
+    public Vector3 Offset
+    {
+        get => GetChild<CollisionShape3D>(0).Position;
+        set => GetChild<CollisionShape3D>(0).Position = value;
+    }
+
     public static MaterializerProxy CreateFromMesh(object @object, Mesh mesh)
     {
         return CreateFromShape(@object, mesh.CreateTrimeshShape());

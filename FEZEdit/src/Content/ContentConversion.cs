@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
+using FEZRepacker.Core.Definitions.Game.Common;
 using FEZRepacker.Core.Definitions.Game.Graphics;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using Godot;
@@ -17,6 +18,17 @@ public static class ContentConversion
     private const string DefaultAnimationName = "default";
 
     private const string TrixelMaterialShader = "res://src/Shaders/TrixelMaterial.gdshader";
+
+    private const string MissingTexture = "res://assets/textures/Missing.png";
+    
+    private static readonly Dictionary<CollisionType, string> CollisionTextures = new()
+    {
+        [CollisionType.AllSides] = "res://assets/textures/AllSides.png",
+        [CollisionType.TopOnly] = "res://assets/textures/TopOnly.png",
+        [CollisionType.None] =  "res://assets/textures/None.png",
+        [CollisionType.Immaterial] =  "res://assets/textures/Immaterial.png",
+        [CollisionType.TopNoStraightLedge] = "res://assets/textures/TopNoStraightLedge.png"
+    };
 
     public static IDictionary<string, Mesh> ConvertToMesh(TrileSet trileSet)
     {
@@ -133,6 +145,84 @@ public static class ContentConversion
         return spriteFrames;
     }
 
+    public static Mesh CreateCollisionMesh(Dictionary<FaceOrientation, CollisionType> faces, Vector3 size, float alpha)
+    {
+        var arrayMesh = new ArrayMesh();
+        
+        foreach ((FaceOrientation face, var collision) in faces)
+        {
+            var vertices = new Vector3[4];
+            var normals = new Vector3[4];
+
+            switch (face)
+            {
+                case FaceOrientation.Front:
+                    vertices[0] = new Vector3(-1, -1, 1);
+                    vertices[1] = new Vector3(1, -1, 1);
+                    vertices[2] = new Vector3(1, 1, 1);
+                    vertices[3] = new Vector3(-1, 1, 1);
+                    normals[0] = normals[1] = normals[2] = normals[3] = new Vector3(0, 0, 1);
+                    break;
+                case FaceOrientation.Back:
+                    vertices[0] = new Vector3(1, -1, -1);
+                    vertices[1] = new Vector3(-1, -1, -1);
+                    vertices[2] = new Vector3(-1, 1, -1);
+                    vertices[3] = new Vector3(1, 1, -1);
+                    normals[0] = normals[1] = normals[2] = normals[3] = new Vector3(0, 0, -1);
+                    break;
+                case FaceOrientation.Left:
+                    vertices[0] = new Vector3(-1, -1, -1);
+                    vertices[1] = new Vector3(-1, -1, 1);
+                    vertices[2] = new Vector3(-1, 1, 1);
+                    vertices[3] = new Vector3(-1, 1, -1);
+                    normals[0] = normals[1] = normals[2] = normals[3] = new Vector3(-1, 0, 0);
+                    break;
+                case FaceOrientation.Right:
+                    vertices[0] = new Vector3(1, -1, 1);
+                    vertices[1] = new Vector3(1, -1, -1);
+                    vertices[2] = new Vector3(1, 1, -1);
+                    vertices[3] = new Vector3(1, 1, 1);
+                    normals[0] = normals[1] = normals[2] = normals[3] = new Vector3(1, 0, 0);
+                    break;
+            }
+            
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] *= 0.5f;    // Scale down to unit size
+                vertices[i] *= size;
+            }
+
+            var uvs = new Vector2[]
+            {
+                new(0, 1), // bottom-left
+                new(1, 1), // bottom-right
+                new(1, 0), // top-right
+                new(0, 0)  // top-left
+            };
+
+            var indices = new[] { 2, 1, 0, 3, 2, 0 };
+            
+            var meshData = new Godot.Collections.Array();
+            meshData.Resize((int)Mesh.ArrayType.Max);
+            meshData[(int)Mesh.ArrayType.Vertex] = vertices;
+            meshData[(int)Mesh.ArrayType.Normal] = normals;
+            meshData[(int)Mesh.ArrayType.TexUV] = uvs;
+            meshData[(int)Mesh.ArrayType.Index] = indices;
+            arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshData);
+
+            var texture = CollisionTextures.GetValueOrDefault(collision, MissingTexture);
+
+            var material = new StandardMaterial3D();
+            material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+            material.TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest;
+            material.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
+            material.AlbedoTexture = ResourceLoader.Load<Godot.Texture2D>(texture);
+            material.AlbedoColor = new Color(Colors.White, Mathf.Clamp(alpha, 0f, 1f));
+            arrayMesh.SurfaceSetMaterial(arrayMesh.GetSurfaceCount() - 1, material);
+        }
+        
+        return arrayMesh;
+    }
     private static ArrayMesh CreateArrayMesh<T>(IndexedPrimitives<VertexInstance, T> geometry, Material material)
     {
         if (geometry.Vertices.Length < 1)
