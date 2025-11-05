@@ -16,7 +16,13 @@ public partial class AssetBrowser : Control
         BackgroundPlane,
         NonPlayableCharacter
     }
-    
+
+    private enum DisplayMode
+    {
+        Thumbnail,
+        List
+    }
+
     public event Action<string> AssetSelected;
 
     public bool Disabled
@@ -24,14 +30,14 @@ public partial class AssetBrowser : Control
         set
         {
             _assetsOption.Disabled = value;
-            _searchLine.Editable = !value;
-            foreach (var buttons in _allPreviewButtons.Values)
+            _searchBox.Editable = !value;
+            for (int i = 0; i < _assetList.ItemCount; i++)
             {
-                buttons.Disabled = value;
+                _assetList.SetItemDisabled(i, value);
             }
         }
     }
-    
+
     public string CurrentTrileSet
     {
         get => _currentTrileSet;
@@ -44,126 +50,84 @@ public partial class AssetBrowser : Control
             }
         }
     }
-    
-    private int TotalPages => Mathf.Max(1, Mathf.CeilToInt(_filteredPreviewButtons.Count / (float)ItemsPerPage));
-    
-    private int ItemsPerPage => Mathf.FloorToInt(_assetsContainer.Size.Y / ContentPreviewer.PreviewSize * 0.9f);
 
     private OptionButton _assetsOption;
 
-    private LineEdit _searchLine;
-
-    private VBoxContainer _assetsContainer;
-
-    private Button _startPageButton;
+    private LineEdit _searchBox;
     
-    private Button _previousPageButton;
-
-    private SpinBox _currentPageBox;
+    private Button _thumbnailButton;
     
-    private Button _nextPageButton;
+    private Button _listButton;
+
+    private ItemList _assetList;
+
+    private Label _infoLabel;
+
+    private DisplayMode _currentDisplayMode;
     
-    private Button _endPageButton;
-
-    private Label _loadingLabel;
-
     private string _currentTrileSet;
-
-    private int _currentPage = 1;
-
-    private readonly SortedDictionary<string, Button> _allPreviewButtons = new();
-    
-    private readonly List<Button> _filteredPreviewButtons = [];
 
     public override void _Ready()
     {
         InitializeSearchLine();
-        InitializeAssetsContainer();
-        InitializePagination();
+        InitializeModeButtons();
+        InitializeAssetList();
     }
 
     private void InitializeSearchLine()
     {
-        _searchLine = GetNode<LineEdit>("%SearchLine");
-        _searchLine.TextChanged += ApplySearchFilter;
+        _searchBox = GetNode<LineEdit>("%SearchBox");
+        _searchBox.TextChanged += _ => LoadAssetPreviews((Option)_assetsOption.Selected);
+    }
+    
+    private void InitializeModeButtons()
+    {
+        _thumbnailButton = GetNode<Button>("%ThumbnailMode");
+        _thumbnailButton.Pressed += () =>
+        {
+            _currentDisplayMode = DisplayMode.Thumbnail;
+            LoadAssetPreviews((Option)_assetsOption.Selected);
+        };
+        
+        _listButton = GetNode<Button>("%ListMode");
+        _listButton.Pressed += () =>
+        {
+            _currentDisplayMode = DisplayMode.List;
+            LoadAssetPreviews((Option)_assetsOption.Selected);
+        };
     }
 
-    private void InitializeAssetsContainer()
+    private void InitializeAssetList()
     {
-        _assetsContainer = GetNode<VBoxContainer>("%AssetsContainer");
+        _assetList = GetNode<ItemList>("%AssetList");
+        _assetList.ItemSelected += index =>
+        {
+            var assetPath = _assetList.GetItemMetadata((int)index).AsString();
+            AssetSelected?.Invoke(assetPath);
+        };
 
-        _loadingLabel = GetNode<Label>("%LoadingLabel");
-        _loadingLabel.Hide();
+        _infoLabel = GetNode<Label>("%InfoLabel");
+        _infoLabel.Hide();
 
         _assetsOption = GetNode<OptionButton>("%AssetsOption");
         _assetsOption.ItemSelected += option => LoadAssetPreviews((Option)option);
     }
 
-    private void InitializePagination()
-    {
-        _startPageButton = GetNode<Button>("%StartPageButton");
-        _startPageButton.Pressed += () => ShowPage(1);
-        
-        _previousPageButton = GetNode<Button>("%PreviousPageButton");
-        _previousPageButton.Pressed += () => ShowPage(_currentPage - 1);
-
-        _currentPageBox = GetNode<SpinBox>("%CurrentPageBox");
-        _currentPageBox.ValueChanged += index => ShowPage((int)index);
-
-        _nextPageButton = GetNode<Button>("%NextPageButton");
-        _nextPageButton.Pressed += () => ShowPage(_currentPage + 1);
-        
-        _endPageButton = GetNode<Button>("%EndPageButton");
-        _endPageButton.Pressed += () => ShowPage(TotalPages);
-        
-        UpdatePaginationControls();
-        GetTree().Root.SizeChanged += () => ShowPage(_currentPage);
-        VisibilityChanged += () => ShowPage(_currentPage);
-    }
-    
-    private async void ShowPage(int page)
-    {
-        foreach (var child in _assetsContainer.GetChildren())
-        {
-            _assetsContainer.RemoveChild(child);
-        }
-        
-        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (TotalPages > 0)
-        {
-            _currentPage = Mathf.Clamp(page, 1, TotalPages); 
-        }
-        
-        var skip = (_currentPage - 1) * ItemsPerPage;
-        var previewButtons = _filteredPreviewButtons.Skip(skip).Take(ItemsPerPage);
-        
-        foreach (var button in previewButtons)
-        {
-            _assetsContainer.AddChild(button);
-        }
-
-        UpdatePaginationControls();
-    }
-
-    private void UpdatePaginationControls()
-    {
-        _currentPageBox.SetValueNoSignal(_currentPage);
-        _currentPageBox.Suffix = $"of {TotalPages}";
-        _currentPageBox.MinValue = 1;
-        _currentPageBox.MaxValue = TotalPages;
-        _startPageButton.Disabled = _currentPage == 1;
-        _endPageButton.Disabled = _currentPage == TotalPages;
-    }
-
     private void LoadAssetPreviews(Option option)
     {
-        foreach (var button in _allPreviewButtons.Values)
+        _assetList.Clear();
+        switch (_currentDisplayMode)
         {
-            button.QueueFree();
+            case DisplayMode.Thumbnail:
+                _assetList.IconMode = ItemList.IconModeEnum.Top;
+                _assetList.FixedColumnWidth = Mathf.RoundToInt(ContentPreviewer.PreviewSize * 1.5f);
+                break;
+            
+            case DisplayMode.List:
+                _assetList.IconMode = ItemList.IconModeEnum.Left;
+                _assetList.FixedColumnWidth = 0;
+                break;
         }
-
-        _allPreviewButtons.Clear();
-        _filteredPreviewButtons.Clear();
 
         var folder = option switch
         {
@@ -181,71 +145,40 @@ public partial class AssetBrowser : Control
             foreach (var file in files.ToList())
             {
                 var character = file.Split('\\')[1];
-                if (!characters.Add(character) || character == "gomez" || files.Contains("metadata"))
+                if (!characters.Add(character) || character == "gomez" || file.Contains("metadata"))
                 {
                     files.Remove(file);
                 }
             }
         }
-        
+
         foreach (var file in files)
         {
-            ContentPreviewer.QueueContentPreview(file, (path, preview, _) =>
+            var fileName = file.GetFile();
+            if (string.IsNullOrEmpty(_searchBox.Text) ||
+                 fileName.Contains(_searchBox.Text, StringComparison.InvariantCultureIgnoreCase))
             {
-                var button = new Button
+                ContentPreviewer.QueueContentPreview(file, (path, preview, _) =>
                 {
-                    Text = preview.ResourceName,
-                    Icon = preview,
-                    Alignment = HorizontalAlignment.Left,
-                    IconAlignment = HorizontalAlignment.Left,
-                    VerticalIconAlignment = VerticalAlignment.Center,
-                    SizeFlagsHorizontal = SizeFlags.ExpandFill,
-                    AutowrapMode = TextServer.AutowrapMode.Word
-                };
-                
-                button.AddThemeConstantOverride("icon_max_width", ContentPreviewer.PreviewSize);
-                button.Pressed += () => AssetSelected?.Invoke(path);
-                
-                _allPreviewButtons.Add(path, button);
-            });
+                    var idx = _assetList.AddItem(preview.ResourceName);
+                    _assetList.SetItemMetadata(idx, path);
+                    _assetList.SetItemIcon(idx, preview);
+                });
+            }
         }
         ContentPreviewer.FinishContentPreview(() =>
         {
             SetLoading(false);
-            ApplySearchFilter(_searchLine.Text);
         });
         
         SetLoading(true);
     }
 
-    private void ApplySearchFilter(string searchText)
-    {
-        _filteredPreviewButtons.Clear();
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            _filteredPreviewButtons.AddRange(_allPreviewButtons.Values);
-        }
-        else
-        {
-            var searchTerms = searchText.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var button in _allPreviewButtons.Values)
-            {
-                var buttonText = button.Text.ToLowerInvariant();
-                if (searchTerms.All(term => buttonText.Contains(term)))
-                {
-                    _filteredPreviewButtons.Add(button);
-                }
-            }
-        }
-        
-        _currentPage = 1;
-        ShowPage(_currentPage);
-    }
-
     private void SetLoading(bool loading)
     {
-        _loadingLabel.Visible = loading;
+        _infoLabel.Visible = loading;
         _assetsOption.Disabled = loading;
-        _searchLine.Editable = !loading;
+        _searchBox.Editable = !loading;
+        _assetList.Visible = !loading;
     }
 }
