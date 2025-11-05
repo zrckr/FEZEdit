@@ -16,7 +16,7 @@ public partial class JennaNode : MeshInstance3D
 
     private const string MapIconsTexture = "res://assets/MapIcons.png";
 
-    private const string MissingTexture = "res://assets/Empty.png";
+    private const string MissingTexture = "res://assets/textures/Missing.png";
 
     private const float OutlineMultiplier = 20f;
 
