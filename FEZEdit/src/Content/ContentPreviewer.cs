@@ -9,7 +9,7 @@ using Godot;
 using Serilog;
 using FileAccess = Godot.FileAccess;
 
-namespace FEZEdit.Singletons;
+namespace FEZEdit.Content;
 
 using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;

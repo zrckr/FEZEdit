@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using FEZEdit.Content;
+using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZEdit.Editors;
-using FEZEdit.Editors.Sally;
 using FEZEdit.Extensions;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using Godot;
 using Serilog;
 

@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FEZEdit.Content;
+using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZRepacker.Core.Conversion;
 using FEZRepacker.Core.FileSystem;
 using FEZRepacker.Core.XNB;
 using Serilog;
 
-namespace FEZEdit.Singletons;
+namespace FEZEdit.Content;
 
 public static class ContentSaver
 {

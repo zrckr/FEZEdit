@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using Godot;
-using Serilog;
 
 namespace FEZEdit.Editors.Eddy;
 

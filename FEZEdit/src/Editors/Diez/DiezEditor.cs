@@ -1,6 +1,6 @@
 ﻿using System;
 using FEZEdit.Main;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using FEZRepacker.Core.Definitions.Game.TrackedSong;
 using Godot;
 

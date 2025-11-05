@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using FEZEdit.Extensions;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
 

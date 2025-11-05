@@ -6,7 +6,7 @@ using FEZRepacker.Core.FileSystem;
 using FEZRepacker.Core.XNB;
 using Godot;
 
-namespace FEZEdit.Content;
+namespace FEZEdit.Providers;
 
 /// <remarks>
 /// Paths to the records are stored in the PAK file in lowercase 

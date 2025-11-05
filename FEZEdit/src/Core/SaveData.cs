@@ -5,7 +5,7 @@ using FEZRepacker.Core.Definitions.Game.Level;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using FEZRepacker.Core.Definitions.Game.XNA;
 
-namespace FEZEdit.Content;
+namespace FEZEdit.Providers;
 
 public sealed class SaveData
 {

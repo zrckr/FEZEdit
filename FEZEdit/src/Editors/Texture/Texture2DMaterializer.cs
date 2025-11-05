@@ -1,6 +1,6 @@
 ﻿using FEZEdit.Core;
 using FEZEdit.Extensions;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using Godot;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 

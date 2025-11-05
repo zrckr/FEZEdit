@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using FEZEdit.Content;
+using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
 using Godot;

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Godot;
 
-namespace FEZEdit.Content;
+namespace FEZEdit.Providers;
 
 public interface IContentProvider
 {

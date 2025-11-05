@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Extensions;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using Godot;
 
 namespace FEZEdit.Main;

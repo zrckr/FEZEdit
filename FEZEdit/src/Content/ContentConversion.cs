@@ -7,7 +7,7 @@ using FEZRepacker.Core.Definitions.Game.Graphics;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using Godot;
 
-namespace FEZEdit.Singletons;
+namespace FEZEdit.Content;
 
 using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;

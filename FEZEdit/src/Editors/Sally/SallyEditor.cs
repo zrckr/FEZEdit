@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FEZEdit.Content;
+using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZEdit.Main;
 using Godot;

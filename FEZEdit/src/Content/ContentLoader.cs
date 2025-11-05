@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FEZEdit.Content;
+using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZEdit.Main;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
@@ -12,7 +12,7 @@ using Serilog;
 using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
-namespace FEZEdit.Singletons;
+namespace FEZEdit.Content;
 
 public static class ContentLoader
 {

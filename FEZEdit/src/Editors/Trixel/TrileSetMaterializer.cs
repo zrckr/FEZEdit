@@ -1,5 +1,5 @@
 ﻿using FEZEdit.Core;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using Godot;
 

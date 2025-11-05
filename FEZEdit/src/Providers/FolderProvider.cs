@@ -8,7 +8,7 @@ using FEZRepacker.Core.FileSystem;
 using FEZRepacker.Core.XNB;
 using Godot;
 
-namespace FEZEdit.Content;
+namespace FEZEdit.Providers;
 
 public sealed class FolderProvider : IContentProvider
 {

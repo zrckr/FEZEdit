@@ -7,7 +7,7 @@ using FEZRepacker.Core.Definitions.Game.Level;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
 
-namespace FEZEdit.Content;
+namespace FEZEdit.Providers;
 
 public static class SaveDataProvider
 {

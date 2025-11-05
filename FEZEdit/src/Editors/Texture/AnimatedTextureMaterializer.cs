@@ -1,5 +1,5 @@
 ﻿using FEZEdit.Core;
-using FEZEdit.Singletons;
+using FEZEdit.Content;
 using Godot;
 
 namespace FEZEdit.Editors.Texture;
