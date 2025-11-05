@@ -512,6 +512,17 @@ public partial class TrileMap : Node3D
 
     #region Collision Map
 
+    public Mesh GetTrileVisualMesh(int trileId)
+    {
+        var trileMesh = _meshes.GetValueOrDefault(trileId, null);
+        return trileMesh?.Visual ?? trileMesh?.Collision;
+    }
+
+    public Mesh GetTrileCollisionMesh(int trileId)
+    {
+        return _meshes.GetValueOrDefault(trileId, null)?.Collision;
+    }
+
     private void CreateTrileMeshes()
     {
         _meshes.Clear();

@@ -157,6 +157,9 @@ public static class Mathz
         };
     }
 
+    public static Vector3I ToGodot(this FEZRepacker.Core.Definitions.Game.Level.TrileEmplacement emplacement)
+        => new(emplacement.X, emplacement.Y, emplacement.Z);
+
     #endregion
 
     #region Godot -> XNA
@@ -187,6 +190,9 @@ public static class Mathz
             _ => throw new InvalidEnumArgumentException()
         };
     }
+    
+    public static FEZRepacker.Core.Definitions.Game.Level.TrileEmplacement ToXna(this Vector3I vector) 
+        => new(vector.X, vector.Y, vector.Z);
 
     #endregion
 }

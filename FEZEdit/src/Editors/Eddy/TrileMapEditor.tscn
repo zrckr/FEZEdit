@@ -1,0 +1,180 @@
+[gd_scene load_steps=15 format=3 uid="uid://ctgnvtvw1tgma"]
+
+[ext_resource type="Texture2D" uid="uid://l6744ahtd206" path="res://assets/icons/ToolTriangle.png" id="1_ix78k"]
+[ext_resource type="Script" uid="uid://dd1fxdmarbbxw" path="res://src/Editors/Eddy/TrileMapEditor.cs" id="1_vr50m"]
+[ext_resource type="Texture2D" uid="uid://cgyx36ygdaool" path="res://assets/icons/ColorPick.png" id="2_ga72k"]
+[ext_resource type="Texture2D" uid="uid://c3l4wvkqr8aqh" path="res://assets/icons/ListSelect.png" id="2_na82p"]
+[ext_resource type="Texture2D" uid="uid://uynragbefgrt" path="res://assets/icons/Paint.png" id="3_ga72k"]
+[ext_resource type="Texture2D" uid="uid://bem0f0kemyl1e" path="res://assets/icons/Eraser.png" id="4_ix78k"]
+[ext_resource type="Texture2D" uid="uid://dgdde2gttrafk" path="res://assets/icons/ToolRotate.png" id="5_tidot"]
+[ext_resource type="Texture2D" uid="uid://qvjde4hh30qt" path="res://assets/icons/Bucket.png" id="6_rj6qc"]
+[ext_resource type="Texture2D" uid="uid://b7x3gjqm7dmp" path="res://assets/icons/ActionCut.png" id="7_b70el"]
+[ext_resource type="Texture2D" uid="uid://dhbda5suvsb5u" path="res://assets/icons/ActionCopy.png" id="8_mgi1p"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="9_dgw5q"]
+[ext_resource type="Texture2D" uid="uid://d121e05b6uja1" path="res://assets/icons/Group.png" id="10_dgw5q"]
+[ext_resource type="Texture2D" uid="uid://b11kfhw88f20e" path="res://assets/icons/Ungroup.png" id="11_6y577"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_6y577"]
+
+[node name="TrileMapEditor" type="MarginContainer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 31.0
+grow_horizontal = 2
+script = ExtResource("1_vr50m")
+
+[node name="Toolbar" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InspectMode" type="Button" parent="Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_6y577")
+icon = ExtResource("2_na82p")
+
+[node name="VSeparator1" type="VSeparator" parent="Toolbar"]
+layout_mode = 2
+
+[node name="ModeButtons" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 2
+
+[node name="SelectMode" type="Button" parent="Toolbar/ModeButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_6y577")
+icon = ExtResource("1_ix78k")
+
+[node name="PickMode" type="Button" parent="Toolbar/ModeButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_6y577")
+icon = ExtResource("2_ga72k")
+
+[node name="PaintMode" type="Button" parent="Toolbar/ModeButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_6y577")
+icon = ExtResource("3_ga72k")
+
+[node name="EraseMode" type="Button" parent="Toolbar/ModeButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_6y577")
+icon = ExtResource("4_ix78k")
+
+[node name="VSeparator2" type="VSeparator" parent="Toolbar"]
+layout_mode = 2
+
+[node name="ActionButtons" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 2
+
+[node name="RotateAction" type="Button" parent="Toolbar/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("5_tidot")
+
+[node name="FillAction" type="Button" parent="Toolbar/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("6_rj6qc")
+
+[node name="CopyAction" type="Button" parent="Toolbar/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("8_mgi1p")
+
+[node name="CutAction" type="Button" parent="Toolbar/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("7_b70el")
+
+[node name="DeleteAction" type="Button" parent="Toolbar/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("9_dgw5q")
+
+[node name="VSeparator3" type="VSeparator" parent="Toolbar"]
+layout_mode = 2
+
+[node name="GroupButtons" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 2
+
+[node name="GroupAction" type="Button" parent="Toolbar/GroupButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("10_dgw5q")
+
+[node name="UngroupAction" type="Button" parent="Toolbar/GroupButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("11_6y577")
+
+[node name="Spacer" type="Control" parent="Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Level" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="Toolbar/Level"]
+layout_mode = 2
+text = "Level:"
+
+[node name="LevelBox" type="SpinBox" parent="Toolbar/Level"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = -255.0
+max_value = 255.0
+suffix = "m"
+
+[node name="LevelOption" type="OptionButton" parent="Toolbar/Level"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 1
+item_count = 3
+popup/item_0/text = "Axis X"
+popup/item_0/id = 0
+popup/item_1/text = "Axis Y"
+popup/item_1/id = 1
+popup/item_2/text = "Axis Z"
+popup/item_2/id = 2
+
+[node name="VSeparator4" type="VSeparator" parent="Toolbar"]
+layout_mode = 2
+
+[node name="OffsetBoxes" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="Toolbar/OffsetBoxes"]
+layout_mode = 2
+text = "Offset:"
+
+[node name="XBox" type="SpinBox" parent="Toolbar/OffsetBoxes"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.063
+suffix = "m"
+
+[node name="YBox" type="SpinBox" parent="Toolbar/OffsetBoxes"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.063
+suffix = "m"
+
+[node name="ZBox" type="SpinBox" parent="Toolbar/OffsetBoxes"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.063
+suffix = "m"
