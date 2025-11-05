@@ -80,7 +80,14 @@ public static class ContentPreviewer
                         var meshes = ContentConversion.ConvertToMesh(trileSet);
                         foreach ((string name, var mesh) in meshes)
                         {
-                            MeshesToPreview.Enqueue(new PreviewGenerationState(name, mesh, handler, data));
+                            var trileMesh = mesh;
+                            if (trileMesh == null)
+                            {
+                                var trile = trileSet.Triles.Values.First(t => t.Name.Equals(name));
+                                trileMesh = ContentConversion.CreateCollisionMesh(trile.Faces, trile.Size.ToGodot(), 1f);
+                                trileMesh.ResourceName = name;
+                            }
+                            MeshesToPreview.Enqueue(new PreviewGenerationState(name, trileMesh, handler, data));
                         }
 
                         break;
