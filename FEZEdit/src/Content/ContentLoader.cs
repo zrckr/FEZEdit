@@ -109,14 +109,15 @@ public static class ContentLoader
         return Load<TrileSet>(Path.Combine("trile sets", assetName));
     }
 
-    public static Texture2D LoadBackgroundPlane(string assetName)
+    public static object LoadBackgroundPlane(string assetName)
     {
-        return Load<Texture2D>(Path.Combine("background planes", assetName));
-    }
-
-    public static AnimatedTexture LoadBackgroundPlaneAnimated(string assetName)
-    {
-        return Load<AnimatedTexture>(Path.Combine("background planes", assetName));
+        var @object = Load<object>(Path.Combine("background planes", assetName));
+        return @object switch
+        {
+            Texture2D texture => texture,
+            AnimatedTexture animatedTexture => animatedTexture,
+            _ => throw new InvalidCastException("Unsupported type: " + @object.GetType())
+        };
     }
     
     public static Texture2D LoadOtherTexture(string assetName)
