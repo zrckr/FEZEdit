@@ -127,6 +127,11 @@ public static class Mathz
         basis *= Basis.FromScale(Vector3.One + dots);
         return basis;
     }
+
+    public static Vector3 WithComponent(this Vector3 vector, Vector3 component)
+    {
+        return vector.Slide(component.Normalized()) + component;
+    }
     
     #region XNA -> Godot
 

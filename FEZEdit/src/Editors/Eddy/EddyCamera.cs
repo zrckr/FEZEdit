@@ -7,7 +7,7 @@ using Godot;
 
 namespace FEZEdit.Editors.Eddy;
 
-public partial class LevelCamera : Camera3D
+public partial class EddyCamera : Camera3D
 {
     public enum View
     {
@@ -26,15 +26,15 @@ public partial class LevelCamera : Camera3D
 
     private const string MoveBackward = "move_backward";
 
-    public event Action<CollisionObject3D> ObjectPicked;
+    public event Action<bool> PanningChanged;
+
+    public event Action<object> ObjectPicked;
 
     public View CurrentView
     {
         get => _currentView;
         set => SetCurrentView(value);
     }
-
-    public bool IsMoving { get; private set; }
 
     [ExportGroup("Perspective Properties")]
     
@@ -76,7 +76,7 @@ public partial class LevelCamera : Camera3D
         {
             case InputEventMouseButton { ButtonIndex: MouseButton.Right } rmb:
                 Input.MouseMode = rmb.Pressed ? Input.MouseModeEnum.Captured : Input.MouseModeEnum.Visible;
-                IsMoving = rmb.Pressed;
+                PanningChanged?.Invoke(rmb.Pressed);
                 break;
             
             case InputEventMouseButton { Pressed: true } button:
@@ -117,17 +117,6 @@ public partial class LevelCamera : Camera3D
         };
     }
 
-    public void LookAtStartingPosition(TrileInstance instance, FaceOrientation face, Bounds bounds)
-    {
-        var position = instance.Position.ToGodot() + TrileMap.EmplacementCenter + Vector3.Up;
-        var depth = bounds.GetDepth(face, 10f);
-        var mask = Vector3.One - depth.Sign().Abs();
-        var target = face.GetOpposite().AsVector();
-        
-        Position = position * mask + depth;
-        Basis = Basis.LookingAt(target, Vector3.Up);
-    }
-
     private void SetCurrentView(View value)
     {
         if (_currentView == value)
@@ -138,7 +127,6 @@ public partial class LevelCamera : Camera3D
         if (_currentView == View.Perspective)
         {
             _perspectiveTransform = Transform;
-            Size = Mathf.Ceil(Position.Length());
         }
 
         _currentView = value;
@@ -170,7 +158,7 @@ public partial class LevelCamera : Camera3D
     private void SetOrthogonalView(float angles)
     {
         Rotation = new Vector3(0, angles, 0);
-        Position = Transform.Basis.Z * _maxDistance;
+        Position = Position.WithComponent(Transform.Basis.Z * _maxDistance);
         Projection = ProjectionType.Orthogonal;
     }
 
@@ -229,8 +217,11 @@ public partial class LevelCamera : Camera3D
             ObjectPicked?.Invoke(null);
             return;
         }
-        
-        var @object = (CollisionObject3D)result["collider"];
-        ObjectPicked?.Invoke(@object);
+
+        var collider = result["collider"].AsGodotObject();
+        if (collider is MaterializerProxy proxy)
+        {
+            ObjectPicked?.Invoke(proxy.Object);
+        }
     }
 }

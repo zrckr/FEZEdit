@@ -11,7 +11,7 @@ namespace FEZEdit.Editors.Eddy;
 using FEZRepacker.Core.Definitions.Game.Level;
 using Script = FEZRepacker.Core.Definitions.Game.Level.Scripting.Script;
 
-public partial class LevelInstances : Control
+public partial class EddyTables : Control
 {
     private enum TableType
     {

@@ -33,6 +33,20 @@ public static class MapTreeExtensions
         };
     }
 
+    public static Basis AsBasis(this FaceOrientation face)
+    {
+        return face switch
+        {
+            FaceOrientation.Left => new Basis(Vector3.Up, -Mathf.Pi / 2f),
+            FaceOrientation.Down => new Basis(Vector3.Right, Mathf.Pi / 2f),
+            FaceOrientation.Back => new Basis(Vector3.Up, Mathf.Pi),
+            FaceOrientation.Right => new Basis(Vector3.Up, Mathf.Pi / 2f),
+            FaceOrientation.Top => new Basis(Vector3.Right, -Mathf.Pi / 2f),
+            FaceOrientation.Front => Basis.Identity,
+            _ => throw new ArgumentOutOfRangeException(nameof(face), face, null)
+        };
+    }
+
     public static FaceOrientation GetOpposite(this FaceOrientation face)
     {
         return face switch

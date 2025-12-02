@@ -28,9 +28,4 @@ public partial class TimeNode : Node
             Tick?.Invoke();
         }
     }
-
-    public void SetRunning(bool running)
-    {
-        SetProcess(running);
-    }
 }

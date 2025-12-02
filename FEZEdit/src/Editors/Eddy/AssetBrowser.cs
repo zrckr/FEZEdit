@@ -4,26 +4,19 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Content;
 using Godot;
+using Array = Godot.Collections.Array;
 
 namespace FEZEdit.Editors.Eddy;
 
 public partial class AssetBrowser : Control
 {
-    private enum Option
-    {
-        TrileSet,
-        ArtObject,
-        BackgroundPlane,
-        NonPlayableCharacter
-    }
-
     private enum DisplayMode
     {
         Thumbnail,
         List
     }
 
-    public event Action<string> AssetSelected;
+    public event Action<string, AssetType> AssetSelected;
 
     public bool Disabled
     {
@@ -38,15 +31,15 @@ public partial class AssetBrowser : Control
         }
     }
 
-    public string CurrentTrileSet
+    public string CurrentTrileSetName
     {
-        get => _currentTrileSet;
+        get => _currentTrileSetName;
         set
         {
-            if (_currentTrileSet != value)
+            if (_currentTrileSetName != value)
             {
-                _currentTrileSet = value;
-                LoadAssetPreviews(Option.TrileSet);
+                _currentTrileSetName = value;
+                LoadAssetPreviews(AssetType.TrileSet);
             }
         }
     }
@@ -65,7 +58,7 @@ public partial class AssetBrowser : Control
 
     private DisplayMode _currentDisplayMode;
     
-    private string _currentTrileSet;
+    private string _currentTrileSetName;
 
     public override void _Ready()
     {
@@ -77,7 +70,7 @@ public partial class AssetBrowser : Control
     private void InitializeSearchLine()
     {
         _searchBox = GetNode<LineEdit>("%SearchBox");
-        _searchBox.TextChanged += _ => LoadAssetPreviews((Option)_assetsOption.Selected);
+        _searchBox.TextChanged += _ => LoadAssetPreviews((AssetType)_assetsOption.Selected);
     }
     
     private void InitializeModeButtons()
@@ -86,14 +79,14 @@ public partial class AssetBrowser : Control
         _thumbnailButton.Pressed += () =>
         {
             _currentDisplayMode = DisplayMode.Thumbnail;
-            LoadAssetPreviews((Option)_assetsOption.Selected);
+            LoadAssetPreviews((AssetType)_assetsOption.Selected);
         };
         
         _listButton = GetNode<Button>("%ListMode");
         _listButton.Pressed += () =>
         {
             _currentDisplayMode = DisplayMode.List;
-            LoadAssetPreviews((Option)_assetsOption.Selected);
+            LoadAssetPreviews((AssetType)_assetsOption.Selected);
         };
     }
 
@@ -102,18 +95,20 @@ public partial class AssetBrowser : Control
         _assetList = GetNode<ItemList>("%AssetList");
         _assetList.ItemSelected += index =>
         {
-            var assetPath = _assetList.GetItemMetadata((int)index).AsString();
-            AssetSelected?.Invoke(assetPath);
+            var metadata = _assetList.GetItemMetadata((int)index).AsGodotArray();
+            var assetPath = metadata[0].ToString();
+            var assetType = (AssetType)metadata[1].AsInt32();
+            AssetSelected?.Invoke(assetPath, assetType);
         };
 
         _infoLabel = GetNode<Label>("%InfoLabel");
         _infoLabel.Hide();
 
         _assetsOption = GetNode<OptionButton>("%AssetsOption");
-        _assetsOption.ItemSelected += option => LoadAssetPreviews((Option)option);
+        _assetsOption.ItemSelected += type => LoadAssetPreviews((AssetType)type);
     }
 
-    private void LoadAssetPreviews(Option option)
+    private void LoadAssetPreviews(AssetType assetType)
     {
         _assetList.Clear();
         switch (_currentDisplayMode)
@@ -129,17 +124,17 @@ public partial class AssetBrowser : Control
                 break;
         }
 
-        var folder = option switch
+        var folder = assetType switch
         {
-            Option.TrileSet => Path.Combine("trile sets", _currentTrileSet),
-            Option.ArtObject => "art objects",
-            Option.BackgroundPlane => "background planes",
-            Option.NonPlayableCharacter => "character animations",
-            _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
+            AssetType.TrileSet => Path.Combine("trile sets", _currentTrileSetName),
+            AssetType.ArtObject => "art objects",
+            AssetType.BackgroundPlane => "background planes",
+            AssetType.NonPlayableCharacter => "character animations",
+            _ => throw new ArgumentOutOfRangeException(nameof(assetType), assetType, null)
         };
 
         var files = ContentLoader.GetFiles(folder).ToList();
-        if (option == Option.NonPlayableCharacter)
+        if (assetType == AssetType.NonPlayableCharacter)
         {
             var characters = new HashSet<string>();
             foreach (var file in files.ToList())
@@ -161,7 +156,7 @@ public partial class AssetBrowser : Control
                 ContentPreviewer.QueueContentPreview(file, (path, preview, _) =>
                 {
                     var idx = _assetList.AddItem(preview.ResourceName);
-                    _assetList.SetItemMetadata(idx, path);
+                    _assetList.SetItemMetadata(idx, new Array { path, (int)assetType });
                     _assetList.SetItemIcon(idx, preview);
                 });
             }

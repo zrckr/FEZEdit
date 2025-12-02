@@ -1,0 +1,208 @@
+[gd_scene load_steps=14 format=3 uid="uid://bgxjsaukigqya"]
+
+[ext_resource type="Script" uid="uid://dsodis5ha4b10" path="res://src/Editors/Eddy/EddyToolbar.cs" id="1_7ipq7"]
+[ext_resource type="Texture2D" uid="uid://5hir4iq2tjwo" path="res://assets/icons/ToolSelect.png" id="1_tpym7"]
+[ext_resource type="Texture2D" uid="uid://dr5f6ekv2rs1q" path="res://assets/icons/ToolMove.png" id="2_j05r0"]
+[ext_resource type="Texture2D" uid="uid://dgdde2gttrafk" path="res://assets/icons/ToolRotate.png" id="3_c5evw"]
+[ext_resource type="Texture2D" uid="uid://cgyx36ygdaool" path="res://assets/icons/ColorPick.png" id="4_qt8iv"]
+[ext_resource type="Texture2D" uid="uid://b1pqviao1tlj2" path="res://assets/icons/ToolScale.png" id="4_xxle2"]
+[ext_resource type="Texture2D" uid="uid://uynragbefgrt" path="res://assets/icons/Paint.png" id="5_nmijs"]
+[ext_resource type="Texture2D" uid="uid://bem0f0kemyl1e" path="res://assets/icons/Eraser.png" id="6_mxkgo"]
+[ext_resource type="Texture2D" uid="uid://qvjde4hh30qt" path="res://assets/icons/Bucket.png" id="9_nmijs"]
+[ext_resource type="Texture2D" uid="uid://d121e05b6uja1" path="res://assets/icons/Group.png" id="9_qt8iv"]
+[ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="10_mxkgo"]
+[ext_resource type="Texture2D" uid="uid://b11kfhw88f20e" path="res://assets/icons/Ungroup.png" id="10_nmijs"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_avtv7"]
+
+[node name="EddyToolbar" type="MarginContainer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 58.0
+grow_horizontal = 2
+script = ExtResource("1_7ipq7")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SelectButton" type="Button" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("1_tpym7")
+
+[node name="VSeparator1" type="VSeparator" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="TransformButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="TranslateButton" type="Button" parent="MarginContainer/HBoxContainer/TransformButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("2_j05r0")
+
+[node name="RotateButton" type="Button" parent="MarginContainer/HBoxContainer/TransformButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("3_c5evw")
+
+[node name="ScaleButton" type="Button" parent="MarginContainer/HBoxContainer/TransformButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("4_xxle2")
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HBoxContainer/TransformButtons"]
+layout_mode = 2
+
+[node name="PaintButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="PaintMode" type="Button" parent="MarginContainer/HBoxContainer/PaintButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("5_nmijs")
+
+[node name="PickMode" type="Button" parent="MarginContainer/HBoxContainer/PaintButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("4_qt8iv")
+
+[node name="EraseMode" type="Button" parent="MarginContainer/HBoxContainer/PaintButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_avtv7")
+icon = ExtResource("6_mxkgo")
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HBoxContainer/PaintButtons"]
+layout_mode = 2
+
+[node name="SelectionButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FillAction" type="Button" parent="MarginContainer/HBoxContainer/SelectionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("9_nmijs")
+
+[node name="DeleteAction" type="Button" parent="MarginContainer/HBoxContainer/SelectionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("10_mxkgo")
+
+[node name="GroupAction" type="Button" parent="MarginContainer/HBoxContainer/SelectionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("9_qt8iv")
+
+[node name="UngroupAction" type="Button" parent="MarginContainer/HBoxContainer/SelectionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("10_nmijs")
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HBoxContainer/SelectionButtons"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VSeparator2" type="VSeparator" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="LevelButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/LevelButtons"]
+layout_mode = 2
+text = "Level:"
+
+[node name="LevelBox" type="SpinBox" parent="MarginContainer/HBoxContainer/LevelButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = -255.0
+max_value = 255.0
+suffix = "m"
+
+[node name="LevelOptionButton" type="OptionButton" parent="MarginContainer/HBoxContainer/LevelButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 1
+item_count = 3
+popup/item_0/text = "Axis X"
+popup/item_0/id = 0
+popup/item_1/text = "Axis Y"
+popup/item_1/id = 1
+popup/item_2/text = "Axis Z"
+popup/item_2/id = 2
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HBoxContainer/LevelButtons"]
+layout_mode = 2
+
+[node name="ViewButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/ViewButtons"]
+layout_mode = 2
+text = "View:"
+
+[node name="ViewOptionButton" type="OptionButton" parent="MarginContainer/HBoxContainer/ViewButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 5
+popup/item_0/text = "Perspective"
+popup/item_0/id = 0
+popup/item_1/text = "Front"
+popup/item_1/id = 1
+popup/item_2/text = "Right"
+popup/item_2/id = 2
+popup/item_3/text = "Back"
+popup/item_3/id = 3
+popup/item_4/text = "Left"
+popup/item_4/id = 4
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HBoxContainer/ViewButtons"]
+layout_mode = 2
+
+[node name="TimeButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/TimeButtons"]
+layout_mode = 2
+text = "Time:"
+
+[node name="TimeEdit" type="LineEdit" parent="MarginContainer/HBoxContainer/TimeButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "00:00"
+alignment = 1
+context_menu_enabled = false
+emoji_menu_enabled = false

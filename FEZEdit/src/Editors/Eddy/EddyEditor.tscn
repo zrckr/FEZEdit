@@ -1,12 +1,19 @@
-[gd_scene load_steps=8 format=3 uid="uid://dt2e61nac1bga"]
+[gd_scene load_steps=14 format=3 uid="uid://dt2e61nac1bga"]
 
 [ext_resource type="Theme" uid="uid://bvigxeq8g32pu" path="res://assets/themes/DarkTheme.tres" id="1_daybi"]
 [ext_resource type="Script" uid="uid://d3w2h4cg2d4us" path="res://src/Editors/Eddy/EddyEditor.cs" id="2_pnn7i"]
-[ext_resource type="PackedScene" uid="uid://82h1lp26dff0" path="res://src/Editors/Eddy/LevelScene.tscn" id="3_ctw11"]
-[ext_resource type="PackedScene" uid="uid://dnfjeplgb1kkk" path="res://src/Editors/Eddy/LevelInstances.tscn" id="5_daybi"]
+[ext_resource type="PackedScene" uid="uid://bgxjsaukigqya" path="res://src/Editors/Eddy/EddyToolbar.tscn" id="3_0km7n"]
+[ext_resource type="Script" uid="uid://dnmrmh3ocgj48" path="res://src/Gizmos/Cursor.cs" id="5_d3dg4"]
+[ext_resource type="PackedScene" uid="uid://dnfjeplgb1kkk" path="res://src/Editors/Eddy/EddyTables.tscn" id="5_daybi"]
+[ext_resource type="Script" uid="uid://cjnmhxc885byn" path="res://src/Gizmos/Gizmo3D.cs" id="5_tq3oe"]
 [ext_resource type="PackedScene" uid="uid://bmj4d2y0ijkef" path="res://src/Main/Inspector.tscn" id="6_ctw11"]
 [ext_resource type="PackedScene" uid="uid://dgla8mpv4e4gs" path="res://src/Editors/Eddy/InstanceTable.tscn" id="6_daybi"]
+[ext_resource type="Script" uid="uid://d3u72od2enhbq" path="res://src/Gizmos/Grid3D.cs" id="6_slu7q"]
+[ext_resource type="Script" uid="uid://dbcu7cvxjckxb" path="res://src/Editors/Eddy/EddyCamera.cs" id="7_0km7n"]
+[ext_resource type="Script" uid="uid://cxxri1s004b5o" path="res://src/Editors/Eddy/TimeNode.cs" id="8_opvqf"]
 [ext_resource type="PackedScene" uid="uid://brrarqjnqr2n7" path="res://src/Editors/Eddy/AssetBrowser.tscn" id="8_ulu3j"]
+
+[sub_resource type="Environment" id="Environment_ku8et"]
 
 [node name="EddyEditor" type="MarginContainer"]
 anchors_preset = 15
@@ -16,6 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_daybi")
 script = ExtResource("2_pnn7i")
+_cameraDistance = 10.0
 
 [node name="HSplitContainer" type="HSplitContainer" parent="."]
 layout_mode = 2
@@ -29,9 +37,75 @@ theme_override_constants/separation = 0
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LevelScene" parent="HSplitContainer/LayoutContainer/Control" instance=ExtResource("3_ctw11")]
-unique_name_in_owner = true
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/LayoutContainer/Control"]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LayoutContainer" type="VBoxContainer" parent="HSplitContainer/LayoutContainer/Control/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="EddyToolbar" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer" instance=ExtResource("3_0km7n")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer"]
+own_world_3d = true
+handle_input_locally = false
+physics_object_picking = true
+physics_object_picking_sort = true
+size = Vector2i(919, 657)
+render_target_update_mode = 4
+
+[node name="RootNode" type="Node3D" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport"]
+unique_name_in_owner = true
+
+[node name="DirectionalLight1" type="DirectionalLight3D" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+transform = Transform3D(0.7071068, 0.5, -0.5, 0, -0.7071068, -0.7071068, -0.7071068, 0.5, -0.5, 0, 0, 0)
+
+[node name="DirectionalLight2" type="DirectionalLight3D" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+transform = Transform3D(0.7071068, -0.5, 0.5, 0, 0.7071068, 0.7071068, -0.7071068, -0.5, 0.5, 0, 0, 0)
+
+[node name="Cursor" type="Node" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("5_d3dg4")
+
+[node name="Gizmo" type="Node3D" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("5_tq3oe")
+
+[node name="Grid" type="Node3D" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("6_slu7q")
+
+[node name="Camera" type="Camera3D" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+environment = SubResource("Environment_ku8et")
+script = ExtResource("7_0km7n")
+_moveSpeed = 4.0
+_speedChange = 0.2
+_mouseSensitivity = 0.25
+_maxDistance = 500.0
+_panSensitivity = 0.1
+_zoomChange = 0.5
+_minimumOrthogonalSize = 1.0
+_maximumOrthogonalSize = 100.0
+
+[node name="Time" type="Node" parent="HSplitContainer/LayoutContainer/Control/MarginContainer/LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
+unique_name_in_owner = true
+script = ExtResource("8_opvqf")
+_timeFactor = 260.0
+_initialHour = 12
 
 [node name="VSplitContainer" type="VSplitContainer" parent="HSplitContainer/LayoutContainer/Control"]
 layout_mode = 1
@@ -55,7 +129,7 @@ layout_mode = 2
 [node name="FooterContainer" type="PanelContainer" parent="HSplitContainer/LayoutContainer"]
 layout_mode = 2
 
-[node name="LevelInstances" parent="HSplitContainer/LayoutContainer/FooterContainer" instance=ExtResource("5_daybi")]
+[node name="EddyTables" parent="HSplitContainer/LayoutContainer/FooterContainer" instance=ExtResource("5_daybi")]
 unique_name_in_owner = true
 layout_mode = 2
 
