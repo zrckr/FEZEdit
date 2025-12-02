@@ -81,7 +81,7 @@ public partial class EditorPropertyArray : EditorProperty
             itemContainer.AddChild(itemLabel);
 
             var itemEditor = PropertyFactory.GetEditorProperty(elementType);
-            itemEditor.UndoRedo = UndoRedo;
+            itemEditor.Memento = Memento;
             itemContainer.AddChild(itemEditor);
             itemEditor.Label = string.Empty;
             itemEditor.Value = item;
@@ -128,8 +128,7 @@ public partial class EditorPropertyArray : EditorProperty
         var newArray = (Array)GetValue();
         if (!ArraysAreEqual(oldArray, newArray))
         {
-            RecordValueChange(oldArray, newArray);
-            NotifyValueChanged(newArray);
+            RecordAndNotifyValueChange(newArray);
         }
     }
     

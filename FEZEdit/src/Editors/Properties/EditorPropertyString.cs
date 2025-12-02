@@ -26,10 +26,6 @@ public partial class EditorPropertyString : EditorProperty
     {
         base._Ready();
         _lineEdit = GetNode<LineEdit>("LineEdit");
-        _lineEdit.TextChanged += newText =>
-        {
-            RecordValueChange(PropertyInfo?.GetValue(Target), newText);
-            NotifyValueChanged(newText);
-        };
+        _lineEdit.TextChanged += RecordAndNotifyValueChange;
     }
 }

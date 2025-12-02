@@ -74,8 +74,7 @@ public abstract partial class EditorPropertyVector<T> : EditorProperty
         
         if (!Equals(oldValue, newValue))
         {
-            RecordValueChange(oldValue, newValue);
-            NotifyValueChanged(newValue);
+            RecordAndNotifyValueChange(newValue);
         }
     }
 }

@@ -26,11 +26,6 @@ public partial class EditorPropertyBoolean : EditorProperty
     {
         base._Ready();
         _checkBox = GetNode<CheckBox>("CheckBox");
-        _checkBox.Pressed += () => 
-        {
-            var newValue = _checkBox.ButtonPressed;
-            RecordValueChange(PropertyInfo?.GetValue(Target), newValue);
-            NotifyValueChanged(newValue);
-        };
+        _checkBox.Pressed += () => RecordAndNotifyValueChange(_checkBox.ButtonPressed);
     }
 }

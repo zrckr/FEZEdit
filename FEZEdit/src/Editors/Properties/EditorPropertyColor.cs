@@ -28,11 +28,6 @@ public partial class EditorPropertyColor : EditorProperty
     {
         base._Ready();
         _colorPickerButton = GetNode<ColorPickerButton>("ColorPickerButton");
-        _colorPickerButton.ColorChanged += color =>
-        {
-            var newColor = color.ToXna();
-            RecordValueChange(PropertyInfo?.GetValue(Target), newColor);
-            NotifyValueChanged(newColor);
-        };
+        _colorPickerButton.ColorChanged += color => RecordAndNotifyValueChange(color.ToXna());
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -7,8 +6,6 @@ namespace FEZEdit.Editors.Po;
 
 public partial class PoEditor : Editor
 {
-    public override event Action ValueChanged; 
-    
     public override object Value
     {
         get => _textStorage;
@@ -28,8 +25,6 @@ public partial class PoEditor : Editor
             }
         }
     }
-    
-    public override UndoRedo UndoRedo { get; } = new();
     
     [Export] private Godot.Collections.Dictionary<string, string> _languages = new();
 
@@ -64,6 +59,11 @@ public partial class PoEditor : Editor
         InitializeTableTree();
         InitializeDialogs();
         UpdateTableRows(0);
+    }
+
+    public override void _Refresh()
+    {
+        UpdateTableRows(_selectedLanguageIndex);
     }
 
     private void InitializeKeys()
@@ -146,35 +146,24 @@ public partial class PoEditor : Editor
     
     private void AddNewRowToTable()
     {
-        var key = $"MESSAGE_{_keys.Count + 1}";
-        
-        var row = _tableTree.CreateItem(_root);
-        row.SetText(0, key);
-        row.SetEditable(0, false);
-        row.SetSelectable(0, true);
-                
-        row.SetText(1, string.Empty);
-        row.SetEditable(1, true);
-        row.SetSelectable(0, true);
-        row.SetEditMultiline(1, true);
+        using (Memento.BeginScope("Add new row"))
+        {
+            var key = $"MESSAGE_{_keys.Count + 1}";
 
-        var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = _textStorage[selectedLanguage];
-        
-        UndoRedo.CreateAction("Add new row");
-        UndoRedo.AddDoMethod(() =>
-        {
-            _tableTree.ScrollToItem(row, true);
+            var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
+            var selectedStorage = _textStorage[selectedLanguage];
             selectedStorage.Add(key, string.Empty);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _root.RemoveChild(row);
-            selectedStorage.Remove(key);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+            
+            var row = _tableTree.CreateItem(_root);
+            row.SetText(0, key);
+            row.SetEditable(0, false);
+            row.SetSelectable(0, true);
+            row.SetText(1, string.Empty);
+            row.SetEditable(1, true);
+            row.SetSelectable(0, true);
+            row.SetEditMultiline(1, true);
+            _tableTree.ScrollToItem(row, true);
+        }
     }
     
     private void PreRemoveRowFromTable()
@@ -187,53 +176,32 @@ public partial class PoEditor : Editor
     
     private void PostRemoveRowFromTable()
     {
-        var row = _tableTree.GetSelected();
-        var key = row.GetText(0).ToUpper();
-        
-        var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = _textStorage[selectedLanguage];
-        
-        var value = selectedStorage[key];
-        UndoRedo.CreateAction("Remove row");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope("Remove row"))
         {
-            _root.RemoveChild(row);
+            var row = _tableTree.GetSelected();
+            var key = row.GetText(0).ToUpper();
+            
+            var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
+            var selectedStorage = _textStorage[selectedLanguage];
             selectedStorage.Remove(key);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _root.AddChild(row);
-            selectedStorage.Add(key, value);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+            
+            _root.RemoveChild(row);
+        }
     }
 
     private void UpdateRowInTable()
     {
-        var row = _tableTree.GetEdited();
-        var key = row.GetText(0).ToUpper();
-        var message = row.GetText(1).Replace("\n", "\r\n");
-        
-        var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
-        var selectedStorage = _textStorage[selectedLanguage];
-        if (!selectedStorage.TryGetValue(key, out string oldMessage))
+        using (Memento.BeginScope("Update row"))
         {
-            return;
-        }
-
-        UndoRedo.CreateAction("Update row");
-        UndoRedo.AddDoMethod(() =>
-        {
+            var row = _tableTree.GetEdited();
+            var key = row.GetText(0).ToUpper();
+            var message = row.GetText(1).Replace("\n", "\r\n");
+            
+            var selectedLanguage = _languages.Keys.ElementAt(_selectedLanguageIndex);
+            var selectedStorage = _textStorage[selectedLanguage];
             selectedStorage[key] = message;
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            selectedStorage[key] = oldMessage;
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+            
+            row.SetText(1, message);
+        }
     }
 }

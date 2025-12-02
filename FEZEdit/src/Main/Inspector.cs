@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FEZEdit.Editors.Properties;
+using FEZEdit.Memento;
 using Godot;
 using EditorProperty = FEZEdit.Editors.Properties.EditorProperty;
 
@@ -18,7 +19,7 @@ public partial class Inspector : Control
 
     public bool Disabled { private get; set; }
     
-    public UndoRedo UndoRedo { private get; set; }
+    public MementoManager Memento { private get; set; }
 
     private TextureRect _headerIcon;
     
@@ -37,10 +38,6 @@ public partial class Inspector : Control
 
     public void InspectObject(object target)
     {
-        if (target != null)
-        {
-            UndoRedo?.ClearHistoryForTag(target);
-        }
         Callable.From(() => AddEditorProperties(target)).CallDeferred();
     }
 
@@ -118,7 +115,7 @@ public partial class Inspector : Control
         
         editorProperty.Label = NameRegex().Replace(propertyInfo.Name, " ").Trim();
         editorProperty.Value = propertyInfo.GetValue(target);
-        editorProperty.UndoRedo = UndoRedo;     // Enable undo/redo after initial value was set
+        editorProperty.Memento = Memento;     // Enable memento after initial value was set
         editorProperty.Disabled = Disabled;
         editorProperty.ValueChanged += _ => TargetChanged?.Invoke(target);
     }

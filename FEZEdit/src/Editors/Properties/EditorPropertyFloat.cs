@@ -43,11 +43,7 @@ public partial class EditorPropertyFloat : EditorProperty
     {
         base._Ready();
         _spinBox = GetNode<SpinBox>("SpinBox");
-        _spinBox.ValueChanged += newValue =>
-        {
-            RecordValueChange(PropertyInfo?.GetValue(Target), (float)newValue);
-            NotifyValueChanged(newValue);
-        };
+        _spinBox.ValueChanged += newValue => RecordAndNotifyValueChange((float)newValue);
         _spinBox.MinValue = float.MinValue;
         _spinBox.MaxValue = float.MaxValue;
     }

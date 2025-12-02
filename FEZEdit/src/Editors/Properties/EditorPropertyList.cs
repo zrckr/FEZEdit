@@ -79,7 +79,7 @@ public partial class EditorPropertyList : EditorProperty
             itemContainer.AddChild(itemLabel);
 
             var itemEditor = PropertyFactory.GetEditorProperty(elementType);
-            itemEditor.UndoRedo = UndoRedo;
+            itemEditor.Memento = Memento;
             itemContainer.AddChild(itemEditor);
             itemEditor.Label = string.Empty;
             itemEditor.Value = item;
@@ -126,8 +126,7 @@ public partial class EditorPropertyList : EditorProperty
         var newList = (IList)GetValue();
         if (!ListsAreEqual(oldList, newList))
         {
-            RecordValueChange(oldList, newList);
-            NotifyValueChanged(newList);
+            RecordAndNotifyValueChange(newList);
         }
     }
     

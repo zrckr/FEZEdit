@@ -38,11 +38,7 @@ public partial class EditorPropertyInteger : EditorProperty
     {
         base._Ready();
         _spinBox = GetNode<SpinBox>("SpinBox");
-        _spinBox.ValueChanged += newValue =>
-        {
-            RecordValueChange(PropertyInfo?.GetValue(Target), (int)newValue);
-            NotifyValueChanged(newValue);
-        };
+        _spinBox.ValueChanged += newValue => RecordAndNotifyValueChange((int)newValue);
         _spinBox.MinValue = int.MinValue;
         _spinBox.MaxValue = int.MaxValue;
     }

@@ -36,13 +36,7 @@ public partial class EditorPropertyEnum : EditorProperty
         base._Ready();
         _enumValues = Enum.GetValues(Type);
         _optionButton = GetNode<OptionButton>("OptionButton");
-        
-        _optionButton.ItemSelected += index => 
-        {
-            var newValue = _enumValues.GetValue(index);
-            RecordValueChange(PropertyInfo?.GetValue(Target), newValue);
-            NotifyValueChanged(newValue);
-        };
+        _optionButton.ItemSelected += index => RecordAndNotifyValueChange(_enumValues.GetValue(index));
         
         foreach (var enumValue in _enumValues)
         {

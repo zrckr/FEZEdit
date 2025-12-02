@@ -1,6 +1,7 @@
 ﻿using System;
 using FEZEdit.Main;
 using FEZEdit.Content;
+using FEZEdit.Memento;
 using FEZRepacker.Core.Definitions.Game.TrackedSong;
 using Godot;
 
@@ -39,12 +40,14 @@ public partial class DiezEditor : Editor
 
     private const string AssembleChordPath = @"collects\splitupcube\assemble_{0}";
 
-    public override event Action ValueChanged;
-
     public override object Value
     {
         get => _trackedSong;
-        set => _trackedSong = (TrackedSong)value;
+        set
+        {
+            _trackedSong = (TrackedSong)value;
+            Memento = new MementoManager(_trackedSong);
+        }
     }
 
     public override bool Disabled
@@ -56,8 +59,6 @@ public partial class DiezEditor : Editor
             _loopInspector.Disabled = value;
         }
     }
-
-    public override UndoRedo UndoRedo { get; } = new();
 
     private TrackedSong _trackedSong;
 
@@ -71,6 +72,8 @@ public partial class DiezEditor : Editor
     
     private AudioStreamPlayer _assembleChordPlayer;
 
+    private int _overlayLoopIndex;
+
     public override void _Ready()
     {
         InitializeSongInspector();
@@ -79,11 +82,25 @@ public partial class DiezEditor : Editor
         InitializeAssembleChordPreview();
     }
 
+    public override void _Refresh()
+    {
+        _songInspector.ClearProperties();
+        foreach (string propertyName in SongProperties)
+        {
+            _songInspector.InspectProperty(_trackedSong, propertyName);
+        }
+        
+        _overlayLoopList.InspectList(_trackedSong.Loops);
+        if (_overlayLoopIndex > -1)
+        {
+            InspectLoop(_overlayLoopIndex);
+        }
+    }
+
     private void InitializeSongInspector()
     {
         _songInspector = GetNode<Inspector>("%SongInspector");
-        _songInspector.UndoRedo = UndoRedo;
-        _songInspector.TargetChanged += _ => ValueChanged?.Invoke();
+        _songInspector.Memento = Memento;
         _songInspector.ClearProperties();
         foreach (string propertyName in SongProperties)
         {
@@ -104,7 +121,7 @@ public partial class DiezEditor : Editor
     private void InitializeLoopInspector()
     {
         _loopInspector = GetNode<Inspector>("%LoopInspector");
-        _loopInspector.UndoRedo = UndoRedo;
+        _loopInspector.Memento = Memento;
         InspectLoop(-1);
     }
     
@@ -119,74 +136,42 @@ public partial class DiezEditor : Editor
 
     private void AddNewLoop()
     {
-        var loop = new Loop { Name = $"{_trackedSong.Name} ^ Loop{_trackedSong.Loops.Count}" };
-        var index = _trackedSong.Loops.Count;
-        
-        UndoRedo.CreateAction("Add new loop");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope("Add new loop"))
         {
+            var loop = new Loop { Name = $"{_trackedSong.Name} ^ Loop{_trackedSong.Loops.Count}" };
+            var index = _trackedSong.Loops.Count;
             _trackedSong.Loops.Insert(index, loop);
             _overlayLoopList.InspectList(_trackedSong.Loops);
             _overlayLoopList.SelectLoop(index);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _trackedSong.Loops.RemoveAt(index);
-            _overlayLoopList.InspectList(_trackedSong.Loops);
-            _overlayLoopList.SelectLoop(index);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void RemoveLoop(int index)
     {
-        var loop = _trackedSong.Loops[index];
-        UndoRedo.CreateAction("Remove loop");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope("Remove loop"))
         {
             _trackedSong.Loops.RemoveAt(index);
             _overlayLoopList.InspectList(_trackedSong.Loops);
             _overlayLoopList.SelectLoop(index);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _trackedSong.Loops.Insert(index, loop);
-            _overlayLoopList.InspectList(_trackedSong.Loops);
-            _overlayLoopList.SelectLoop(index);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void MoveLoop(int oldIndex, int newIndex)
     {
-        var item = _trackedSong.Loops[oldIndex];
-        UndoRedo.CreateAction($"Move loop from {oldIndex} to {newIndex}");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope($"Move loop from {oldIndex} to {newIndex}"))
         {
+            var item = _trackedSong.Loops[oldIndex];
             _trackedSong.Loops.RemoveAt(oldIndex);
             _trackedSong.Loops.Insert(newIndex, item);
             _overlayLoopList.InspectList(_trackedSong.Loops);
             _overlayLoopList.SelectLoop(newIndex);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _trackedSong.Loops.RemoveAt(newIndex);
-            _trackedSong.Loops.Insert(oldIndex, item);
-            _overlayLoopList.InspectList(_trackedSong.Loops);
-            _overlayLoopList.SelectLoop(oldIndex);
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void InspectLoop(int index)
     {
         _loopInspector.ClearProperties();
+        _overlayLoopIndex = index;
         
         if (index == -1)
         {
@@ -210,7 +195,6 @@ public partial class DiezEditor : Editor
         if (@object is Loop)
         {
             _overlayLoopList.InspectList(_trackedSong.Loops);
-            ValueChanged?.Invoke();
         }
     }
     

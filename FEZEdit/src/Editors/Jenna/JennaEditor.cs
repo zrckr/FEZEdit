@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using FEZEdit.Extensions;
 using FEZEdit.Main;
+using FEZEdit.Memento;
 using FEZRepacker.Core.Definitions.Game.Common;
 using FEZRepacker.Core.Definitions.Game.MapTree;
 using Godot;
@@ -15,12 +17,14 @@ public partial class JennaEditor : Editor
         RemoveNode
     }
 
-    public override event Action ValueChanged;
-
     public override object Value
     {
         get => _mapTree;
-        set => _mapTree = (MapTree)value;
+        set
+        {
+            _mapTree = (MapTree)value;
+            Memento = new MementoManager(_mapTree);
+        }
     }
 
     public override bool Disabled
@@ -30,8 +34,6 @@ public partial class JennaEditor : Editor
             _inspector.Disabled = value;
         }
     }
-    
-    public override UndoRedo UndoRedo { get; } = new();
 
     [Export] private IconsResource _icons;
 
@@ -57,6 +59,11 @@ public partial class JennaEditor : Editor
         InitializeContextMenu();
         InitializeMaterializer();
         InitializeInspector();
+    }
+
+    public override void _Refresh()
+    { 
+        _materializer.Update(_mapTree, _mapTree.Root);
     }
 
     private void InitializeSubViewport()
@@ -95,26 +102,26 @@ public partial class JennaEditor : Editor
         _materializer = new JennaMaterializer();
         _camera.AddSibling(_materializer, true);
         
-        _materializer.Initialize(_mapTree);
+        _materializer.Update(_mapTree, _mapTree.Root);
         _camera.SetTarget(_materializer, false);
     }
 
     private void InitializeInspector()
     {
         _inspector = GetNode<Inspector>("%Inspector");
-        _inspector.UndoRedo = UndoRedo;
-        _inspector.TargetChanged += UpdateObjectFromProperties;
+        _inspector.Memento = Memento;
+        _inspector.TargetChanged += UpdateMaterializerState;
     }
 
     private void ShowPropertiesInInspector(object source)
     {
         if (_inspectedObject is MapNode oldNode)
         {
-            _materializer.HighlightNode(oldNode, false);
+            _materializer.Highlight(oldNode, false);
         }
         if (source is MapNode newNode)
         {
-            _materializer.HighlightNode(newNode, true);
+            _materializer.Highlight(newNode, true);
         }
         
         if (_inspectedObject != source)
@@ -132,20 +139,18 @@ public partial class JennaEditor : Editor
         }
     }
 
-    private void UpdateObjectFromProperties(object target)
+    private void UpdateMaterializerState(object target)
     {
         if (target != null && _inspectedObject != null)
         {
             switch (target)
             {
                 case MapNode node:
-                    _materializer.UpdateMapNode(node);
-                    ValueChanged?.Invoke();
+                    _materializer.Update(_mapTree, node);
                     break;
                 
                 case MapNodeConnection connection:
-                    _materializer.UpdateMapNode(connection.Node);
-                    ValueChanged?.Invoke();
+                    _materializer.Update(_mapTree, connection.Node);
                     break;
             }
         }
@@ -175,20 +180,16 @@ public partial class JennaEditor : Editor
     {
         if (options == Options.RemoveNode && _selectedMapNode != null)
         {
-            (MapNode parent, MapNodeConnection parentConnection) = _mapTree.FindParentWithConnection(_selectedMapNode);
-
-            UndoRedo.CreateAction("Remove Map Node", _materializer);
-            UndoRedo.AddDoMethod(() =>
+            (MapNode parent, _) = _mapTree.FindParentWithConnection(_selectedMapNode);
+            var connection = parent?.Connections.FirstOrDefault(c => c.Node == _selectedMapNode);
+            if (connection != null)
             {
-                _materializer.RemoveMapNode(_selectedMapNode);
-                ValueChanged?.Invoke();
-            });
-            UndoRedo.AddUndoMethod(() =>
-            {
-                _materializer.AddMapNode(parent, _selectedMapNode, parentConnection.Face);
-                ValueChanged?.Invoke();
-            });
-            UndoRedo.CommitAction();
+                using (Memento.BeginScope("Remove Map Node"))
+                {
+                    parent.Connections.Remove(connection);
+                    _materializer.Update(_mapTree, parent);
+                }
+            }
         }
     }
 
@@ -196,20 +197,12 @@ public partial class JennaEditor : Editor
     {
         if (_selectedMapNode != null)
         {
-            var newNode = new MapNode { LevelName = "UNTITLED" };
-            
-            UndoRedo.CreateAction("Add Map Node", _materializer);
-            UndoRedo.AddDoMethod(() =>
+            using (Memento.BeginScope("Add Map Node"))
             {
-                _materializer.AddMapNode(_selectedMapNode, newNode, orientation);
-                ValueChanged?.Invoke();
-            });
-            UndoRedo.AddUndoMethod(() =>
-            {
-                _materializer.RemoveMapNode(newNode);
-                ValueChanged?.Invoke();
-            });
-            UndoRedo.CommitAction();
+                var newNode = new MapNode { LevelName = "UNTITLED" };
+                _selectedMapNode.Connections.Add(new MapNodeConnection { Node = newNode, Face = orientation });
+                _materializer.Update(_mapTree, _selectedMapNode);
+            }
         }
     }
 

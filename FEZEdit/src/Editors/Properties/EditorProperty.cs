@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using FEZEdit.Memento;
 using Godot;
 
 namespace FEZEdit.Editors.Properties;
@@ -29,14 +30,13 @@ public abstract partial class EditorProperty : Control
             if (!Equals(oldValue, value))
             {
                 SetValue(value);
-                RecordValueChange(oldValue, value);
             }
         }
     }
     
     public event Action<object> ValueChanged;
     
-    public UndoRedo UndoRedo { get; set; }
+    public MementoManager Memento { get; set; }
     
     public EditorPropertyFactory PropertyFactory { get; set; }
     
@@ -59,27 +59,12 @@ public abstract partial class EditorProperty : Control
     
     protected abstract void SetValue(object value);
     
-    protected void NotifyValueChanged(object newValue)
+    protected void RecordAndNotifyValueChange(object value)
     {
-        ValueChanged?.Invoke(newValue);
-    }
-    
-    protected void RecordValueChange(object oldValue, object newValue)
-    {
-        if (UndoRedo?.IsCommitting == false)
+        using (Memento.BeginScope($"Change {Label}"))
         {
-            UndoRedo.CreateAction(name: $"Change {Label}", tag: Target);
-            UndoRedo.AddUndoProperty(
-                () => PropertyInfo.GetValue(Target),
-                value => PropertyInfo.SetValue(Target, value),
-                oldValue
-            );
-            UndoRedo.AddDoProperty(
-                () => PropertyInfo.GetValue(Target),
-                value => PropertyInfo.SetValue(Target, value),
-                newValue
-            );
-            UndoRedo.CommitAction();
+            PropertyInfo.SetValue(Target, value);
+            ValueChanged?.Invoke(value);
         }
     }
 }

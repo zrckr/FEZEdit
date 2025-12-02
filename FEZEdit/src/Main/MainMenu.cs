@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using FEZEdit.Providers;
 using FEZEdit.Core;
+using FEZEdit.Editors;
 using FEZEdit.Extensions;
 using Godot;
 using Environment = System.Environment;
@@ -46,7 +47,7 @@ public partial class MainMenu : Control
 
     public event Action<Theme> ThemeSelected;
 
-    public event Func<UndoRedo> UndoRedoRequested;
+    public event Func<Editor> EditorRequested;
 
     private const int ClearRecentFilesId = -2;
 
@@ -244,12 +245,12 @@ public partial class MainMenu : Control
 
     private void OnMenuAboutToPopup()
     {
-        var history = UndoRedoRequested?.Invoke();
+        var editor = EditorRequested?.Invoke();
         _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.FileClose), !_canSaveFiles);
         _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFile), !_canSaveFiles);
         _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.SaveFileAs), !_canSaveFiles);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditUndo), !history?.HasUndo ?? true);
-        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditRedo), !history?.HasRedo ?? true);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditUndo), !editor?.CanUndo ?? true);
+        _fileMenu.SetItemDisabled(_fileMenu.GetItemIndex((int)Options.EditRedo), !editor?.CanRedo ?? true);
     }
 
     private void OnMenuItemPressed(long id)
@@ -283,16 +284,16 @@ public partial class MainMenu : Control
                 break;
             
             case Options.EditRedo:
-                if (UndoRedoRequested?.Invoke() is { HasRedo: true } redo)
+                if (EditorRequested?.Invoke() is { CanRedo: true } editor1)
                 {
-                    redo.Redo();
+                    editor1.Redo();
                 }
                 break;
             
             case Options.EditUndo:
-                if (UndoRedoRequested?.Invoke() is { HasUndo: true } undo)
+                if (EditorRequested?.Invoke() is { CanUndo: true } editor2)
                 {
-                    undo.Undo();
+                    editor2.Undo();
                 }
                 break;
             

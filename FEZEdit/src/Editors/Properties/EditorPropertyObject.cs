@@ -61,8 +61,7 @@ public partial class EditorPropertyObject : EditorProperty
         var newJson = JsonSerializer.Serialize(newObject, Type);
         if (!oldJson.Equals(newJson))
         {
-            RecordValueChange(oldObject, newObject);
-            NotifyValueChanged(newObject);
+            RecordAndNotifyValueChange(newObject);
         }
     }
  }

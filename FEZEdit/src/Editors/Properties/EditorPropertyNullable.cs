@@ -57,7 +57,7 @@ public partial class EditorPropertyNullable : EditorProperty
         
         var type = Type.GetElementType() ?? typeof(object);
         var editor = PropertyFactory.GetEditorProperty(type);
-        editor.UndoRedo = UndoRedo;
+        editor.Memento = Memento;
         editor.ValueChanged += _ => OnValueChanged();
         _propertyContainer.AddChild(editor);
         editor.Value = PropertyInfo?.GetValue(Target);
@@ -71,8 +71,7 @@ public partial class EditorPropertyNullable : EditorProperty
         var newValue = GetValue();
         if (!newValue.Equals(oldValue))
         {
-            RecordValueChange(oldValue, newValue);
-            NotifyValueChanged(newValue);
+            RecordAndNotifyValueChange(newValue);
         }
     }
 }

@@ -12,53 +12,13 @@ namespace FEZEdit.Editors.Jenna;
 public partial class JennaMaterializer : Node3D
 {
     private readonly Dictionary<MapNode, JennaNode> _jennaNodes = new();
-    
-    private MapTree _currentMapTree;
 
     public override void _Ready()
     {
         Name = nameof(JennaMaterializer);
     }
 
-    public void Initialize(MapTree mapTree)
-    {
-        _currentMapTree = mapTree;
-        _jennaNodes.Clear();
-        RebuildVisualTree(mapTree.Root);
-    }
-
-    public void AddMapNode(MapNode parentNode, MapNode newNode, FaceOrientation connectionFace)
-    {
-        if (_jennaNodes.ContainsKey(parentNode))
-        {
-            parentNode.Connections.Add(new MapNodeConnection { Node = newNode, Face = connectionFace });
-            RebuildVisualTree(parentNode);
-        }
-    }
-
-    public void UpdateMapNode(MapNode nodeToUpdate)
-    {
-        if (_jennaNodes.ContainsKey(nodeToUpdate))
-        {
-            RebuildVisualTree(nodeToUpdate);
-        }
-    }
-
-    public void RemoveMapNode(MapNode nodeToRemove)
-    {
-        if (_jennaNodes.ContainsKey(nodeToRemove))
-        {
-            (MapNode parent, _) = _currentMapTree.FindParentWithConnection(nodeToRemove);
-            var connection = parent?.Connections.FirstOrDefault(c => c.Node == nodeToRemove);
-            if (connection != null)
-            {
-                parent.Connections.Remove(connection);
-                RebuildVisualTree(parent);
-            }
-        }
-    }
-
-    public void HighlightNode(MapNode nodeToHighlight, bool highlight)
+    public void Highlight(MapNode nodeToHighlight, bool highlight)
     {
         if (_jennaNodes.TryGetValue(nodeToHighlight, out var jennaNode))
         {
@@ -66,9 +26,9 @@ public partial class JennaMaterializer : Node3D
         }
     }
 
-    private void RebuildVisualTree(MapNode node)
+    public void Update(MapTree tree, MapNode node)
     {
-        (_, MapNodeConnection parentConnection) = _currentMapTree.FindParentWithConnection(node);
+        (_, MapNodeConnection parentConnection) = tree.FindParentWithConnection(node);
         var jennaNode = _jennaNodes.GetValueOrDefault(node);
         var parentJennaNode = jennaNode?.Parent;
         var offset = jennaNode?.GlobalPosition ?? Vector3.Zero;

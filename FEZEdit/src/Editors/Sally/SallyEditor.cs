@@ -5,6 +5,7 @@ using System.Linq;
 using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZEdit.Main;
+using FEZEdit.Memento;
 using Godot;
 using Serilog;
 using WinConditions = FEZRepacker.Core.Definitions.Game.MapTree.WinConditions;
@@ -81,13 +82,15 @@ public partial class SallyEditor : Editor
     ];
 
     private const string SaveDataPath = "SaveDataPath";
-    
-    public override event Action ValueChanged;
 
     public override object Value
     {
         get => _saveData;
-        set => _saveData = (SaveData)value;
+        set
+        {
+            _saveData = (SaveData)value;
+            Memento = new MementoManager(_saveData);
+        }
     }
 
     public override bool Disabled
@@ -100,9 +103,7 @@ public partial class SallyEditor : Editor
             _filledConditionsInspector.Disabled = value;
         }
     }
-    
-    public override UndoRedo UndoRedo { get; } = new();
-    
+
     private List<string> LevelKeys => _saveData.World.Keys.OrderBy(k => k).ToList();
 
     [Export] private Godot.Collections.Dictionary<string, string> _saveDataTooltips = new();
@@ -145,6 +146,11 @@ public partial class SallyEditor : Editor
         RepopulateSaveData();
     }
 
+    public override void _Refresh()
+    {
+        RepopulateSaveData();
+    }
+
     private void InitializeFormatOption()
     {
         _formatOption = GetNode<OptionButton>("%FormatOption");
@@ -156,19 +162,10 @@ public partial class SallyEditor : Editor
         _formatOption.Selected = 0;
         _formatOption.ItemSelected += format =>
         {
-            var oldFormat = SaveDataProvider.Format;
-            UndoRedo.CreateAction("Change Save Format");
-            UndoRedo.AddDoMethod(() =>
+            using (Memento.BeginScope("Change Save Format"))
             {
                 SaveDataProvider.Format = (SaveDataProvider.SaveFormat)format;
-                ValueChanged?.Invoke();
-            });
-            UndoRedo.AddUndoMethod(() =>
-            {
-                SaveDataProvider.Format = oldFormat;
-                ValueChanged?.Invoke();
-            });
-            UndoRedo.CommitAction();
+            }
         };
     }
 
@@ -190,8 +187,7 @@ public partial class SallyEditor : Editor
     private void InitializeSaveData()
     {
         _saveDataInspector = GetNode<Inspector>("%SaveDataInspector");
-        _saveDataInspector.UndoRedo = UndoRedo;
-        _saveDataInspector.TargetChanged += _ => ValueChanged?.Invoke();
+        _saveDataInspector.Memento = Memento;
     }
 
     private void InitializeList()
@@ -206,13 +202,11 @@ public partial class SallyEditor : Editor
     private void InitializeLevelSaveData()
     {
         _levelSaveDataInspector = GetNode<Inspector>("%LevelSaveDataInspector");
-        _levelSaveDataInspector.UndoRedo = UndoRedo;
-        _levelSaveDataInspector.TargetChanged += _ => ValueChanged?.Invoke();
+        _levelSaveDataInspector.Memento = Memento;
         _levelSaveDataInspector.Visible = false;
         
         _filledConditionsInspector = GetNode<Inspector>("%FilledConditionsInspector");
-        _filledConditionsInspector.UndoRedo = UndoRedo;
-        _filledConditionsInspector.TargetChanged += _ => ValueChanged?.Invoke();
+        _filledConditionsInspector.Memento = Memento;
         _filledConditionsInspector.Visible = false;
     }
 
@@ -242,62 +236,32 @@ public partial class SallyEditor : Editor
     
     private void RemoveWorldLevel(string level)
     {
-        var levelSaveData = _saveData.World[level];
-        UndoRedo.CreateAction($"Remove Level {level}");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope("Remove Level"))
         {
             _saveData.World.Remove(level);
             RepopulateLevelList();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _saveData.World[level] = levelSaveData;
-            RepopulateLevelList();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void AddWorldLevel(string level)
     {
-        UndoRedo.CreateAction($"Add Level {level}");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope($"Add Level {level}"))
         {
             _saveData.World[level] = new LevelSaveData();
             RepopulateLevelList();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _saveData.World.Remove(level);
-            RepopulateLevelList();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void RenameWorldLevel(int index, string level)
     {
         var oldLevel = LevelKeys[index];
-        var saveData = _saveData.World[oldLevel];
-        
-        UndoRedo.CreateAction($"Rename Level {oldLevel} to {level}");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope($"Rename Level {oldLevel} to {level}"))
         {
+            var saveData = _saveData.World[oldLevel];
             _saveData.World.Remove(oldLevel);
             _saveData.World[level] = saveData;
             RepopulateLevelList();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _saveData.World[oldLevel] = saveData;
-            _saveData.World.Remove(level);
-            RepopulateLevelList();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
     
     private void RepopulateLevelSaveData(string level)
@@ -342,10 +306,8 @@ public partial class SallyEditor : Editor
     {
         var path = _confirmDialog.GetMeta(SaveDataPath).AsString();
         _confirmDialog.RemoveMeta(SaveDataPath);
-
-        var oldSaveData = _saveData;
-        SaveData newSaveData;
         
+        SaveData newSaveData;
         if (string.IsNullOrEmpty(path))
         {
             newSaveData = new SaveData();
@@ -371,20 +333,11 @@ public partial class SallyEditor : Editor
             Logger.Error("Failed to create new save data: '{0}'", path);
             return;
         }
-        
-        UndoRedo.CreateAction("New Save Data");
-        UndoRedo.AddDoMethod(() =>
+
+        using (Memento.BeginScope("New Save Data"))
         {
             _saveData = newSaveData;
             RepopulateSaveData();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _saveData = oldSaveData;
-            RepopulateSaveData();
-            ValueChanged?.Invoke();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 }

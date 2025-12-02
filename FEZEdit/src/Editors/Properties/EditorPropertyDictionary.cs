@@ -79,7 +79,7 @@ public partial class EditorPropertyDictionary : EditorProperty
             _itemsContainer.AddChild(itemContainer);
 
             var keyProperty = PropertyFactory.GetEditorProperty(types[0]);
-            keyProperty.UndoRedo = UndoRedo;
+            keyProperty.Memento = Memento;
             itemContainer.AddChild(keyProperty);
             keyProperty.Label = string.Empty;
             keyProperty.Value = entry.Key;
@@ -87,7 +87,7 @@ public partial class EditorPropertyDictionary : EditorProperty
             _editorProperties.Add(keyProperty);
 
             var valueProperty = PropertyFactory.GetEditorProperty(types[1]);
-            valueProperty.UndoRedo = UndoRedo;
+            valueProperty.Memento = Memento;
             itemContainer.AddChild(valueProperty);
             valueProperty.Label = string.Empty;
             valueProperty.Value = entry.Value;
@@ -138,8 +138,7 @@ public partial class EditorPropertyDictionary : EditorProperty
         var newDict = (IDictionary)GetValue();
         if (!DictionariesAreEqual(oldDict, newDict))
         {
-            RecordValueChange(oldDict, newDict);
-            NotifyValueChanged(newDict);
+            RecordAndNotifyValueChange(newDict);
         }
     }
     

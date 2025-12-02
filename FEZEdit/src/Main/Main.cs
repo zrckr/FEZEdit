@@ -49,7 +49,7 @@ public partial class Main : Control
         _mainMenu.WorkingFileSaved += SaveFile;
         _mainMenu.SaveSlotOpened += OpenSaveEditor;
         _mainMenu.ThemeSelected += ChangeTheme;
-        _mainMenu.UndoRedoRequested += () => _currentEditor?.UndoRedo;
+        _mainMenu.EditorRequested += () => _currentEditor;
 
         _fileBrowser = GetNode<FileBrowser>("%FileBrowser");
         _fileBrowser.FileMaterialized += EditFile;
