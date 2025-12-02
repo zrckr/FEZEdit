@@ -1,4 +1,8 @@
 ﻿using System;
+using FEZEdit.Core;
+using FEZEdit.Extensions;
+using FEZRepacker.Core.Definitions.Game.Common;
+using FEZRepacker.Core.Definitions.Game.Level;
 using Godot;
 
 namespace FEZEdit.Editors.Eddy;
@@ -73,7 +77,6 @@ public partial class LevelCamera : Camera3D
             case InputEventMouseButton { ButtonIndex: MouseButton.Right } rmb:
                 Input.MouseMode = rmb.Pressed ? Input.MouseModeEnum.Captured : Input.MouseModeEnum.Visible;
                 IsMoving = rmb.Pressed;
-                GetViewport().SetInputAsHandled();
                 break;
             
             case InputEventMouseButton { Pressed: true } button:
@@ -93,12 +96,10 @@ public partial class LevelCamera : Camera3D
             case InputEventMouseMotion motion when Input.IsMouseButtonPressed(MouseButton.Right):
                 HandleLook(motion.Relative);
                 HandlePan(motion.Relative, (float)GetProcessDeltaTime());
-                GetViewport().SetInputAsHandled();
                 break;
             
             case InputEventMouseMotion motion when Input.IsMouseButtonPressed(MouseButton.Left):
                 HandlePicking(motion.Position);
-                GetViewport().SetInputAsHandled();
                 break;
         }
     }
@@ -114,6 +115,17 @@ public partial class LevelCamera : Camera3D
             View.Left => Vector3.Axis.X,
             _ => throw new ArgumentOutOfRangeException(nameof(_currentView), _currentView, null)
         };
+    }
+
+    public void LookAtStartingPosition(TrileInstance instance, FaceOrientation face, Bounds bounds)
+    {
+        var position = instance.Position.ToGodot() + TrileMap.EmplacementCenter + Vector3.Up;
+        var depth = bounds.GetDepth(face, 10f);
+        var mask = Vector3.One - depth.Sign().Abs();
+        var target = face.GetOpposite().AsVector();
+        
+        Position = position * mask + depth;
+        Basis = Basis.LookingAt(target, Vector3.Up);
     }
 
     private void SetCurrentView(View value)

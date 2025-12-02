@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://ctgnvtvw1tgma"]
+[gd_scene load_steps=16 format=3 uid="uid://ctgnvtvw1tgma"]
 
 [ext_resource type="Texture2D" uid="uid://l6744ahtd206" path="res://assets/icons/ToolTriangle.png" id="1_ix78k"]
 [ext_resource type="Script" uid="uid://dd1fxdmarbbxw" path="res://src/Editors/Eddy/TrileMapEditor.cs" id="1_vr50m"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://dnhbt7ybgcbwu" path="res://assets/icons/Remove.png" id="9_dgw5q"]
 [ext_resource type="Texture2D" uid="uid://d121e05b6uja1" path="res://assets/icons/Group.png" id="10_dgw5q"]
 [ext_resource type="Texture2D" uid="uid://b11kfhw88f20e" path="res://assets/icons/Ungroup.png" id="11_6y577"]
+[ext_resource type="Texture2D" uid="uid://dpx1bylai2q6p" path="res://assets/icons/RotateRight.png" id="14_o08eh"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_6y577"]
 
@@ -158,23 +159,31 @@ theme_override_constants/separation = 4
 layout_mode = 2
 text = "Offset:"
 
+[node name="ResetOffset" type="Button" parent="Toolbar/OffsetBoxes"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("14_o08eh")
+
 [node name="XBox" type="SpinBox" parent="Toolbar/OffsetBoxes"]
 unique_name_in_owner = true
 layout_mode = 2
+min_value = -1.0
 max_value = 1.0
-step = 0.063
+step = 0.01
 suffix = "m"
 
 [node name="YBox" type="SpinBox" parent="Toolbar/OffsetBoxes"]
 unique_name_in_owner = true
 layout_mode = 2
+min_value = -1.0
 max_value = 1.0
-step = 0.063
+step = 0.01
 suffix = "m"
 
 [node name="ZBox" type="SpinBox" parent="Toolbar/OffsetBoxes"]
 unique_name_in_owner = true
 layout_mode = 2
+min_value = -1.0
 max_value = 1.0
-step = 0.063
+step = 0.01
 suffix = "m"

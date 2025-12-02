@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://82h1lp26dff0"]
+[gd_scene load_steps=13 format=3 uid="uid://82h1lp26dff0"]
 
 [ext_resource type="Texture2D" uid="uid://5hir4iq2tjwo" path="res://assets/icons/ToolSelect.png" id="1_4sefk"]
 [ext_resource type="Script" uid="uid://be3hsmwut3kph" path="res://src/Editors/Eddy/LevelScene.cs" id="1_ku8et"]
@@ -6,22 +6,12 @@
 [ext_resource type="Texture2D" uid="uid://dgdde2gttrafk" path="res://assets/icons/ToolRotate.png" id="3_btiug"]
 [ext_resource type="Texture2D" uid="uid://b1pqviao1tlj2" path="res://assets/icons/ToolScale.png" id="4_ku8et"]
 [ext_resource type="Script" uid="uid://cjnmhxc885byn" path="res://src/Gizmos/Gizmo3D.cs" id="5_roa1l"]
-[ext_resource type="Texture2D" uid="uid://0wduqfn2vbp4" path="res://assets/Faces.png" id="5_wxy05"]
+[ext_resource type="PackedScene" uid="uid://ctgnvtvw1tgma" path="res://src/Editors/Eddy/TrileMapEditor.tscn" id="6_1743q"]
 [ext_resource type="Script" uid="uid://d3u72od2enhbq" path="res://src/Gizmos/Grid3D.cs" id="6_btiug"]
 [ext_resource type="Script" uid="uid://dbcu7cvxjckxb" path="res://src/Editors/Eddy/LevelCamera.cs" id="9_qbolo"]
-[ext_resource type="Script" uid="uid://m1rmp04dlsie" path="res://src/Editors/MaterializerProxy.cs" id="9_tpmnr"]
 [ext_resource type="Script" uid="uid://cxxri1s004b5o" path="res://src/Editors/Eddy/TimeNode.cs" id="9_wxy05"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_4sefk"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ctw11"]
-albedo_texture = ExtResource("5_wxy05")
-texture_filter = 0
-
-[sub_resource type="BoxMesh" id="BoxMesh_daybi"]
-material = SubResource("StandardMaterial3D_ctw11")
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_qbolo"]
 
 [sub_resource type="Environment" id="Environment_ku8et"]
 
@@ -47,11 +37,14 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="ToolModesContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="ToolModesContainer" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="SelectButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="SelectButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
@@ -59,41 +52,41 @@ button_pressed = true
 button_group = SubResource("ButtonGroup_4sefk")
 icon = ExtResource("1_4sefk")
 
-[node name="VSeparator1" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="VSeparator1" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 layout_mode = 2
 
-[node name="TranslateButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="TranslateButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
 button_group = SubResource("ButtonGroup_4sefk")
 icon = ExtResource("2_roa1l")
 
-[node name="RotateButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="RotateButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
 button_group = SubResource("ButtonGroup_4sefk")
 icon = ExtResource("3_btiug")
 
-[node name="ScaleButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="ScaleButton" type="Button" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
 button_group = SubResource("ButtonGroup_4sefk")
 icon = ExtResource("4_ku8et")
 
-[node name="VSeparator2" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="VSeparator2" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 layout_mode = 2
 
-[node name="Separator" type="Control" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="Separator" type="Control" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="VSeparator3" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="VSeparator3" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 layout_mode = 2
 
-[node name="ViewOptionButton" type="OptionButton" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="ViewOptionButton" type="OptionButton" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 selected = 0
@@ -109,24 +102,28 @@ popup/item_3/id = 3
 popup/item_4/text = "Left"
 popup/item_4/id = 4
 
-[node name="VSeparator4" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="VSeparator4" type="VSeparator" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 layout_mode = 2
 
-[node name="TimeCycle" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer"]
+[node name="TimeCycle" type="HBoxContainer" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer/TimeCycle"]
+[node name="Label" type="Label" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer/TimeCycle"]
 layout_mode = 2
 text = "Time:"
 
-[node name="TimeEdit" type="LineEdit" parent="LayoutContainer/HeaderContainer/MarginContainer/ToolModesContainer/TimeCycle"]
+[node name="TimeEdit" type="LineEdit" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer/ToolModesContainer/TimeCycle"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "00:00"
 alignment = 1
 context_menu_enabled = false
 emoji_menu_enabled = false
+
+[node name="TrileMapEditor" parent="LayoutContainer/HeaderContainer/MarginContainer/VBoxContainer" instance=ExtResource("6_1743q")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="LayoutContainer"]
 layout_mode = 2
@@ -138,7 +135,7 @@ own_world_3d = true
 handle_input_locally = false
 physics_object_picking = true
 physics_object_picking_sort = true
-size = Vector2i(1280, 654)
+size = Vector2i(1371, 592)
 render_target_update_mode = 4
 
 [node name="RootNode" type="Node3D" parent="LayoutContainer/SubViewportContainer/SubViewport"]
@@ -157,15 +154,6 @@ script = ExtResource("5_roa1l")
 [node name="Grid" type="Node3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
 unique_name_in_owner = true
 script = ExtResource("6_btiug")
-
-[node name="Node3D" type="MeshInstance3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
-mesh = SubResource("BoxMesh_daybi")
-
-[node name="MaterializerProxy" type="StaticBody3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode/Node3D"]
-script = ExtResource("9_tpmnr")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode/Node3D/MaterializerProxy"]
-shape = SubResource("BoxShape3D_qbolo")
 
 [node name="Camera" type="Camera3D" parent="LayoutContainer/SubViewportContainer/SubViewport/RootNode"]
 unique_name_in_owner = true

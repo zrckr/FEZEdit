@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
+using FEZEdit.Memento;
 using Godot;
 
 namespace FEZEdit.Editors.Eddy;
@@ -9,14 +10,6 @@ using FEZRepacker.Core.Definitions.Game.Level;
 
 public partial class TrileMapEditor : Control
 {
-    private static readonly Vector3 EmplacementCenter = Vector3.One / 2f; 
-    
-    public Node LevelScene { get; set; }
-    
-    public Camera3D LevelCamera { get; set; }
-    
-    public UndoRedo UndoRedo { get; set; }
-    
     [Export] private int _gridCursorSize = 50;
 
     [Export] private Color _gridColor = Colors.Orange;
@@ -29,6 +22,12 @@ public partial class TrileMapEditor : Control
     
     [Export] private Color _pickColor = new(1.0f, 0.7f, 0.0f);
 
+    private LevelCamera _levelCamera;
+    
+    private LevelScene _levelScene;
+
+    private MementoManager _memento;
+
     private TrileMap _trileMap;
 
     private TrileMap _mainTrileMap;
@@ -40,8 +39,6 @@ public partial class TrileMapEditor : Control
     private ClipboardState _clipboard;
 
     private GridState _grid;
-
-    private SelectionState _lastSelection;
 
     public TrileMapEditor()
     {
@@ -80,29 +77,31 @@ public partial class TrileMapEditor : Control
         GetNode<SpinBox>("%ZBox").ValueChanged += value => UpdateOffset((float)value, Vector3.Axis.Z);
     }
 
-    public override void _EnterTree()
+    public void Initialize(LevelScene levelScene, LevelCamera levelCamera)
     {
-        LevelScene.AddChild(_cursor.Instance);
-        LevelScene.AddChild(_selection.Instance);
-        LevelScene.AddChild(_clipboard.Instance);
+        _levelCamera = levelCamera;
+        _levelScene = levelScene;
+        _levelScene.AddChild(_cursor.Instance);
+        _levelScene.AddChild(_selection.Instance);
+        _levelScene.AddChild(_clipboard.Instance);
         foreach (var instance in _grid.Instances)
         {
-            LevelScene.AddChild(instance);
+            _levelScene.AddChild(instance);
         }
     }
 
-    public override void _ExitTree()
+    public void Deinitialize()
     {
-        LevelScene.RemoveChild(_cursor.Instance);
-        LevelScene.RemoveChild(_selection.Instance);
-        LevelScene.RemoveChild(_clipboard.Instance);
+        _levelScene.RemoveChild(_cursor.Instance);
+        _levelScene.RemoveChild(_selection.Instance);
+        _levelScene.RemoveChild(_clipboard.Instance);
         foreach (var instance in _grid.Instances)
         {
-            LevelScene.RemoveChild(instance);
+            _levelScene.RemoveChild(instance);
         }
     }
 
-    public void Edit(TrileMap trileMap, TrileMap mainTrileMap)
+    public void Edit(TrileMap trileMap, TrileMap mainTrileMap = null)
     {
         if (_cursor.Mode != EditMode.Inspect)
         {
@@ -114,6 +113,7 @@ public partial class TrileMapEditor : Control
 
         _trileMap = trileMap;
         _mainTrileMap = mainTrileMap;
+        _memento = _trileMap?.Memento;
 
         if (_trileMap == null)
         {
@@ -312,8 +312,8 @@ public partial class TrileMapEditor : Control
 
     private bool HandleMouseMotion(InputEventMouseMotion motion)
     {
-        var from = LevelCamera.ProjectRayOrigin(motion.Position);
-        var normal = LevelCamera.ProjectRayNormal(motion.Position);
+        var from = _levelCamera.ProjectRayOrigin(motion.Position);
+        var normal = _levelCamera.ProjectRayNormal(motion.Position);
         
         var localXform = _trileMap.GlobalTransform.AffineInverse();
         from = localXform * from;
@@ -331,7 +331,7 @@ public partial class TrileMapEditor : Control
         
         // Make sure the intersection is inside the frustum planes,
         // to avoid painting on invisible regions
-        foreach (var plane in LevelCamera.GetFrustum())
+        foreach (var plane in _levelCamera.GetFrustum())
         {
             var frustumPlane = localXform * plane;
             if (frustumPlane.IsPointOver(intersection.Value))
@@ -477,7 +477,7 @@ public partial class TrileMapEditor : Control
         
         var xform = Transform3D.Identity;
         xform.Origin = new Vector3(_cursor.Emplacement.X, _cursor.Emplacement.Y, _cursor.Emplacement.Z) +
-                       EmplacementCenter +
+                       TrileMap.EmplacementCenter +
                        _cursor.Offset;
 
         if (_cursor.Mode == EditMode.Paint)
@@ -569,7 +569,7 @@ public partial class TrileMapEditor : Control
         
         var xform =  Transform3D.Identity;
         xform.Origin = new Vector3(_cursor.Emplacement.X, _cursor.Emplacement.Y, _cursor.Emplacement.Z) +
-                       EmplacementCenter +
+                       TrileMap.EmplacementCenter +
                        _cursor.Offset;
         xform.Basis = TrileMap.GetPhiBasis(_cursor.Phi);
         _clipboard.Instance.Transform = xform;
@@ -624,7 +624,7 @@ public partial class TrileMapEditor : Control
 
     private void PickTrile(CursorState cursor)
     {
-        var instance = _trileMap.GetTrile(cursor.Emplacement);
+        var instance = _trileMap.GetTrile(cursor.Emplacement.ToXna());
         if (instance != null)
         {
             _cursor.Id = instance.TrileId;
@@ -641,21 +641,18 @@ public partial class TrileMapEditor : Control
 
     private void PaintTrile(CursorState cursor)
     {
-        var oldInstance = _trileMap.GetTrile(cursor.Emplacement);
-        var newInstance = _cursor.ToInstance();
-        UndoRedo.CreateAction("Paint trile");
-        UndoRedo.AddDoMethod(() => _trileMap.SetTrile(cursor.Emplacement, newInstance));
-        UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(cursor.Emplacement, oldInstance));
-        UndoRedo.CommitAction();
+        using (_memento.BeginScope("Paint trile"))
+        {
+            _trileMap.SetTrile(cursor.Emplacement.ToXna(), cursor.ToInstance());
+        }
     }
 
     private void EraseTrile(CursorState cursor)
     {
-        var oldInstance = _trileMap.GetTrile(cursor.Emplacement);
-        UndoRedo.CreateAction("Paint trile");
-        UndoRedo.AddDoMethod(() => _trileMap.SetTrile(cursor.Emplacement, null));
-        UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(cursor.Emplacement, oldInstance));
-        UndoRedo.CommitAction();
+        using (_memento.BeginScope("Erase trile"))
+        {
+            _trileMap.SetTrile(cursor.Emplacement.ToXna(), null);
+        }
     }
 
     #endregion
@@ -667,7 +664,7 @@ public partial class TrileMapEditor : Control
         _selection.Mode = mode;
         _selection.Click = click ?? Vector3I.Zero;
         _selection.Current = current ?? Vector3I.Zero;
-        if (_trileMap.IsVisibleInTree())
+        if (_trileMap?.IsVisibleInTree() ?? false)
         {
             UpdateSelection();
         }
@@ -677,7 +674,6 @@ public partial class TrileMapEditor : Control
     {
         if (_selection.Mode != SelectMode.Selecting)
         {
-            _lastSelection = _selection;
             _selection.Current = emplacement;
             _selection.Click = emplacement;
             _selection.Mode = SelectMode.Selecting;
@@ -700,10 +696,11 @@ public partial class TrileMapEditor : Control
     {
         if (_selection.Mode == SelectMode.Selecting)
         {
-            UndoRedo.CreateAction("Select triles");
-            UndoRedo.AddDoMethod(() => SetSelection(SelectMode.Active));
-            UndoRedo.AddUndoMethod(() => SetSelection(_lastSelection.Mode, _lastSelection.Click, _lastSelection.Current));
-            UndoRedo.CommitAction();
+            using (_memento.BeginScope("Select triles"))
+            {
+                _selection.Mode = SelectMode.Active;
+                UpdateSelection();
+            }
         }
     }
     
@@ -722,18 +719,14 @@ public partial class TrileMapEditor : Control
             return;
         }
         
-        UndoRedo.CreateAction("Fill selection");
-        foreach (var emplacement in emplacements)
+        using (_memento.BeginScope("Fill selection"))
         {
-            var oldInstance = _trileMap.GetTrile(emplacement);
-            var newInstance = _cursor.ToInstance();
-            UndoRedo.AddDoMethod(() => _trileMap.SetTrile(emplacement, newInstance));
-            UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(emplacement, oldInstance));
+            foreach (var emplacement in emplacements)
+            {
+                _trileMap.SetTrile(emplacement, _cursor.ToInstance());
+            }
+            SetSelection(SelectMode.None);
         }
-        
-        UndoRedo.AddDoMethod(() => SetSelection(SelectMode.None));
-        UndoRedo.AddUndoMethod(() => SetSelection(SelectMode.Active));
-        UndoRedo.CommitAction();
     }
 
     private void CopySelection(bool cutAction)
@@ -764,22 +757,19 @@ public partial class TrileMapEditor : Control
             return;
         }
         
-        UndoRedo.CreateAction("Delete selection");
-        foreach (var emplacement in emplacements)
+        using (_memento.BeginScope("Delete selection"))
         {
-            var oldInstance = _trileMap.GetTrile(emplacement);
-            UndoRedo.AddDoMethod(() => _trileMap.SetTrile(emplacement, null));
-            UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(emplacement, oldInstance));
+            foreach (var emplacement in emplacements)
+            {
+                _trileMap.SetTrile(emplacement, null);
+            }
+            SetSelection(SelectMode.None);
         }
-        
-        UndoRedo.AddDoMethod(() => SetSelection(SelectMode.None));
-        UndoRedo.AddUndoMethod(() => SetSelection(SelectMode.Active));
-        UndoRedo.CommitAction();
     }
 
-    private HashSet<Vector3I> GetEmplacementsInSelection()
+    private HashSet<TrileEmplacement> GetEmplacementsInSelection()
     {
-        var emplacements = new HashSet<Vector3I>();
+        var emplacements = new HashSet<TrileEmplacement>();
         if (_selection.Mode != SelectMode.Active)
         {
             return emplacements;
@@ -791,7 +781,7 @@ public partial class TrileMapEditor : Control
             {
                 for (int z = _selection.Begin.Z; z <= _selection.End.Z; z++)
                 {
-                    emplacements.Add(new Vector3I(x, y, z));
+                    emplacements.Add(new TrileEmplacement(x, y, z));
                 }
             }
         }
@@ -813,26 +803,22 @@ public partial class TrileMapEditor : Control
         
         var groupTrileMap = new TrileMap { Name = "Triles", TrileSet = _trileMap.TrileSet };
         
-        UndoRedo.CreateAction("Create trile group");
-        UndoRedo.AddDoMethod(() => LevelScene.AddChild(groupTrileMap, true));
-        UndoRedo.AddUndoMethod(() => groupTrileMap.QueueFree());
-
-        foreach (var emplacement in emplacements)
+        using (_memento.BeginScope("Create trile group"))
         {
-            var instance = _trileMap.GetTrile(emplacement);
-            if (instance != null)
-            {
-                UndoRedo.AddDoMethod(() => groupTrileMap.SetTrile(emplacement, instance));
-                UndoRedo.AddUndoMethod(() => groupTrileMap.SetTrile(emplacement, null));
+            _levelScene.AddChild(groupTrileMap, true);
             
-                UndoRedo.AddDoMethod(() => _trileMap.SetTrile(emplacement, null));
-                UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(emplacement, instance));
+            foreach (var emplacement in emplacements)
+            {
+                var instance = _trileMap.GetTrile(emplacement);
+                if (instance != null)
+                {
+                    groupTrileMap.SetTrile(emplacement, instance);
+                    _trileMap.SetTrile(emplacement, null);
+                }
             }
+            
+            SetSelection(SelectMode.None);
         }
-        
-        UndoRedo.AddDoMethod(() => SetSelection(SelectMode.None));
-        UndoRedo.AddUndoMethod(() => SetSelection(SelectMode.Active));
-        UndoRedo.CommitAction();
     }
 
     private void RemoveTrileGroup()
@@ -843,33 +829,28 @@ public partial class TrileMapEditor : Control
             return;
         }
         
-        UndoRedo.CreateAction("Destroy trile group");
-        UndoRedo.AddDoMethod(() => LevelScene.RemoveChild(_trileMap));
-        UndoRedo.AddUndoMethod(() => LevelScene.AddChild(_trileMap, true));
-
-        foreach (var emplacement in emplacements)
+        using (_memento.BeginScope("Destroy trile group"))
         {
-            var instance = _trileMap.GetTrile(emplacement);
-            if (instance != null)
+            foreach (var emplacement in emplacements)
             {
-                UndoRedo.AddDoMethod(() => _trileMap.SetTrile(emplacement, null));
-                UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(emplacement, instance));
-                
-                UndoRedo.AddDoMethod(() => _mainTrileMap.SetTrile(emplacement, instance));
-                UndoRedo.AddUndoMethod(() => _mainTrileMap.SetTrile(emplacement, null));
+                var instance = _trileMap.GetTrile(emplacement);
+                if (instance != null)
+                {
+                    _trileMap.SetTrile(emplacement, null);
+                    _mainTrileMap.SetTrile(emplacement, instance);
+                }
             }
+            
+            _levelScene.RemoveChild(_trileMap);
+            SetSelection(SelectMode.None);
         }
-        
-        UndoRedo.AddDoMethod(() => SetSelection(SelectMode.None));
-        UndoRedo.AddUndoMethod(() => SetSelection(SelectMode.Active));
-        UndoRedo.CommitAction();
     }
 
     #endregion
     
     #region Clipboard operations
 
-    private void SetClipboard(IEnumerable<Vector3I> emplacements)
+    private void SetClipboard(IEnumerable<TrileEmplacement> emplacements)
     {
         foreach (var emplacement in emplacements)
         {
@@ -882,7 +863,7 @@ public partial class TrileMapEditor : Control
             var item = new ClipboardItem
             {
                 Original = instance,
-                RelativeOffset = emplacement - _selection.Begin,
+                RelativeOffset = emplacement.ToGodot() - _selection.Begin,
                 Instance = new MeshInstance3D { Mesh = _trileMap.GetTrileVisualMesh(instance.TrileId) }
             };
 
@@ -893,29 +874,28 @@ public partial class TrileMapEditor : Control
     private void PasteClipboard()
     {
         var basis = TrileMap.GetPhiBasis(_cursor.Phi);
-        UndoRedo.CreateAction("Paste selection");
-
-        foreach (var item in _clipboard.Items)
+        
+        using (_memento.BeginScope("Paste selection"))
         {
-            var itemEmplacement = basis * item.RelativeOffset + _cursor.Emplacement;
-            var itemBasis = basis * TrileMap.GetPhiBasis(item.Original.PhiLight);
-            var itemPosition = basis * item.Original.Position.ToGodot();
-
-            var newInstance = new TrileInstance
+            foreach (var item in _clipboard.Items)
             {
-                TrileId = item.Original.TrileId,
-                PhiLight = TrileMap.FindPhi(itemBasis),
-                Position = itemPosition.ToXna(),
-                ActorSettings = item.Original.ActorSettings
-            };
-            
-            var emplacement = new Vector3I((int)itemEmplacement.X, (int)itemEmplacement.Y, (int)itemEmplacement.Z);
-            var oldInstance = _trileMap.GetTrile(emplacement);
-            UndoRedo.AddDoMethod(() => _trileMap.SetTrile(emplacement, newInstance));
-            UndoRedo.AddUndoMethod(() => _trileMap.SetTrile(emplacement, oldInstance));
+                var itemEmplacement = basis * item.RelativeOffset + _cursor.Emplacement;
+                var itemBasis = basis * TrileMap.GetPhiBasis(item.Original.PhiLight);
+                var itemPosition = basis * item.Original.Position.ToGodot();
+
+                var newInstance = new TrileInstance
+                {
+                    TrileId = item.Original.TrileId,
+                    PhiLight = TrileMap.FindPhi(itemBasis),
+                    Position = itemPosition.ToXna(),
+                    ActorSettings = item.Original.ActorSettings
+                };
+                
+                var emplacement = new TrileEmplacement((int)itemEmplacement.X, (int)itemEmplacement.Y, (int)itemEmplacement.Z);
+                _trileMap.SetTrile(emplacement, newInstance);
+            }
         }
         
-        UndoRedo.CommitAction();
         ClearClipboard();
     }
 

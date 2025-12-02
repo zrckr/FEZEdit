@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using FEZEdit.Content;
 using FEZEdit.Core;
+using FEZEdit.Memento;
 using Godot;
+using Vector3 = Godot.Vector3;
 
 namespace FEZEdit.Editors.Eddy;
 
@@ -14,15 +17,15 @@ using FEZRepacker.Core.Definitions.Game.TrileSet;
 
 public partial class TrileMap : Node3D
 {
+    public static readonly Vector3 EmplacementCenter = Vector3.One / 2.0f;
+    
     private const int ChunkSize = 16;
 
     private const float CollisionAlpha = 0.5f;
 
     private const float CollisionOversize = 1.001f;
 
-    private readonly Dictionary<TrileEmplacement, TrileInstance> _triles = new();
-
-    private readonly Dictionary<Vector3I, Chunk> _chunks = new();
+    private readonly Dictionary<TrileEmplacement, Chunk> _chunks = new();
 
     private readonly Dictionary<TrileEmplacement, CullingMode> _culling = new();
 
@@ -35,6 +38,8 @@ public partial class TrileMap : Node3D
     private readonly Node _collisions = new();
 
     private readonly Node _proxies = new();
+    
+    private Dictionary<TrileEmplacement, TrileInstance> _triles = new();
 
     private CullingMode _cullingMode;
 
@@ -45,6 +50,18 @@ public partial class TrileMap : Node3D
     private int _updateQueued;
 
     #region Public
+    
+    public MementoManager Memento { get; private set; }
+
+    public Dictionary<TrileEmplacement, TrileInstance> Triles
+    {
+        get => _triles;
+        set
+        {
+            _triles = value;
+            Memento = new MementoManager(_triles);
+        }
+    }
 
     public CullingMode Culling
     {
@@ -82,7 +99,13 @@ public partial class TrileMap : Node3D
         }
     }
 
-    public Aabb Bounds { get; set; }
+    public Bounds Bounds { get; private set; } = Bounds.Default;
+
+    public void ForceUpdateChunks()
+    {
+        CullingUpdate();
+        ChunksUpdate();
+    }
 
     public override void _Notification(int what)
     {
@@ -125,9 +148,17 @@ public partial class TrileMap : Node3D
 
     #region Emplacements
 
+    public TrileInstance GetTrile(TrileEmplacement emplacement)
+    {
+        return _triles.GetValueOrDefault(emplacement);
+    }
+
     public void SetTrile(TrileEmplacement emplacement, TrileInstance instance)
     {
-        var chunkKey = new Vector3I(emplacement.X, emplacement.Y, emplacement.Z) / ChunkSize;
+        var chunkKey = new TrileEmplacement
+        {
+            X = emplacement.X / ChunkSize, Y = emplacement.Y / ChunkSize, Z = emplacement.Z / ChunkSize,
+        };
         Chunk chunk;
 
         if (instance == null)
@@ -169,7 +200,7 @@ public partial class TrileMap : Node3D
 
     #region Chunks
 
-    private bool ChunkUpdate(Vector3I chunkKey)
+    private bool ChunkUpdate(TrileEmplacement chunkKey)
     {
         if (!_chunks.TryGetValue(chunkKey, out Chunk chunk) || !chunk.Dirty)
         {
@@ -226,7 +257,7 @@ public partial class TrileMap : Node3D
 
             var xform = Transform3D.Identity;
             xform.Basis = BasisLookup[trile.PhiLight];
-            xform.Origin = trile.Position.ToGodot();
+            xform.Origin = EmplacementCenter + trile.Position.ToGodot();
             xforms.Add(xform);
         }
 
@@ -255,19 +286,6 @@ public partial class TrileMap : Node3D
             chunk.Instances.Add(mmi);
         }
 
-        // Compute bounds
-        foreach (var trileId in multiMeshIds.Keys)
-        {
-            var size = TrileSet.Triles[trileId].Size.ToGodot();
-            var offset = TrileSet.Triles[trileId].Offset.ToGodot();
-            var aabb = new Aabb(offset, size);
-
-            foreach (var xform in multiMeshIds[trileId])
-            {
-                Bounds.Merge(aabb * xform);
-            }
-        }
-
         // Place proxies
         foreach (var emplacement in culledChunks)
         {
@@ -292,7 +310,7 @@ public partial class TrileMap : Node3D
         return false;
     }
 
-    private void ChunkCleanUp(Vector3I chunkKey)
+    private void ChunkCleanUp(TrileEmplacement chunkKey)
     {
         if (_chunks.TryGetValue(chunkKey, out Chunk chunk))
         {
@@ -316,7 +334,7 @@ public partial class TrileMap : Node3D
 
     private void ChunksUpdate()
     {
-        var toDelete = new HashSet<Vector3I>();
+        var toDelete = new HashSet<TrileEmplacement>();
         foreach (var chunkKey in _chunks.Keys.Where(ChunkUpdate))
         {
             toDelete.Add(chunkKey);
@@ -380,8 +398,8 @@ public partial class TrileMap : Node3D
         _collisionMap.Clear();
 
         // Compute culling bounds
-        var start = new TrileEmplacement(int.MaxValue, int.MaxValue, int.MaxValue);
-        var end = new TrileEmplacement(int.MinValue, int.MinValue, int.MinValue);
+        var start = new TrileEmplacement(int.MaxValue, int.MaxValue, Int32.MaxValue);
+        var end = new TrileEmplacement(int.MinValue, int.MinValue, Int32.MinValue);
         foreach (var emplacement in _triles.Keys)
         {
             start = new TrileEmplacement
@@ -406,10 +424,13 @@ public partial class TrileMap : Node3D
                 continue;
             }
 
+            var side = cullingMode.GetSide();
+            var depth = cullingMode.GetDepth();
+
             // Determine iteration ranges based on view direction
-            var horizontalRange = GetRange(cullingMode.GetSide());
+            var horizontalRange = GetRange(side);
             var verticalRange = GetRange(Vector3I.Up);
-            var depthRange = GetRange(cullingMode.GetDepth());
+            var depthRange = GetRange(depth);
 
             // Iterate through the view plane
             for (int y = verticalRange.A; y <= verticalRange.B; y++)
@@ -417,15 +438,13 @@ public partial class TrileMap : Node3D
                 for (int x = horizontalRange.A; x <= horizontalRange.B; x++)
                 {
                     var emplacements = new List<TrileEmplacement>();
-                    var seeThroughBits = new BitArray(depthRange.B - depthRange.A + 1);
+                    var seeThrough = BigInteger.Zero;
 
                     // Collect triles along the depth axis for culling
                     int i = 0;
                     for (int z = depthRange.A; z <= depthRange.B; z++)
                     {
-                        var vector = Vector3I.Up * y + cullingMode.GetSide() * x + cullingMode.GetDepth() * z;
-                        var emplacement = new TrileEmplacement { X = vector.X, Y = vector.Y, Z = vector.Z };
-
+                        var emplacement = (Vector3I.Up * y + side * x + depth * z).ToXna();
                         if (!_triles.TryGetValue(emplacement, out TrileInstance trileInstance))
                         {
                             continue;
@@ -436,7 +455,7 @@ public partial class TrileMap : Node3D
                             continue;
                         }
 
-                        seeThroughBits[i++] = trile.SeeThrough;
+                        seeThrough = (seeThrough << 1) | (trile.SeeThrough ? BigInteger.One : BigInteger.Zero);
                         _culling.TryAdd(emplacement, CullingMode.None);
                         emplacements.Add(emplacement);
                     }
@@ -447,8 +466,7 @@ public partial class TrileMap : Node3D
                         continue;
                     }
 
-                    var seeThrough = GetInteger(seeThroughBits);
-                    var seeThroughAll = (ulong)(Mathf.Pow(2, emplacements.Count) - 1);
+                    var seeThroughAll = BigInteger.Pow(2, emplacements.Count) - 1;
 
                     // If all emplacements are solid, then cull only the front one
                     if (seeThrough == 0)
@@ -488,7 +506,15 @@ public partial class TrileMap : Node3D
                 }
             }
         }
-
+        
+        // Compute level bounds
+        Bounds = Bounds.Default;
+        foreach (var trile in _triles.Values)
+        {
+            var position = trile.Position.ToGodot() + EmplacementCenter;
+            Bounds = Bounds.Merge(position);
+        }
+        
         return;
 
         (int A, int B) GetRange(Vector3I axis)
@@ -498,13 +524,6 @@ public partial class TrileMap : Node3D
             return endValue < startValue
                 ? (endValue, startValue)
                 : (startValue, endValue);
-        }
-
-        ulong GetInteger(BitArray bits)
-        {
-            var array = new ulong[1];
-            bits.CopyTo(array, 0);
-            return array[0];
         }
     }
 
@@ -643,6 +662,12 @@ public partial class TrileMap : Node3D
         Debug.Assert(phi <= BasisLookup.Length);
         var rotatedBasis = BasisLookup[phi].Rotated(axis, angle);
         return FindPhi(rotatedBasis);
+    }
+
+    public static Basis GetPhiBasis(byte phi)
+    {
+        Debug.Assert(phi <= BasisLookup.Length);
+        return BasisLookup[phi];
     }
 
     #endregion

@@ -42,6 +42,10 @@ public partial class LevelScene : Control
     private LineEdit _timeEdit;
     
     private Node3D _selectedNode;
+    
+    private TrileMapEditor _trileMapEditor;
+
+    private EddyMaterializer _materializer;
 
     public override void _Ready()
     {
@@ -50,6 +54,7 @@ public partial class LevelScene : Control
         InitializeGrid();
         InitializeCamera();
         InitializeTime();
+        InitializeTrileMapEditor();
     }
 
     public override void _Process(double delta)
@@ -93,9 +98,20 @@ public partial class LevelScene : Control
 
     public void Materialize()
     {
-        // TODO: remove this later
-        var proxy = _rootNode.GetNode<MaterializerProxy>("Node3D/MaterializerProxy");
-        proxy.Object = Level.ArtObjects.Values.LastOrDefault();
+        if (Level == null)
+        {
+            return;
+        }
+        
+        _materializer = new EddyMaterializer();
+        _camera.AddSibling(_materializer, true);
+        
+        _materializer.Update(Level);
+        _trileMapEditor.Edit(_materializer.TrileMap);
+
+        var instance = Level.Triles[Level.StartingFace.Id];
+        var face = Level.StartingFace.Face;
+        _camera.LookAtStartingPosition(instance, face, _materializer.TrileMap.Bounds);
     }
 
     private void InitializeRootNode()
@@ -130,6 +146,12 @@ public partial class LevelScene : Control
                 _gizmo.UseLocalSpace = false;
             }
         };
+    }
+
+    private void InitializeTrileMapEditor()
+    {
+        _trileMapEditor = GetNode<TrileMapEditor>("%TrileMapEditor");
+        _trileMapEditor.Initialize(this, _camera);
     }
 
     private void InitializeCamera()

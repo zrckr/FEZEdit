@@ -1,42 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
 using FEZEdit.Content;
-using FEZRepacker.Core.Definitions.Game.Level;
 using Godot;
+
 using Mesh = Godot.Mesh;
 
 namespace FEZEdit.Editors.Eddy;
 
+using AnimatedTexture = FEZRepacker.Core.Definitions.Game.Graphics.AnimatedTexture;
 using Level = FEZRepacker.Core.Definitions.Game.Level.Level;
+using Texture2D = FEZRepacker.Core.Definitions.Game.XNA.Texture2D;
 
-public partial class LevelMaterializer : Node3D
+public partial class EddyMaterializer : Node3D
 {
     private const string BackgroundPlaneShader = "res://src/Shaders/BackgroundPlane.gdshader";
 
     private const string DefaultAnimation = "default";
 
-    public void Initialize(Level level)
+    public TrileMap TrileMap { get; private set; }
+
+    public override void _Ready()
+    { 
+        Name = nameof(EddyMaterializer);
+    }
+    
+    public void Update(Level level)
     {
-        Name = level.Name;
+        foreach (var child in GetChildren())
+        {
+            child.QueueFree();
+        }
+        
         MaterializeTriles(level);
-        MaterializeArtObjects(level);
+        // MaterializeArtObjects(level);
         MaterializeBackgroundPlanes(level);
-        MaterializeCharacters(level);
+        // MaterializeCharacters(level);
     }
 
     private void MaterializeTriles(Level level)
     {
         var trileSet = ContentLoader.LoadTrileSet(level.TrileSetName);
-        var trileMap = new TrileMap { Name = "Triles", TrileSet = trileSet };
-        
-        foreach ((TrileEmplacement emplacement, var instance) in level.Triles)
-        {
-            trileMap.SetTrile(emplacement, instance);
-        }
-        
-        AddChild(trileMap);
+        TrileMap = new TrileMap { Name = "Triles", TrileSet = trileSet, Triles = level.Triles };
+        TrileMap.ForceUpdateChunks();
+        AddChild(TrileMap);
     }
 
     private void MaterializeArtObjects(Level level)
@@ -78,17 +85,18 @@ public partial class LevelMaterializer : Node3D
 
         foreach (var name in levelBackgroundPlanes)
         {
-            try
+            var backgroundPlane = ContentLoader.LoadBackgroundPlane(name);
+            switch (backgroundPlane)
             {
-                var animatedTexture = ContentLoader.LoadBackgroundPlaneAnimated(name);
-                var frames = ContentConversion.ConvertToSpriteFrames(animatedTexture); 
-                spriteFrames.Add(name, frames);
-            }
-            catch (Exception)
-            {
-                var texture2D = ContentLoader.LoadBackgroundPlane(name);
-                var imageTexture = ContentConversion.ConvertToTexture(texture2D);
-                imageTextures.Add(name, imageTexture);
+                case Texture2D texture:
+                    var imageTexture = ContentConversion.ConvertToTexture(texture);
+                    imageTextures.Add(name, imageTexture);
+                    break;
+                
+                case AnimatedTexture animatedTexture:
+                    var frames = ContentConversion.ConvertToSpriteFrames(animatedTexture);
+                    spriteFrames.Add(name, frames);
+                    break;
             }
         }
 

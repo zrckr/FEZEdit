@@ -11,8 +11,6 @@ public partial class EddyEditor : Editor
     private const int AssetBrowserTab = 0;
 
     private const int InspectorTab = 1;
-    
-    public override event Action ValueChanged;
 
     public override object Value
     {
@@ -29,8 +27,6 @@ public partial class EddyEditor : Editor
             _inspector.Disabled = value;
         }
     }
-
-    public override UndoRedo UndoRedo { get; } = new();
 
     private Level _level = new();
 
@@ -54,7 +50,12 @@ public partial class EddyEditor : Editor
         InitializeAssetBrowser();
         InitializeInspector();
     }
-    
+
+    public override void _Refresh()
+    {
+        _levelInstances._Refresh();
+    }
+
     private void InitializeLevelScene()
     {
         _levelScene = GetNode<LevelScene>("%LevelScene");
@@ -67,10 +68,9 @@ public partial class EddyEditor : Editor
     {
         _instanceTable = GetNode<InstanceTable>("%InstanceTable");
         _levelInstances = GetNode<LevelInstances>("%LevelInstances");
-        _levelInstances.ValueChanged += UpdateLevelInstances;
         _levelInstances.ValueInspected += InspectValueFromLevelInstance;
         _levelInstances.InstanceTable = _instanceTable;
-        _levelInstances.UndoRedo = UndoRedo;
+        _levelInstances.Memento = Memento;
         _levelInstances.Level = _level;
     }
 
@@ -90,13 +90,7 @@ public partial class EddyEditor : Editor
     private void InitializeInspector()
     {
         _inspector = GetNode<Inspector>("%Inspector");
-        _inspector.UndoRedo = UndoRedo;
-    }
-    
-    private void UpdateLevelInstances()
-    {
-        _levelInstances.Level = _level;
-        _levelScene.Level = _level;
+        _inspector.Memento = Memento;
     }
     
     private void InspectValueFromLevelScene(object obj)

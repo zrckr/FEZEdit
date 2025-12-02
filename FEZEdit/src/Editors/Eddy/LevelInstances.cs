@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using FEZEdit.Memento;
 using Godot;
 
 namespace FEZEdit.Editors.Eddy;
@@ -24,11 +25,9 @@ public partial class LevelInstances : Control
         Scripts
     }
 
-    public event Action ValueChanged;
-
     public event Action<object> ValueInspected;
 
-    public UndoRedo UndoRedo { private get; set; }
+    public MementoManager Memento { private get; set; }
 
     public InstanceTable InstanceTable
     {
@@ -71,6 +70,11 @@ public partial class LevelInstances : Control
         InitializeButton(TableType.Paths, "%PathsButton", ShowPaths);
         InitializeButton(TableType.Volumes, "%VolumesButton", ShowVolumes);
         InitializeButton(TableType.Scripts, "%ScriptsButton", ShowScripts);
+    }
+
+    public void _Refresh()
+    {
+        RefreshCurrentTable();
     }
 
     public void FindAndSelectRow(object obj)
@@ -320,20 +324,11 @@ public partial class LevelInstances : Control
             return;
         }
 
-        UndoRedo.CreateAction($"Add new {newInstance.GetType().Name}");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope($"Add new {newInstance.GetType().Name}"))
         {
             _instances[id] = newInstance;
-            ValueChanged?.Invoke();
             RefreshCurrentTable();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _instances.Remove(id);
-            ValueChanged?.Invoke();
-            RefreshCurrentTable();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void SelectInstance(int id)
@@ -357,20 +352,11 @@ public partial class LevelInstances : Control
             return;
         }
 
-        UndoRedo.CreateAction($"Delete the {existingInstance.GetType().Name}");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope($"Delete the {existingInstance.GetType().Name}"))
         {
             _instances.Remove(id);
-            ValueChanged?.Invoke();
             RefreshCurrentTable();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _instances[id] = existingInstance;
-            ValueChanged?.Invoke();
-            RefreshCurrentTable();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void CloneInstance(int id)
@@ -390,20 +376,11 @@ public partial class LevelInstances : Control
         var type = existingInstance.GetType();
         var clonedInstance = CloneObject(existingInstance, type);
 
-        UndoRedo.CreateAction($"Clone the {type} ({nextId})");
-        UndoRedo.AddDoMethod(() =>
+        using (Memento.BeginScope($"Clone the {type} ({nextId})"))
         {
             _instances[nextId] = clonedInstance;
-            ValueChanged?.Invoke();
             RefreshCurrentTable();
-        });
-        UndoRedo.AddUndoMethod(() =>
-        {
-            _instances.Remove(nextId);
-            ValueChanged?.Invoke();
-            RefreshCurrentTable();
-        });
-        UndoRedo.CommitAction();
+        }
     }
 
     private void CloseInstanceTable()
