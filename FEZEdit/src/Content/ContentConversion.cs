@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using FEZEdit.Core;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
@@ -102,8 +101,9 @@ public static class ContentConversion
 
     public static SpriteFrames ConvertToSpriteFrames(AnimatedTexture animatedTexture)
     {
-        var totalDuration = new TimeSpan(animatedTexture.Frames.Sum(f => f.Duration.Ticks));
-        var fps = animatedTexture.Frames.Count / totalDuration.TotalSeconds;
+        var totalSeconds = animatedTexture.Frames.Sum(f => f.Duration.TotalSeconds);
+        var fps = animatedTexture.Frames.Count / totalSeconds;
+        var baseFrameDuration = (float)(totalSeconds / animatedTexture.Frames.Count);
         
         var spriteFrames = new SpriteFrames();
         spriteFrames.SetAnimationSpeed(DefaultAnimationName, fps);
@@ -113,7 +113,7 @@ public static class ContentConversion
         foreach (var frame in animatedTexture.Frames)
         {
             var atlasTexture = new AtlasTexture { Atlas = atlas, Region = frame.Rectangle.ToGodot() };
-            var duration = (float)(frame.Duration / totalDuration);
+            var duration = (float)(frame.Duration.TotalSeconds / baseFrameDuration);
             spriteFrames.AddFrame(DefaultAnimationName, atlasTexture, duration);
         }
 
@@ -127,8 +127,9 @@ public static class ContentConversion
 
         foreach ((string name, var animatedTexture) in animatedTextures)
         {
-            var totalDuration = new TimeSpan(animatedTexture.Frames.Sum(f => f.Duration.Ticks));
-            var fps = animatedTexture.Frames.Count / totalDuration.TotalSeconds;
+            var totalSeconds = animatedTexture.Frames.Sum(f => f.Duration.TotalSeconds);
+            var fps = animatedTexture.Frames.Count / totalSeconds;
+            var baseFrameDuration = (float)(totalSeconds / animatedTexture.Frames.Count);
             
             spriteFrames.AddAnimation(name);
             spriteFrames.SetAnimationSpeed(name, fps);
@@ -137,7 +138,7 @@ public static class ContentConversion
             foreach (var frame in animatedTexture.Frames)
             {
                 var atlasTexture = new AtlasTexture { Atlas = atlas, Region = frame.Rectangle.ToGodot() };
-                var duration = (float)(frame.Duration / totalDuration);
+                var duration = (float)(frame.Duration.TotalSeconds / baseFrameDuration);
                 spriteFrames.AddFrame(name, atlasTexture, duration);
             }
         }
