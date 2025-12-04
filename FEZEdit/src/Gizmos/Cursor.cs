@@ -15,6 +15,8 @@ public partial class Cursor : Node
 
     public event Action Deleted;
 
+    public event Action<float, Vector3.Axis> LevelChanged;
+
     [Export] private Vector3 _cursorOffset = Vector3.One / 2f;
     
     [Export] private Color _cursorColor = DefaultColor;
@@ -122,7 +124,7 @@ public partial class Cursor : Node
         _cursor.DefaultMesh.SurfaceSetMaterial(1, _cursor.OuterMaterial);
     }
 
-    public Vector3 GetCursorEmplacement()
+    public Transform3D GetCursorEmplacement()
     {
         return _cursor.Emplacement;
     }
@@ -130,6 +132,7 @@ public partial class Cursor : Node
     public void SetCursorInstance(GeometryInstance3D instance, Color? cursorColor = null)
     {
         var emplacement = _cursor.Emplacement;
+        emplacement.Basis = Basis.Identity;
         _cursor.Instance.QueueFree();
         
         if (instance != null)
@@ -149,12 +152,13 @@ public partial class Cursor : Node
         SetCursorEmplacement(emplacement);
     }
 
-    public void SetCursorEmplacement(Vector3 emplacement)
+    public void SetCursorEmplacement(Transform3D emplacement)
     {
         if (_cursor.Instance.Visible)
         {
             _cursor.Emplacement = emplacement;
-            _cursor.Instance.Position = emplacement + _cursorOffset;
+            _cursor.Instance.Position = emplacement.Origin + _cursorOffset;
+            _cursor.Instance.Basis = emplacement.Basis;
         }
     }
 
@@ -170,6 +174,17 @@ public partial class Cursor : Node
     {
         _cursor.Selecting = selecting;
         _cursor.Instance.Visible = !selecting;
+    }
+
+    public void RotateCursor()
+    {
+        if (_cursor.Instance.Visible)
+        {
+            var emplacement = _cursor.Emplacement;
+            emplacement.Basis = emplacement.Basis.Rotated(Vector3.Up, Mathf.Pi / 2f);
+            _cursor.Emplacement = emplacement;
+                
+        }
     }
 
     #endregion
@@ -250,6 +265,7 @@ public partial class Cursor : Node
     {
         _grid.Axis = axis;
         UpdateGrid();
+        LevelChanged?.Invoke(_grid.Level[(int)axis], axis);
     }
 
     public void HideGrid()
@@ -266,6 +282,7 @@ public partial class Cursor : Node
         level[(int)_grid.Axis] = value;
         _grid.Level = level;
         UpdateGrid();
+        LevelChanged?.Invoke(value, _grid.Axis);
 
         if (_selection.CurrentState == SelectionState.State.Active && _cursor.Selecting)
         {
@@ -289,8 +306,8 @@ public partial class Cursor : Node
             var xform = Transform3D.Identity;
             
             xform.Origin[i] = _grid.Level[i];
-            xform.Origin[axisN1] = _cursor.Emplacement[axisN1];
-            xform.Origin[axisN2] = _cursor.Emplacement[axisN2];
+            xform.Origin[axisN1] = _cursor.Emplacement.Origin[axisN1];
+            xform.Origin[axisN2] = _cursor.Emplacement.Origin[axisN2];
             xform.Basis = axis switch
             {
                 Vector3.Axis.X => Basis.Identity.Rotated(Vector3.Right, Mathf.Pi / 2f),
@@ -429,22 +446,24 @@ public partial class Cursor : Node
             return false;
         }
 
-        var emplacement = Vector3.Zero;
+        var position = Vector3.Zero;
         for (int i = 0; i < 3; i++)
         {
             if ((Vector3.Axis)i == _grid.Axis)
             {
-                emplacement[i] = (int)_grid.Level[i];
+                position[i] = (int)_grid.Level[i];
                 continue;
             }
 
-            emplacement[i] = (int)intersection.Value[i]; // Drop fractional part
-            if (emplacement[i] < 0f)
+            position[i] = (int)intersection.Value[i]; // Drop fractional part
+            if (position[i] < 0f)
             {
-                emplacement[i] -= 1f; // Compensate negative
+                position[i] -= 1f; // Compensate negative
             }
         }
-        
+
+        var emplacement = _cursor.Emplacement;
+        emplacement.Origin = position;
         SetCursorEmplacement(emplacement);
         UpdateGrid();
 
@@ -453,7 +472,7 @@ public partial class Cursor : Node
             Pressed?.Invoke();
             if (_cursor.Selecting)
             {
-                ResizeSelection(emplacement);
+                ResizeSelection(position);
             }
         }
 
@@ -462,6 +481,12 @@ public partial class Cursor : Node
 
     private bool HandleMouseButton(InputEventMouseButton button)
     {
+        if (button.ButtonIndex == MouseButton.Middle && button.Pressed)
+        {
+            RotateCursor();
+            return true;
+        }
+        
         if (button.ButtonIndex != MouseButton.Left)
         {
             _cursor.Pressed = false;
@@ -480,7 +505,7 @@ public partial class Cursor : Node
             Pressed?.Invoke();
             if (_cursor.Selecting)
             {
-                StartSelection(_cursor.Emplacement);
+                StartSelection(_cursor.Emplacement.Origin);
             }
             return true;
         }
@@ -519,7 +544,7 @@ public partial class Cursor : Node
     {
         public bool Selecting { get; set; }
         public bool Pressed { get; set; }
-        public Vector3 Emplacement { get; set; }
+        public Transform3D Emplacement { get; set; }
         public GeometryInstance3D Instance { get; set; }
         public ArrayMesh DefaultMesh { get; set; }
         public StandardMaterial3D InnerMaterial { get; set; }
