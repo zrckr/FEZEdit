@@ -6,6 +6,7 @@ using FEZEdit.Providers;
 using FEZEdit.Core;
 using FEZEdit.Main;
 using FEZRepacker.Core.Definitions.Game.ArtObject;
+using FEZRepacker.Core.Definitions.Game.NpcMetadata;
 using FEZRepacker.Core.Definitions.Game.TrileSet;
 using Godot;
 using Serilog;
@@ -109,7 +110,7 @@ public static class ContentLoader
         return Load<TrileSet>(Path.Combine("trile sets", assetName));
     }
 
-    public static object LoadBackgroundPlane(string assetName)
+    public static Union<Texture2D, AnimatedTexture> LoadBackgroundPlane(string assetName)
     {
         var @object = Load<object>(Path.Combine("background planes", assetName));
         return @object switch
@@ -125,16 +126,22 @@ public static class ContentLoader
         return Load<Texture2D>(Path.Combine("other textures", assetName));
     }
     
-    public static IDictionary<string, AnimatedTexture> LoadCharacterAnimations(string assetName)
+    public static CharacterAnimations LoadCharacterAnimations(string assetName)
     {
         var characterDirectory = Path.Combine("character animations", assetName).ToLower();
+        var metadataFile = Path.Combine(characterDirectory, "metadata").ToLower();
+        
+        NpcMetadata metadata = null;
+        if (ContentProvider.Exists(metadataFile))
+        {
+            metadata = Load<NpcMetadata>(metadataFile);
+        }
 
         var animations = new Dictionary<string, AnimatedTexture>();
         foreach (string file in ContentProvider?.Files ?? [])
         {
             var found = file.StartsWith(characterDirectory, StringComparison.InvariantCultureIgnoreCase);
-            var metadata = file.Contains("metadata");
-            if (found && !metadata)
+            if (found && !file.Equals(metadataFile))
             {
                 var @object = Load<AnimatedTexture>(file);
                 var fileName = Path.GetFileNameWithoutExtension(file);
@@ -142,7 +149,7 @@ public static class ContentLoader
             }
         }
 
-        return animations;
+        return new CharacterAnimations(animations, metadata);
     }
 
     public static AudioStreamWav LoadSound(string path)
