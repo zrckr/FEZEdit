@@ -15,9 +15,9 @@ config/version="1.0.0-dev.4"
 run/main_scene="uid://54v01g8k5xqy"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="FEZEdit"
-config/features=PackedStringArray("4.5", "C#", "GL Compatibility")
+config/features=PackedStringArray("4.6", "C#", "GL Compatibility")
 boot_splash/bg_color=Color(0.0627451, 0.0627451, 0.0627451, 1)
-boot_splash/fullsize=false
+boot_splash/stretch_mode=0
 boot_splash/image="uid://q5hkv01hnvxt"
 config/icon="uid://bipirl5kd6hdo"
 
